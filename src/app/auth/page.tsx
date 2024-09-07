@@ -1,11 +1,10 @@
-import Login from "@/components/auth/login";
-import Register from "@/components/auth/register";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { FC } from "react";
+import type { FC } from 'react';
 
-type Props = {};
+import Login from '@/components/auth/login';
+import Register from '@/components/auth/register';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-const Auth: FC<Props> = async ({}) => {
+const Auth: FC = async () => {
   return (
     <div className="container flex items-center justify-center">
       <Tabs defaultValue="login" className="w-[400px]">

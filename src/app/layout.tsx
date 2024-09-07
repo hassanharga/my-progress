@@ -1,19 +1,21 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import type { JSX, ReactNode } from 'react';
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 
-const inter = Inter({ subsets: ["latin"] });
+import './globals.css';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "What is my progress",
-  description: "help me to understand my progress for my projects",
+  title: 'What is my progress',
+  description: 'help me to understand my progress for my projects',
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
-}>) {
+  children: ReactNode;
+}>): JSX.Element {
   return (
     <html lang="en">
       <body className={inter.className}>{children}</body>

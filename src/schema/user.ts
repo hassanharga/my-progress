@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const loginSchema = z.object({
   email: z.string().email().trim(),
@@ -15,9 +15,9 @@ export const registerSchema = z
   .superRefine(({ confirmPassword, password }, ctx) => {
     if (confirmPassword !== password) {
       ctx.addIssue({
-        code: "custom",
-        message: "The passwords did not match",
-        path: ["confirmPassword"],
+        code: 'custom',
+        message: 'The passwords did not match',
+        path: ['confirmPassword'],
       });
     }
   });
