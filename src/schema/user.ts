@@ -21,3 +21,8 @@ export const registerSchema = z
       });
     }
   });
+
+export const settingsSchema = z.object({
+  currentProject: z.string().trim().optional(),
+  currentCompany: z.string().trim().optional(),
+});

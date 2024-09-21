@@ -1,10 +1,10 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { loginSchema, registerSchema } from '@/schema/user';
-import { setCookie } from '@/utils/cookie';
+import { loginSchema, registerSchema, settingsSchema } from '@/schema/user';
+import { getFromCookies, setCookie } from '@/utils/cookie';
+import { isTokenExpired } from '@/utils/token';
 import { type Prisma, type User } from '@prisma/client';
-import { z } from 'zod';
 
 import { paths } from '@/paths';
 import { actionClient } from '@/lib/action-client';
@@ -38,6 +38,18 @@ const findUser = async (email: string, select?: Prisma.UserSelect): Promise<User
   });
 };
 
+const validateUserToken = async (): Promise<Partial<User>> => {
+  const isExpired = await isTokenExpired();
+  if (isExpired) throw new Error('Unauthorized');
+
+  const token = await getFromCookies<string>('token');
+
+  const data = verifyToken(token!) as Partial<User>;
+  if (!data) throw new Error('Unauthorized');
+
+  return data;
+};
+
 export const createUser = actionClient.schema(registerSchema).action(async ({ parsedInput }) => {
   // check current user exists
   const isUserExist = await findUser(parsedInput.email, { id: true });
@@ -67,20 +79,42 @@ export const loginUser = actionClient.schema(loginSchema).action(async ({ parsed
   return mapReturnedUser(user);
 });
 
-export const me = actionClient
-  .schema(z.object({ token: z.string().optional() }))
-  .action(async ({ parsedInput: { token } }) => {
-    if (!token) throw new Error('Unauthorized');
-    const data = verifyToken(token) as Partial<User>;
-    if (!data) throw new Error('Unauthorized');
+export const me = actionClient.action(async () => {
+  await validateUserToken();
 
-    const user = await findUser(data?.email || '', {
+  const token = (await getFromCookies<string>('token'))!;
+
+  const data = verifyToken(token) as Partial<User>;
+  if (!data) throw new Error('Unauthorized');
+
+  const user = await findUser(data?.email || '', {
+    id: true,
+    name: true,
+    email: true,
+    currentCompany: true,
+    currentProject: true,
+  });
+
+  return { user };
+});
+
+export const updateSettings = actionClient.schema(settingsSchema).action(async ({ parsedInput }) => {
+  const { email } = await validateUserToken();
+
+  const data = await db.user.update({
+    where: { email },
+    select: {
       id: true,
       name: true,
       email: true,
       currentCompany: true,
       currentProject: true,
-    });
-
-    return { user };
+    },
+    data: {
+      currentCompany: parsedInput.currentCompany,
+      currentProject: parsedInput.currentProject,
+    },
   });
+
+  return data;
+});
