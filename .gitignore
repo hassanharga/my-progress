@@ -34,3 +34,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# postrgress data
+/data/
+
+# env
+/.env
+/.env.local
