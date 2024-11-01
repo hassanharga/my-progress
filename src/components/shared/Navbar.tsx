@@ -43,7 +43,7 @@ const Navbar: FC = () => {
   return (
     <div className="border-b-[1px] border-black w-full py-4 px-5 flex justify-between items-center">
       {/* greetings user */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col sm:flex-row gap-x-3 gap-y-1">
         <h3>{getUserGreetings()}</h3>
         {/* user name */}
 

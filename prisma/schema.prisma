@@ -35,7 +35,10 @@ enum TaskStatus {
 
 model Task {
   id             String     @id @default(uuid())
+  title          String
   status         TaskStatus @default(IN_PROGRESS)
+  progress       String?
+  todo           String?
   currentProject String?
   currentCompany String?
   createdAt      DateTime   @default(now())

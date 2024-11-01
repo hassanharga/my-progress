@@ -1,9 +1,9 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { validateUserToken } from '@/helpers/validate-user';
 import { loginSchema, registerSchema, settingsSchema } from '@/schema/user';
 import { getFromCookies, setCookie } from '@/utils/cookie';
-import { isTokenExpired } from '@/utils/token';
 import { type Prisma, type User } from '@prisma/client';
 
 import { paths } from '@/paths';
@@ -36,18 +36,6 @@ const findUser = async (email: string, select?: Prisma.UserSelect): Promise<User
     where: { email },
     select,
   });
-};
-
-const validateUserToken = async (): Promise<Partial<User>> => {
-  const isExpired = await isTokenExpired();
-  if (isExpired) throw new Error('Unauthorized');
-
-  const token = await getFromCookies<string>('token');
-
-  const data = verifyToken(token!) as Partial<User>;
-  if (!data) throw new Error('Unauthorized');
-
-  return data;
 };
 
 export const createUser = actionClient.schema(registerSchema).action(async ({ parsedInput }) => {
