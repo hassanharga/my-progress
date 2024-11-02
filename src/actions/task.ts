@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { validateUserToken } from '@/helpers/validate-user';
 import { logger } from '@/utils/logger';
-import type { Prisma, Task } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import { z } from 'zod';
 
 import { paths } from '@/paths';
@@ -54,8 +54,6 @@ export const updateTask = actionClient
       where: { taskId: id },
       orderBy: { from: 'desc' },
     });
-
-    console.log('lastLoggedTime ====>', lastLoggedTime);
 
     // prepare data based on status
     // if status is 'PAUSED' then set status 'PAUSED and update last logged time
@@ -113,12 +111,20 @@ export const findUserLastWorkingTask = async () => {
 };
 export type TaskWithLoggedTime = Prisma.PromiseReturnType<typeof findUserLastWorkingTask>;
 
-export const findUserLastCompletedTask = async (): Promise<Task | null> => {
+export const findUserLastCompletedTask = async () => {
   const user = await validateUserToken();
 
   const task = await prisma.task.findFirst({
     where: { status: 'COMPLETED', userId: user.id },
     orderBy: { updatedAt: 'desc' },
+    include: {
+      loggedTime: {
+        select: {
+          from: true,
+          to: true,
+        },
+      },
+    },
   });
 
   logger.debug('[findUserLastCompletedTask]', task);

@@ -1,9 +1,13 @@
 import { useState, type FC } from 'react';
+import dynamic from 'next/dynamic';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+
+// import Editor from '../shared/Editor';
+
+const Editor = dynamic(() => import('../../shared/Editor'), { ssr: false });
 
 type Props = { completeTask: ({ progress, todo }: { progress: string; todo: string }) => void; isExecuting: boolean };
 
@@ -14,7 +18,7 @@ export const CompleteTask: FC<Props> = ({ completeTask, isExecuting }) => {
   const [todo, setTodo] = useState('');
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={setOpen} modal>
       <DialogTrigger asChild>
         <Button
           onClick={() => {
@@ -24,7 +28,7 @@ export const CompleteTask: FC<Props> = ({ completeTask, isExecuting }) => {
           Complete Task
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]" aria-describedby="Complete task">
+      <DialogContent className="sm:min-w-[425px]" aria-describedby="Complete task">
         <DialogHeader>
           <DialogTitle>Complete Task</DialogTitle>
         </DialogHeader>
@@ -33,32 +37,26 @@ export const CompleteTask: FC<Props> = ({ completeTask, isExecuting }) => {
             <Label htmlFor="currentCompany" className="text-start w-[120px]">
               Your Progress
             </Label>
-            <Textarea
-              id="progress"
-              name="progress"
-              value={progress}
-              onChange={(e) => {
-                setProgress(e.target.value);
+            <Editor
+              onChange={(value) => {
+                setProgress(value);
               }}
             />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-10">
             <Label htmlFor="currentCompany" className="text-start w-[120px]">
               What todo next?
             </Label>
-            <Textarea
-              id="todo"
-              name="todo"
-              value={todo}
-              onChange={(e) => {
-                setTodo(e.target.value);
+            <Editor
+              onChange={(value) => {
+                setTodo(value);
               }}
             />
           </div>
         </div>
         <DialogFooter>
           <Button
-            className="self-end"
+            className="self-end mt-5"
             onClick={async () => {
               completeTask({ progress, todo });
             }}

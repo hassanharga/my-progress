@@ -20,10 +20,10 @@ export const CreateTask: FC<Props> = ({ createTask, isExecuting }) => {
             setOpen(true);
           }}
         >
-          Create Task
+          Start new task
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]" aria-describedby="Create task">
         <DialogHeader>
           <DialogTitle>Create Task</DialogTitle>
         </DialogHeader>

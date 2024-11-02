@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, type FC } from 'react';
+import { useEffect, useMemo, type FC } from 'react';
 import { useRouter } from 'next/navigation';
 import { deleteCookie } from '@/utils/cookie';
 import { useAction } from 'next-safe-action/hooks';
@@ -22,7 +22,7 @@ const Navbar: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const getUserGreetings = (): string => {
+  const greetings = useMemo(() => {
     const date = new Date();
     const hours = date.getHours();
     if (hours < 12) {
@@ -31,7 +31,7 @@ const Navbar: FC = () => {
       return '👋 Good afternoon';
     }
     return '👋 Good evening';
-  };
+  }, []);
 
   const logout = async (): Promise<void> => {
     // remove token from cookies
@@ -44,9 +44,8 @@ const Navbar: FC = () => {
     <div className="border-b-[1px] border-black w-full py-4 px-5 flex justify-between items-center">
       {/* greetings user */}
       <div className="flex flex-col sm:flex-row gap-x-3 gap-y-1">
-        <h3>{getUserGreetings()}</h3>
+        <h3>{greetings}</h3>
         {/* user name */}
-
         {result?.data?.user?.name}
       </div>
       {/* settings logout */}
