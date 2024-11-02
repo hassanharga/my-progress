@@ -5,6 +5,7 @@ import { useAction } from 'next-safe-action/hooks';
 import { createTask, updateTask } from '@/actions/task';
 import { Button } from '@/components/ui/button';
 
+import { CompleteTask } from './CompleteTask';
 import { CreateTask } from './CreateTask';
 
 interface TaskButtonsProps {
@@ -35,10 +36,9 @@ const TaskButtons: FC<TaskButtonsProps> = ({ task }) => {
     executeUpdateTask({ status: 'CANCELLED', id: task.id });
   };
 
-  const onCompleteTask = (): void => {
-    // TODO: open a modal to add the progress and todo
+  const onCompleteTask = ({ progress, todo }: { progress: string; todo: string }): void => {
     if (!task) return;
-    executeUpdateTask({ status: 'COMPLETED', id: task.id, progress: '', todo: '' });
+    executeUpdateTask({ status: 'COMPLETED', id: task.id, progress, todo });
   };
 
   return (
@@ -53,12 +53,10 @@ const TaskButtons: FC<TaskButtonsProps> = ({ task }) => {
       {/* resume task button */}
       {task?.status === 'PAUSED' ? <Button onClick={onResumeTask}>Resume Task</Button> : null}
 
-      {/* cancel task button */}
+      {/* complete & cancel task buttons */}
       {task?.status === 'IN_PROGRESS' || task?.status === 'RESUMED' ? (
         <>
-          <Button variant="outline" color="success" onClick={onCompleteTask}>
-            Complete
-          </Button>
+          <CompleteTask completeTask={onCompleteTask} isExecuting={isExecuting} />
           <Button onClick={onCancelTask} variant="destructive">
             Cancel Task
           </Button>
