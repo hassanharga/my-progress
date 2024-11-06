@@ -16,9 +16,9 @@ const TaskButtons: FC<TaskButtonsProps> = ({ task }) => {
   const { execute: executeCreateTask, isExecuting } = useAction(createTask);
   const { execute: executeUpdateTask } = useAction(updateTask);
 
-  const onStartTask = (title: string): void => {
+  const onStartTask = ({ title, progress }: { title: string; progress: string }): void => {
     if (!title?.trim()) return;
-    executeCreateTask({ title });
+    executeCreateTask({ title, progress });
   };
 
   const onPauseTask = (): void => {
@@ -56,7 +56,7 @@ const TaskButtons: FC<TaskButtonsProps> = ({ task }) => {
       {/* complete & cancel task buttons */}
       {task?.status === 'IN_PROGRESS' || task?.status === 'RESUMED' ? (
         <>
-          <CompleteTask completeTask={onCompleteTask} isExecuting={isExecuting} />
+          <CompleteTask completeTask={onCompleteTask} isExecuting={isExecuting} taskProgress={task?.progress} />
           <Button onClick={onCancelTask} variant="destructive">
             Cancel Task
           </Button>

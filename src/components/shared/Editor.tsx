@@ -5,10 +5,11 @@ import 'react-quill/dist/quill.snow.css';
 
 type Props = {
   onChange: (value: string) => void;
+  defaultValue?: string;
 };
 
-const Editor: FC<Props> = ({ onChange }) => {
-  const [content, setContent] = useState('');
+const Editor: FC<Props> = ({ onChange, defaultValue }) => {
+  const [content, setContent] = useState(defaultValue || '');
 
   const editorRef = useRef<ReactQuill | null>(null);
 

@@ -39,7 +39,7 @@ const ProgressAndTodo: FC<{ title: string; text: string | null }> = ({ title, te
       <h5 className="font-bold">{title}</h5>
 
       {text ? (
-        <div dangerouslySetInnerHTML={{ __html: text }} className="text-sm" />
+        <div dangerouslySetInnerHTML={{ __html: text }} />
       ) : (
         <div className="border rounded-sm p-1 text-sm text-center">No Content To Show</div>
       )}

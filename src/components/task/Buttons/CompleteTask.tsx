@@ -9,12 +9,16 @@ import { Label } from '@/components/ui/label';
 
 const Editor = dynamic(() => import('../../shared/Editor'), { ssr: false });
 
-type Props = { completeTask: ({ progress, todo }: { progress: string; todo: string }) => void; isExecuting: boolean };
+type Props = {
+  completeTask: ({ progress, todo }: { progress: string; todo: string }) => void;
+  isExecuting: boolean;
+  taskProgress: string | null;
+};
 
-export const CompleteTask: FC<Props> = ({ completeTask, isExecuting }) => {
+export const CompleteTask: FC<Props> = ({ completeTask, isExecuting, taskProgress }) => {
   const [open, setOpen] = useState(false);
 
-  const [progress, setProgress] = useState('');
+  const [progress, setProgress] = useState(taskProgress || '');
   const [todo, setTodo] = useState('');
 
   return (
@@ -38,6 +42,7 @@ export const CompleteTask: FC<Props> = ({ completeTask, isExecuting }) => {
               Your Progress
             </Label>
             <Editor
+              defaultValue={taskProgress || ''}
               onChange={(value) => {
                 setProgress(value);
               }}

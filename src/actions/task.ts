@@ -11,8 +11,8 @@ import { actionClient } from '@/lib/action-client';
 import prisma from '@/lib/db';
 
 export const createTask = actionClient
-  .schema(z.object({ title: z.string() }))
-  .action(async ({ parsedInput: { title } }) => {
+  .schema(z.object({ title: z.string(), progress: z.string().optional() }))
+  .action(async ({ parsedInput: { title, progress } }) => {
     const user = await validateUserToken();
 
     const useData = await prisma.user.findUnique({
@@ -23,6 +23,7 @@ export const createTask = actionClient
     await prisma.task.create({
       data: {
         title,
+        progress,
         userId: user.id!,
         currentCompany: useData?.currentCompany,
         currentProject: useData?.currentProject,
