@@ -47,16 +47,17 @@ const TaskButtons: FC<TaskButtonsProps> = ({ task }) => {
       {/* {!task ? <Button onClick={onStartTask}>Start Task</Button> : null} */}
       {!task ? <CreateTask createTask={onStartTask} isExecuting={isExecuting} /> : null}
 
-      {/* pause task button */}
-      {task?.status === 'IN_PROGRESS' ? <Button onClick={onPauseTask}>Pause Task</Button> : null}
-
       {/* resume task button */}
       {task?.status === 'PAUSED' ? <Button onClick={onResumeTask}>Resume Task</Button> : null}
 
-      {/* complete & cancel task buttons */}
+      {/* pause & complete & cancel task buttons */}
       {task?.status === 'IN_PROGRESS' || task?.status === 'RESUMED' ? (
         <>
+          {/* pause task button */}
+          <Button onClick={onPauseTask}>Pause Task</Button>
+          {/* complete task button */}
           <CompleteTask completeTask={onCompleteTask} isExecuting={isExecuting} taskProgress={task?.progress} />
+          {/* cancel task button */}
           <Button onClick={onCancelTask} variant="destructive">
             Cancel Task
           </Button>
