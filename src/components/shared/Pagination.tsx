@@ -29,7 +29,6 @@ const PaginationDemo: FC<Props> = ({ onChangePage, currentPage, totalPages }) =>
       pages.push(i);
     }
     if (endPage < totalPages - 1) pages.push('...');
-
     return pages;
   }, [currentPage, totalPages]);
 
@@ -87,7 +86,7 @@ const PaginationDemo: FC<Props> = ({ onChangePage, currentPage, totalPages }) =>
             <PaginationLink
               isActive={currentPage === totalPages}
               onClick={() => {
-                if (currentPage <= 1) return;
+                if (currentPage >= totalPages) return;
                 onChangePage(totalPages);
               }}
             >

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { validateUserToken } from '@/helpers/validate-user';
+import { calculateElapsedTime } from '@/utils/calculate-elapsed-time';
 import { logger } from '@/utils/logger';
 import type { Prisma } from '@prisma/client';
 import { z } from 'zod';
@@ -108,7 +109,11 @@ export const findUserLastWorkingTask = async () => {
 
   logger.debug('[findUserLastWorkingTask]', task);
 
-  return task;
+  if (!task) return null;
+
+  const { loggedTime, ...data } = task || {};
+
+  return { ...data, duration: loggedTime ? calculateElapsedTime(loggedTime) : '' };
 };
 
 export const findUserLastCompletedTask = async () => {
@@ -129,10 +134,14 @@ export const findUserLastCompletedTask = async () => {
 
   logger.debug('[findUserLastCompletedTask]', task);
 
-  return task;
+  if (!task) return null;
+
+  const { loggedTime, ...data } = task || {};
+
+  return { ...data, duration: loggedTime ? calculateElapsedTime(loggedTime) : '' };
 };
 
-export const getTasks = actionClient
+export const getTasksList = actionClient
   .schema(
     z.object({
       limit: z.number().default(10),
@@ -155,22 +164,22 @@ export const getTasks = actionClient
         status: true,
         currentCompany: true,
         currentProject: true,
+        loggedTime: {
+          select: {
+            from: true,
+            to: true,
+          },
+        },
       },
-      // include: {
-      //   loggedTime: {
-      //     select: {
-      //       from: true,
-      //       to: true,
-      //     },
-      //   },
-      // },
     });
 
     const [total, tasks] = await Promise.all([tasksCount, tasksPromise]);
 
-    return { total, tasks };
+    return {
+      total,
+      tasks: tasks.map(({ loggedTime, ...task }) => ({ ...task, duration: calculateElapsedTime(loggedTime) })),
+    };
   });
 
 export type TaskWithLoggedTime = Prisma.PromiseReturnType<typeof findUserLastWorkingTask>;
 export type CompletedTaskWithLoggedTime = Prisma.PromiseReturnType<typeof findUserLastCompletedTask>;
-export type TasksWithLoggedTime = Prisma.PromiseReturnType<typeof getTasks>;

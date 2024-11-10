@@ -1,15 +1,14 @@
 import { type FC } from 'react';
-import { type Task } from '@prisma/client';
 import { useAction } from 'next-safe-action/hooks';
 
-import { createTask, updateTask } from '@/actions/task';
+import { createTask, updateTask, type TaskWithLoggedTime } from '@/actions/task';
 import { Button } from '@/components/ui/button';
 
 import { CompleteTask } from './CompleteTask';
 import { CreateTask } from './CreateTask';
 
 interface TaskButtonsProps {
-  task: Task | null;
+  task: TaskWithLoggedTime | null;
 }
 
 const TaskButtons: FC<TaskButtonsProps> = ({ task }) => {
