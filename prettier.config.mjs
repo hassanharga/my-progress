@@ -27,8 +27,22 @@ const config = {
     '^@/styles/(.*)$',
     '',
     '^[./]',
+    // '^(.*).css$',
+    // '',
+    // '^react$',
+    // '',
+    // '<THIRD_PARTY_MODULES>',
+    // '',
+    // '^@components/(.*)$',
+    // '',
+    // '^@hooks/(.*)$',
+    // '',
+    // '^[./]',
   ],
+  importOrderSeparation: true,
+  importOrderSortSpecifiers: true,
   plugins: ['@ianvs/prettier-plugin-sort-imports'],
+  // plugins: ['@trivago/prettier-plugin-sort-imports'],
 };
 
 export default config;

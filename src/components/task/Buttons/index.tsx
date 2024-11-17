@@ -41,7 +41,7 @@ const TaskButtons: FC<TaskButtonsProps> = ({ task }) => {
   };
 
   return (
-    <div className="flex space-x-2">
+    <div className="flex space-x-2 items-center justify-center">
       {/* start new task button */}
       {/* {!task ? <Button onClick={onStartTask}>Start Task</Button> : null} */}
       {!task ? <CreateTask createTask={onStartTask} isExecuting={isExecuting} /> : null}
@@ -53,7 +53,9 @@ const TaskButtons: FC<TaskButtonsProps> = ({ task }) => {
       {task?.status === 'IN_PROGRESS' || task?.status === 'RESUMED' ? (
         <>
           {/* pause task button */}
-          <Button onClick={onPauseTask}>Pause Task</Button>
+          <Button onClick={onPauseTask} variant="outline">
+            Pause Task
+          </Button>
           {/* complete task button */}
           <CompleteTask completeTask={onCompleteTask} isExecuting={isExecuting} taskProgress={task?.progress} />
           {/* cancel task button */}

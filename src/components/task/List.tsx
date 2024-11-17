@@ -1,11 +1,10 @@
-'use client';
-
 import { useEffect, useMemo, useState, type FC } from 'react';
 import { type Task } from '@prisma/client';
 import { useAction } from 'next-safe-action/hooks';
 
 import { getTasksList } from '@/actions/task';
 
+import Status from '../shared/Status';
 import TableData from '../shared/Table';
 
 const List: FC = () => {
@@ -30,9 +29,16 @@ const List: FC = () => {
 
   return (
     <TableData
-      captionLabel="A list of your recent tasks."
+      captionLabel="A list of your tasks."
       headers={['Title', 'Status', 'Duration', 'Project', 'Company']}
-      rows={tasks?.map((task) => [task.title, task.status, task.duration, task.currentProject, task.currentCompany])}
+      rows={tasks?.map((task, idx) => [
+        task.title,
+        // eslint-disable-next-line react/no-array-index-key
+        <Status key={idx} status={task.status} />,
+        task.duration,
+        task.currentProject,
+        task.currentCompany,
+      ])}
       currentPage={page}
       totalPages={Math.ceil(totalPages / limit)}
       onChangePage={(newPage) => {

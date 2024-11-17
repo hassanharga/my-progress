@@ -1,6 +1,6 @@
 'use server';
 
-import { redirect } from 'next/navigation';
+import { redirect, RedirectType } from 'next/navigation';
 import { validateUserToken } from '@/helpers/validate-user';
 import { loginSchema, registerSchema, settingsSchema } from '@/schema/user';
 import { getFromCookies, setCookie } from '@/utils/cookie';
@@ -28,7 +28,7 @@ const mapReturnedUser = async (user: User): Promise<never> => {
   //  return user and token
   // return { user: { id, name, email }, token: generateToken({ id, name, email }) };
 
-  redirect(paths.home);
+  redirect(paths.home, RedirectType.replace);
 };
 
 const findUser = async (email: string, select?: Prisma.UserSelect): Promise<User | null> => {

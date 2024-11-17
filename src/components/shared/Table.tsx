@@ -24,9 +24,9 @@ const TableData = <T extends object>({
   totalPages,
 }: Props<T>): JSX.Element => {
   return (
-    <div className="self-stretch flex flex-col items-center gap-3">
+    <div className="self-stretch flex flex-col items-center gap-3 p-4">
       <Table>
-        <TableCaption className="caption-top">{captionLabel}</TableCaption>
+        <TableCaption className="caption-top py-2">{captionLabel}</TableCaption>
         <TableHeader>
           <TableRow>{headers?.map((header) => <TableHead key={header}>{header}</TableHead>)}</TableRow>
         </TableHeader>

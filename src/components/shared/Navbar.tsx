@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useMemo, type FC } from 'react';
 import { useRouter } from 'next/navigation';
 import { deleteCookie } from '@/utils/cookie';
@@ -41,7 +39,7 @@ const Navbar: FC = () => {
   };
 
   return (
-    <div className="border-b-[1px] border-foreground w-full py-4  flex justify-between items-center">
+    <div className="border-b-[1px] border-background w-full p-4 flex justify-between items-center">
       {/* greetings user */}
       <div className="flex flex-col sm:flex-row gap-x-3 gap-y-1">
         <h3>{greetings}</h3>

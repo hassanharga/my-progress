@@ -19,6 +19,7 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
 
     // Check if the token has expired
     const isExpired = await isTokenExpired(); // current time in seconds
+    // console.log('isExpired ====>', isExpired);
     if (isExpired) {
       return NextResponse.redirect(new URL(paths.auth, req.url));
     }

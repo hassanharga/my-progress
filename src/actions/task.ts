@@ -116,11 +116,11 @@ export const findUserLastWorkingTask = async () => {
   return { ...data, duration: loggedTime ? calculateElapsedTime(loggedTime) : '' };
 };
 
-export const findUserLastCompletedTask = async () => {
+export const findUserLastTask = async () => {
   const user = await validateUserToken();
 
   const task = await prisma.task.findFirst({
-    where: { status: 'COMPLETED', userId: user.id },
+    where: { status: { notIn: ['IN_PROGRESS', 'RESUMED', 'PAUSED'] }, userId: user.id },
     orderBy: { updatedAt: 'desc' },
     include: {
       loggedTime: {
@@ -132,7 +132,7 @@ export const findUserLastCompletedTask = async () => {
     },
   });
 
-  logger.debug('[findUserLastCompletedTask]', task);
+  logger.debug('[findUserLastTask]', task);
 
   if (!task) return null;
 
@@ -177,9 +177,14 @@ export const getTasksList = actionClient
 
     return {
       total,
-      tasks: tasks.map(({ loggedTime, ...task }) => ({ ...task, duration: calculateElapsedTime(loggedTime) })),
+      tasks: tasks.map(({ loggedTime, currentCompany, currentProject, ...task }) => ({
+        ...task,
+        currentCompany: currentCompany || '-',
+        currentProject: currentProject || '-',
+        duration: calculateElapsedTime(loggedTime),
+      })),
     };
   });
 
 export type TaskWithLoggedTime = Prisma.PromiseReturnType<typeof findUserLastWorkingTask>;
-export type CompletedTaskWithLoggedTime = Prisma.PromiseReturnType<typeof findUserLastCompletedTask>;
+export type LastTaskWithLoggedTime = Prisma.PromiseReturnType<typeof findUserLastTask>;
