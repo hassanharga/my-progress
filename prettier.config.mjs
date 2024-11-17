@@ -39,8 +39,8 @@ const config = {
     // '',
     // '^[./]',
   ],
-  importOrderSeparation: true,
-  importOrderSortSpecifiers: true,
+  // importOrderSeparation: true,
+  // importOrderSortSpecifiers: true,
   plugins: ['@ianvs/prettier-plugin-sort-imports'],
   // plugins: ['@trivago/prettier-plugin-sort-imports'],
 };
