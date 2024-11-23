@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { validateUserToken } from '@/helpers/validate-user';
 import { calculateElapsedTime } from '@/utils/calculate-elapsed-time';
 import { logger } from '@/utils/logger';
-import type { Prisma } from '@prisma/client';
+import type { Prisma, Task } from '@prisma/client';
 import { z } from 'zod';
 
 import { paths } from '@/paths';
@@ -13,8 +13,8 @@ import { actionClient } from '@/lib/action-client';
 import prisma from '@/lib/db';
 
 export const createTask = actionClient
-  .schema(z.object({ title: z.string(), progress: z.string().optional() }))
-  .action(async ({ parsedInput: { title, progress } }) => {
+  .schema(z.object({ title: z.string(), project: z.string(), progress: z.string().optional() }))
+  .action(async ({ parsedInput: { title, progress, project } }) => {
     const user = await validateUserToken();
 
     const useData = await prisma.user.findUnique({
@@ -28,7 +28,7 @@ export const createTask = actionClient
         progress,
         userId: user.id!,
         currentCompany: useData?.currentCompany,
-        currentProject: useData?.currentProject,
+        currentProject: project || useData?.currentProject,
         loggedTime: {
           create: {
             from: new Date(),
@@ -92,6 +92,14 @@ export const updateTask = actionClient
     revalidatePath(paths.home);
   });
 
+const mapTask = (task: (Task & { loggedTime: { from: Date; to: Date | null }[] }) | null) => {
+  if (!task) return null;
+
+  const { loggedTime, ...data } = task || {};
+
+  return { ...data, duration: loggedTime ? calculateElapsedTime(loggedTime) : '' };
+};
+
 export const findUserLastWorkingTask = async () => {
   const user = await validateUserToken();
 
@@ -110,11 +118,7 @@ export const findUserLastWorkingTask = async () => {
 
   logger.debug('[findUserLastWorkingTask]', task);
 
-  if (!task) return null;
-
-  const { loggedTime, ...data } = task || {};
-
-  return { ...data, duration: loggedTime ? calculateElapsedTime(loggedTime) : '' };
+  return mapTask(task);
 };
 
 export const findUserLastTask = async () => {
@@ -135,11 +139,7 @@ export const findUserLastTask = async () => {
 
   logger.debug('[findUserLastTask]', task);
 
-  if (!task) return null;
-
-  const { loggedTime, ...data } = task || {};
-
-  return { ...data, duration: loggedTime ? calculateElapsedTime(loggedTime) : '' };
+  return mapTask(task);
 };
 
 export const getTasksList = actionClient
@@ -185,6 +185,23 @@ export const getTasksList = actionClient
         duration: calculateElapsedTime(loggedTime),
       })),
     };
+  });
+
+export const getTaskById = actionClient
+  .schema(z.object({ taskId: z.string().uuid() }))
+  .action(async ({ parsedInput }) => {
+    const { taskId } = parsedInput;
+
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      include: {
+        loggedTime: { select: { from: true, to: true } },
+      },
+    });
+
+    logger.debug('[getTaskById]', task);
+
+    return mapTask(task);
   });
 
 export type TaskWithLoggedTime = Prisma.PromiseReturnType<typeof findUserLastWorkingTask>;

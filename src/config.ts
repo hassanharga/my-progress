@@ -10,6 +10,7 @@ export const config = {
     primaryColor: 'itbaPrimary',
     url: getSiteURL(),
     version: process.env.NEXT_PUBLIC_SITE_VERSION || '0.0.0',
+    isProduction: process.env.NODE_ENV === 'production',
   },
   logLevel: (process.env.NEXT_PUBLIC_LOG_LEVEL as keyof typeof LogLevel) || LogLevel.ALL,
   jwt: {

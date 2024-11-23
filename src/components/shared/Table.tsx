@@ -9,10 +9,11 @@ import PaginationDemo from './Pagination';
 type Props<T> = {
   captionLabel?: string;
   headers: string[];
-  rows: T[];
+  rows: { data: T; values: (string | JSX.Element)[] }[];
   currentPage: number;
   totalPages: number;
   onChangePage: (page: number) => void;
+  onRowClick: (data: T) => void;
 };
 
 const TableData = <T extends object>({
@@ -22,9 +23,10 @@ const TableData = <T extends object>({
   currentPage,
   onChangePage,
   totalPages,
+  onRowClick,
 }: Props<T>): JSX.Element => {
   return (
-    <div className="self-stretch flex flex-col items-center gap-3 p-4">
+    <div className="self-stretch flex flex-col items-center gap-3 p-4 pb-10">
       <Table>
         <TableCaption className="caption-top py-2">{captionLabel}</TableCaption>
         <TableHeader>
@@ -32,8 +34,14 @@ const TableData = <T extends object>({
         </TableHeader>
         <TableBody>
           {rows?.map((row, rowIdx) => (
-            <TableRow key={rowIdx}>
-              {Object.values(row).map((value, cellIdx) => (
+            <TableRow
+              key={rowIdx}
+              className="cursor-pointer"
+              onClick={() => {
+                onRowClick(row.data);
+              }}
+            >
+              {row.values.map((value, cellIdx) => (
                 <TableCell key={cellIdx}>{value}</TableCell>
               ))}
             </TableRow>

@@ -8,7 +8,7 @@ export default async function Home(): Promise<JSX.Element> {
 
   return (
     <main className="w-full flex flex-col items-center gap-3 overflow-y-auto">
-      {/* navbar */}
+      {/* page details */}
       <TaskDetails task={task} lastTask={lastTask} />
     </main>
   );

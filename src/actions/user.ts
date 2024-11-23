@@ -23,7 +23,8 @@ const mapReturnedUser = async (user: User): Promise<never> => {
 
   // generate token
   const token = generateToken({ id, name, email });
-  await setCookie('token', token);
+  // 12 hours
+  await setCookie('token', token, { maxAge: 43200 });
 
   //  return user and token
   // return { user: { id, name, email }, token: generateToken({ id, name, email }) };
@@ -82,6 +83,8 @@ export const me = actionClient.action(async () => {
     currentCompany: true,
     currentProject: true,
   });
+
+  if (!user) return null;
 
   return { user };
 });

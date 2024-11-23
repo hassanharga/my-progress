@@ -1,7 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 
+import { config } from '@/config';
+
 const prismaClientSingleton = (): PrismaClient => {
-  return new PrismaClient({ log: ['query'] });
+  return new PrismaClient({ log: config.site.isProduction ? ['query'] : [] });
 };
 
 declare const globalThis: {

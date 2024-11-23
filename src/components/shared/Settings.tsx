@@ -59,7 +59,7 @@ export const Settings: FC<Props> = ({ currentProject, currentCompany, refetch })
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          variant="ghost"
+          variant="outline"
           onClick={() => {
             setOpen(true);
           }}

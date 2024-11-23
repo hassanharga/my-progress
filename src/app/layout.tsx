@@ -4,6 +4,8 @@ import { Inter } from 'next/font/google';
 
 import './globals.css';
 
+import UserProvider from '@/components/contexts/user.context';
+
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
@@ -18,7 +20,9 @@ export default function RootLayout({
 }>): JSX.Element {
   return (
     <html lang="en">
-      <body className={`${inter.className} overflow-hidden`}>{children}</body>
+      <body className={`${inter.className} overflow-hidden`}>
+        <UserProvider>{children}</UserProvider>
+      </body>
     </html>
   );
 }

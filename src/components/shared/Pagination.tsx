@@ -36,7 +36,7 @@ const PaginationDemo: FC<Props> = ({ onChangePage, currentPage, totalPages }) =>
     <Pagination>
       <PaginationContent>
         {/* previous page */}
-        <PaginationItem>
+        <PaginationItem className="cursor-pointer">
           <PaginationPrevious
             onClick={() => {
               if (currentPage <= 1) return;
@@ -45,7 +45,7 @@ const PaginationDemo: FC<Props> = ({ onChangePage, currentPage, totalPages }) =>
           />
         </PaginationItem>
         {/* first page */}
-        <PaginationItem>
+        <PaginationItem className="cursor-pointer">
           <PaginationLink
             isActive={currentPage === 1}
             onClick={() => {
@@ -66,7 +66,7 @@ const PaginationDemo: FC<Props> = ({ onChangePage, currentPage, totalPages }) =>
                 <PaginationEllipsis />
               </PaginationItem>
             ) : (
-              <PaginationItem>
+              <PaginationItem className="cursor-pointer">
                 <PaginationLink
                   isActive={currentPage === page}
                   onClick={() => {
@@ -82,7 +82,7 @@ const PaginationDemo: FC<Props> = ({ onChangePage, currentPage, totalPages }) =>
 
         {/* Last Page */}
         {totalPages > 1 && (
-          <PaginationItem>
+          <PaginationItem className="cursor-pointer">
             <PaginationLink
               isActive={currentPage === totalPages}
               onClick={() => {
@@ -96,7 +96,7 @@ const PaginationDemo: FC<Props> = ({ onChangePage, currentPage, totalPages }) =>
         )}
 
         {/* next page */}
-        <PaginationItem>
+        <PaginationItem className="cursor-pointer">
           <PaginationNext
             onClick={() => {
               if (currentPage >= totalPages) return;

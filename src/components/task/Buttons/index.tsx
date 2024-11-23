@@ -9,15 +9,16 @@ import { CreateTask } from './CreateTask';
 
 interface TaskButtonsProps {
   task: TaskWithLoggedTime | null;
+  lastTaskTodo?: string;
 }
 
-const TaskButtons: FC<TaskButtonsProps> = ({ task }) => {
+const TaskButtons: FC<TaskButtonsProps> = ({ task, lastTaskTodo }) => {
   const { execute: executeCreateTask, isExecuting } = useAction(createTask);
   const { execute: executeUpdateTask } = useAction(updateTask);
 
-  const onStartTask = ({ title, progress }: { title: string; progress: string }): void => {
+  const onStartTask = ({ title, progress, project }: { title: string; progress: string; project: string }): void => {
     if (!title?.trim()) return;
-    executeCreateTask({ title, progress });
+    executeCreateTask({ title, progress, project });
   };
 
   const onPauseTask = (): void => {
@@ -44,7 +45,9 @@ const TaskButtons: FC<TaskButtonsProps> = ({ task }) => {
     <div className="flex space-x-2 items-center justify-center">
       {/* start new task button */}
       {/* {!task ? <Button onClick={onStartTask}>Start Task</Button> : null} */}
-      {!task ? <CreateTask createTask={onStartTask} isExecuting={isExecuting} /> : null}
+      {!task ? (
+        <CreateTask createTask={onStartTask} isExecuting={isExecuting} lastTaskTodo={lastTaskTodo || ''} />
+      ) : null}
 
       {/* resume task button */}
       {task?.status === 'PAUSED' ? <Button onClick={onResumeTask}>Resume Task</Button> : null}

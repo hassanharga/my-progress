@@ -1,6 +1,7 @@
-import { useState, type FC } from 'react';
+import { useEffect, useState, type FC } from 'react';
 import dynamic from 'next/dynamic';
 
+import { useUserContext } from '@/components/contexts/user.context';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -8,13 +9,25 @@ import { Label } from '@/components/ui/label';
 
 const Editor = dynamic(() => import('../../shared/Editor'), { ssr: false });
 
-type Props = { createTask: ({ progress, title }: { progress: string; title: string }) => void; isExecuting: boolean };
+type Props = {
+  createTask: ({ progress, title }: { progress: string; title: string; project: string }) => void;
+  isExecuting: boolean;
+  lastTaskTodo: string;
+};
 
-export const CreateTask: FC<Props> = ({ createTask, isExecuting }) => {
+export const CreateTask: FC<Props> = ({ createTask, isExecuting, lastTaskTodo }) => {
   const [open, setOpen] = useState(false);
+  const { user } = useUserContext();
 
   const [title, setTitle] = useState('');
-  const [progress, setProgress] = useState('');
+  const [project, setProject] = useState('');
+  const [progress, setProgress] = useState(lastTaskTodo);
+
+  useEffect(() => {
+    // console.log('user ====>', user);
+    if (!user) return;
+    setProject(user?.currentProject || '');
+  }, [user]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -34,7 +47,7 @@ export const CreateTask: FC<Props> = ({ createTask, isExecuting }) => {
         <div className="flex flex-col gap-4 py-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="currentCompany" className="text-start">
-              Title
+              Title*
             </Label>
             <Input
               id="title"
@@ -47,9 +60,23 @@ export const CreateTask: FC<Props> = ({ createTask, isExecuting }) => {
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="currentCompany" className="text-start">
-              What should you do?
+              Project*
+            </Label>
+            <Input
+              id="project"
+              name="project"
+              value={project}
+              onChange={(e) => {
+                setProject(e.target.value);
+              }}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="currentCompany" className="text-start">
+              What are you going to do in this task?
             </Label>
             <Editor
+              defaultValue={lastTaskTodo}
               onChange={(value) => {
                 setProgress(value);
               }}
@@ -60,9 +87,9 @@ export const CreateTask: FC<Props> = ({ createTask, isExecuting }) => {
           <Button
             className="self-end mt-5"
             onClick={async () => {
-              createTask({ title, progress });
+              createTask({ title, progress, project });
             }}
-            disabled={isExecuting}
+            disabled={isExecuting || !title || !project}
           >
             Create Task
           </Button>
