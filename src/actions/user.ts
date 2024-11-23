@@ -4,6 +4,7 @@ import { redirect, RedirectType } from 'next/navigation';
 import { validateUserToken } from '@/helpers/validate-user';
 import { loginSchema, registerSchema, settingsSchema } from '@/schema/user';
 import { getFromCookies, setCookie } from '@/utils/cookie';
+import { logger } from '@/utils/logger';
 import { type Prisma, type User } from '@prisma/client';
 
 import { paths } from '@/paths';
@@ -59,6 +60,7 @@ export const createUser = actionClient.schema(registerSchema).action(async ({ pa
 export const loginUser = actionClient.schema(loginSchema).action(async ({ parsedInput }) => {
   // check user exists
   const user = await findUser(parsedInput.email);
+  logger.debug('user', user);
   if (!user) throw new Error('Bad Credential');
 
   // check password
