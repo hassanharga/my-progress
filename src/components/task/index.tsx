@@ -20,7 +20,7 @@ const TaskDetails: FC<Props> = ({ task, lastTask }) => {
       {/* task card */}
       <TaskCard task={task} title="Current Task Details" lastTaskTodo={lastTask?.todo || ''} showActions />
       {/* last task */}
-      <TaskCard task={lastTask} title="Last Task Details" />
+      {lastTask ? <TaskCard task={lastTask} title="Last Task Details" /> : null}
       {/* list of user tasks */}
       <TasksList />
     </>

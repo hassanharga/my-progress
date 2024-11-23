@@ -33,19 +33,28 @@ const TableData = <T extends object>({
           <TableRow>{headers?.map((header) => <TableHead key={header}>{header}</TableHead>)}</TableRow>
         </TableHeader>
         <TableBody>
-          {rows?.map((row, rowIdx) => (
-            <TableRow
-              key={rowIdx}
-              className="cursor-pointer"
-              onClick={() => {
-                onRowClick(row.data);
-              }}
-            >
-              {row.values.map((value, cellIdx) => (
-                <TableCell key={cellIdx}>{value}</TableCell>
-              ))}
+          {/* table data */}
+          {rows?.length ? (
+            rows?.map((row, rowIdx) => (
+              <TableRow
+                key={rowIdx}
+                className="cursor-pointer"
+                onClick={() => {
+                  onRowClick(row.data);
+                }}
+              >
+                {row.values.map((value, cellIdx) => (
+                  <TableCell key={cellIdx}>{value}</TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow className="cursor-pointer">
+              <TableCell className="text-center" colSpan={headers?.length}>
+                No Data Found
+              </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
       <PaginationDemo currentPage={currentPage} onChangePage={onChangePage} totalPages={totalPages} />
