@@ -18,9 +18,15 @@ const TaskDetails: FC<Props> = ({ task, lastTask }) => {
       {/* navbar */}
       <Navbar />
       {/* task card */}
-      <TaskCard task={task} title="Current Task Details" lastTaskTodo={lastTask?.todo || ''} showActions />
+      <TaskCard
+        task={task}
+        title="Current Task Details"
+        progressLabel="To be done in this task"
+        lastTaskTodo={lastTask?.todo || ''}
+        showActions
+      />
       {/* last task */}
-      {lastTask ? <TaskCard task={lastTask} title="Last Task Details" /> : null}
+      {lastTask ? <TaskCard task={lastTask} progressLabel="Completed" title="Last Task Details" /> : null}
       {/* list of user tasks */}
       <TasksList />
     </>

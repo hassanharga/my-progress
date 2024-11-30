@@ -18,7 +18,7 @@ const Editor: FC<Props> = ({ onChange, defaultValue }) => {
     onChange(value);
   };
 
-  return <ReactQuill ref={editorRef} value={content || ''} onChange={onChangeContent} style={{ height: '150px' }} />;
+  return <ReactQuill ref={editorRef} value={content || ''} onChange={onChangeContent} className="custom-quill" />;
 };
 
 export default Editor;

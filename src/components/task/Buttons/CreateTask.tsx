@@ -44,7 +44,7 @@ export const CreateTask: FC<Props> = ({ createTask, isExecuting, lastTaskTodo })
         <DialogHeader>
           <DialogTitle>Create Task</DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col gap-4 py-4">
+        <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="currentCompany" className="text-start">
               Title*
@@ -71,7 +71,7 @@ export const CreateTask: FC<Props> = ({ createTask, isExecuting, lastTaskTodo })
               }}
             />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 overflow-hidden">
             <Label htmlFor="currentCompany" className="text-start">
               What are you going to do in this task?
             </Label>
@@ -85,7 +85,7 @@ export const CreateTask: FC<Props> = ({ createTask, isExecuting, lastTaskTodo })
         </div>
         <DialogFooter>
           <Button
-            className="self-end mt-5"
+            className="self-end"
             onClick={async () => {
               createTask({ title, progress, project });
             }}

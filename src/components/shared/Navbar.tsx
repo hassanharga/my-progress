@@ -7,6 +7,7 @@ import { paths } from '@/paths';
 import { useUserContext } from '../contexts/user.context';
 import { Button } from '../ui/button';
 import { Settings } from './Settings';
+import ModeToggle from './ToggleTheme';
 
 const Navbar: FC = () => {
   const router = useRouter();
@@ -31,15 +32,18 @@ const Navbar: FC = () => {
   };
 
   return (
-    <div className="border-b-[1px] w-full p-4 flex justify-between items-center">
+    <div className="border-b-[1px] w-full p-4 flex justify-between items-center flex-wrap space-y-2">
       {/* greetings user */}
       <div className="flex flex-col sm:flex-row gap-x-3 gap-y-1">
-        <h3>{greetings}</h3>
+        <h3>{greetings},</h3>
         {/* user name */}
         {user?.name}
       </div>
+
       {/* settings logout */}
       <div className="flex items-center gap-2">
+        {/* theme toggle */}
+        <ModeToggle />
         {/* settings */}
         <Settings
           currentCompany={user?.currentCompany ?? ''}

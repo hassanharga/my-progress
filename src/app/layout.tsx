@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 
 import './globals.css';
 
+import ThemeProvider from '@/components/contexts/theme-provider';
 import UserProvider from '@/components/contexts/user.context';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -19,9 +20,11 @@ export default function RootLayout({
   children: ReactNode;
 }>): JSX.Element {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} overflow-hidden`}>
-        <UserProvider>{children}</UserProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <UserProvider>{children}</UserProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -88,6 +88,12 @@
 }
 
 @layer components {
+  .custom-quill {
+    & .ql-container {
+      height: 200px;
+    }
+  }
+
   .ql-content {
     /* Reset Tailwind styles */
     all: revert;

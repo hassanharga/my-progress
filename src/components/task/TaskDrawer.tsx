@@ -18,13 +18,9 @@ const TaskDrawer: FC<Props> = ({ task, open, onClose }) => {
   return (
     <Sheet open={open} onOpenChange={onClose}>
       {/* <SheetTrigger>Open</SheetTrigger> */}
-      <SheetContent side="left" className="w-full md:max-w-[90vw]">
+      <SheetContent side="left" className="w-full md:max-w-[70vw]">
         <SheetHeader>
           <SheetTitle>{task?.title}</SheetTitle>
-          {/* <SheetDescription>
-            This action cannot be undone. This will permanently delete your account and remove your data from our
-            servers.
-          </SheetDescription> */}
         </SheetHeader>
         {/* content */}
         <div className="flex flex-col my-6 gap-3">

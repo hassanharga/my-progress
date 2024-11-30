@@ -14,9 +14,11 @@ type Props = PropsWithChildren & {
   task: LastTaskWithLoggedTime | null;
   showActions?: boolean;
   lastTaskTodo?: string;
+  progressLabel: string;
+  todoLabel?: string;
 };
 
-const TaskCard: FC<Props> = ({ task, title, showActions, lastTaskTodo }) => {
+const TaskCard: FC<Props> = ({ task, title, showActions, lastTaskTodo, progressLabel, todoLabel }) => {
   return (
     <div className="flex flex-col gap-3 border border-gray-300 p-4 rounded-md shadow-md sm:w-[500px] w-[90vw]">
       <h2 className="text-center font-extrabold">{title}</h2>
@@ -29,7 +31,7 @@ const TaskCard: FC<Props> = ({ task, title, showActions, lastTaskTodo }) => {
               <h6>Started at: {format(task?.createdAt, 'yyyy-MM-dd hh:mm aa')}</h6>
               <div>Project: {task?.currentProject || '-'}</div>
               <div className="flex flex-row gap-1 items-center">
-                Status: <Status status={task?.status} />
+                Status: <Status status={task?.status === 'RESUMED' ? 'IN_PROGRESS' : task?.status} />
               </div>
               <div>Total Time: {task?.duration}</div>
             </div>
@@ -37,9 +39,11 @@ const TaskCard: FC<Props> = ({ task, title, showActions, lastTaskTodo }) => {
           {/* progress and todo */}
           <div className="flex flex-col sm:flex-row">
             {/* progress */}
-            <ProgressAndTodo title="Completed" text={task?.progress} />
+            <ProgressAndTodo title={progressLabel} text={task?.progress} />
             {/* todo */}
-            <ProgressAndTodo title="Todo" text={task?.todo} />
+            {!['IN_PROGRESS', 'RESUMED'].includes(task.status) ? (
+              <ProgressAndTodo title={todoLabel || 'Todo'} text={task?.todo} />
+            ) : null}
           </div>
         </>
       ) : null}
@@ -48,17 +52,12 @@ const TaskCard: FC<Props> = ({ task, title, showActions, lastTaskTodo }) => {
     </div>
   );
 };
-
 export const ProgressAndTodo: FC<{ title: string; text: string | null }> = ({ title, text }) => {
   return (
     <div className="flex flex-col gap-1 p-1 flex-1">
-      <h5 className="font-bold">{title}</h5>
+      <h6 className="font-medium">{title}</h6>
 
-      {text ? (
-        <InlineHTML html={text} />
-      ) : (
-        <div className="border rounded-sm p-1 text-sm text-center">No Content To Show</div>
-      )}
+      {text ? <InlineHTML html={text} /> : <div className="border rounded-sm p-1 text-sm text-center">No Data</div>}
     </div>
   );
 };

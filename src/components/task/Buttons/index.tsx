@@ -42,7 +42,7 @@ const TaskButtons: FC<TaskButtonsProps> = ({ task, lastTaskTodo }) => {
   };
 
   return (
-    <div className="flex space-x-2 items-center justify-center">
+    <div className="flex space-x-2 items-center justify-start sm:justify-center flex-wrap gap-2">
       {/* start new task button */}
       {/* {!task ? <Button onClick={onStartTask}>Start Task</Button> : null} */}
       {!task ? (

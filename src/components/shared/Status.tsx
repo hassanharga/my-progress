@@ -15,7 +15,7 @@ const Status: FC<Props> = ({ status }) => {
         backgroundColor: StatusColors[status].bgColor,
       }}
     >
-      {Statuses[status]}
+      {status === 'RESUMED' ? Statuses.IN_PROGRESS : Statuses[status]}
     </div>
   );
 };

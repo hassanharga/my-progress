@@ -36,8 +36,9 @@ export const CompleteTask: FC<Props> = ({ completeTask, isExecuting, taskProgres
         <DialogHeader>
           <DialogTitle>Complete Task</DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col gap-4 py-4">
-          <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-4">
+          {/* prgress */}
+          <div className="flex flex-col gap-2 overflow-hidden">
             <Label htmlFor="currentCompany" className="text-start w-[120px]">
               Your Progress
             </Label>
@@ -48,7 +49,8 @@ export const CompleteTask: FC<Props> = ({ completeTask, isExecuting, taskProgres
               }}
             />
           </div>
-          <div className="flex flex-col gap-2 mt-10">
+          {/* todo */}
+          <div className="flex flex-col gap-2 overflow-hidden">
             <Label htmlFor="currentCompany" className="text-start w-[120px]">
               What todo next?
             </Label>
@@ -61,7 +63,7 @@ export const CompleteTask: FC<Props> = ({ completeTask, isExecuting, taskProgres
         </div>
         <DialogFooter>
           <Button
-            className="self-end mt-5"
+            className="self-end"
             onClick={async () => {
               completeTask({ progress, todo });
             }}
