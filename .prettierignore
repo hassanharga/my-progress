@@ -1,0 +1,31 @@
+# Dependencies
+node_modules
+
+# Next.js
+.next
+build
+
+# Lock files
+package-lock.json
+
+# Misc
+dist
+public
+
+# Ignore specific file types
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+
+# Ignore other generated files
+coverage/
+
+
+# Ignore lock files
+yarn.lock
+package-lock.json
+
+# Ignore logs
+*.log
