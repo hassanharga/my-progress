@@ -25,7 +25,7 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
 
     // If authenticated, proceed
     return NextResponse.next();
-  } catch (error) {
+  } catch {
     // Invalid token
     return NextResponse.redirect(new URL(paths.auth, req.url));
   }

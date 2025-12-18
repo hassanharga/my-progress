@@ -20,7 +20,7 @@ type Props = PropsWithChildren & {
 
 const TaskCard: FC<Props> = ({ task, title, showActions, lastTaskTodo, progressLabel, todoLabel }) => {
   return (
-    <div className="flex flex-col gap-3 border border-gray-300 p-4 rounded-md shadow-md sm:w-[500px] w-[90vw]">
+    <div className="flex flex-col gap-3 border border-gray-300 p-4 rounded-md shadow-md sm:w-125 w-[90vw]">
       <h2 className="text-center font-extrabold">{title}</h2>
       {/* details */}
       {task ? (

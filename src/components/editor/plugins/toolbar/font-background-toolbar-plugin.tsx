@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { $getSelectionStyleValueForProperty, $patchStyleText } from '@lexical/selection';
-import { $getSelection, $isRangeSelection, $setSelection, BaseSelection } from 'lexical';
+import { $getSelection, $isRangeSelection, BaseSelection } from 'lexical';
 import { PaintBucketIcon } from 'lucide-react';
 
 import { useToolbarContext } from '@/components/editor/context/toolbar-context';
@@ -34,7 +34,7 @@ export function FontBackgroundToolbarPlugin() {
   useUpdateToolbarHandler($updateToolbar);
 
   const applyStyleText = useCallback(
-    (styles: Record<string, string>, skipHistoryStack?: boolean) => {
+    (styles: Record<string, string>) => {
       activeEditor.update(
         () => {
           const selection = $getSelection();
@@ -51,7 +51,7 @@ export function FontBackgroundToolbarPlugin() {
 
   const onBgColorSelect = useCallback(
     (value: string) => {
-      applyStyleText({ 'background-color': value }, true);
+      applyStyleText({ 'background-color': value });
     },
     [applyStyleText]
   );

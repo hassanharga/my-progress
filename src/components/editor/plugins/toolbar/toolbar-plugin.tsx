@@ -26,6 +26,7 @@ export function ToolbarPlugin({ children }: { children: (props: { blockType: str
       },
       COMMAND_PRIORITY_CRITICAL
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor]);
 
   return (

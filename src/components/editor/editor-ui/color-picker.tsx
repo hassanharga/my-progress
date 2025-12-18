@@ -1,3 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+/* eslint-disable react/display-name */
+
 'use client';
 
 import * as React from 'react';
@@ -945,7 +949,7 @@ function ColorPickerContent(props: ColorPickerContentProps) {
       <ContentPrimitive
         data-slot="color-picker-content"
         {...popoverContentProps}
-        className={cn('flex w-[340px] flex-col gap-4 p-4', className)}
+        className={cn('flex w-85 flex-col gap-4 p-4', className)}
       >
         {children}
       </ContentPrimitive>
@@ -957,7 +961,7 @@ function ColorPickerContent(props: ColorPickerContentProps) {
       data-slot="color-picker-content"
       asChild={asChild}
       {...popoverContentProps}
-      className={cn('flex w-[340px] flex-col gap-4 p-4', className)}
+      className={cn('flex w-85 flex-col gap-4 p-4', className)}
     >
       {children}
     </PopoverContent>

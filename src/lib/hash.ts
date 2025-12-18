@@ -26,7 +26,6 @@ export async function hashPassword(password: string): Promise<string> {
     // Combine salt and hash with a separator
     return `${salt.toString('base64')}${SEPARATOR}${derivedKey.toString('base64')}`;
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error('Error hashing password:', error);
     throw new Error('Password hashing failed');
   }
@@ -63,7 +62,6 @@ export async function verifyPassword(hashedPassword: string, plainPassword: stri
     // Compare hashes using timing-safe equality
     return timingSafeEqual(derivedKey, hashBuffer);
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error('Error verifyPassword password:', error);
     throw new Error('Password verifyPassword failed');
   }

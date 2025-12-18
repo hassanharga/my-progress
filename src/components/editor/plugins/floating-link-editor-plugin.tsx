@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 /**
@@ -216,7 +217,7 @@ function FloatingLinkEditor({
             value={editedLinkUrl}
             onChange={(event) => setEditedLinkUrl(event.target.value)}
             onKeyDown={monitorInputInteraction}
-            className="flex-grow"
+            className="grow"
           />
           <Button
             size="icon"

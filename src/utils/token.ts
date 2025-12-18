@@ -22,7 +22,7 @@ export const isTokenExpired = async (): Promise<boolean> => {
     const decodedToken = getDataFromToken(token);
     const currentTime = Date.now() / 1000;
     return (decodedToken?.exp || 0) < currentTime;
-  } catch (error) {
+  } catch {
     return true;
   }
 };
