@@ -2,12 +2,10 @@
 
 import { type FC, type PropsWithChildren } from 'react';
 import { format } from 'date-fns';
-import { SerializedEditorState, SerializedLexicalNode } from 'lexical';
 
 import { type LastTaskWithLoggedTime } from '@/actions/task';
 
 import Editor from '../shared/Editor';
-import InlineHTML from '../shared/InlineHtml';
 import Status from '../shared/Status';
 import TaskButtons from './Buttons';
 

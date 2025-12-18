@@ -1,15 +1,12 @@
-"use client"
+'use client';
 
-import { useCallback, useState } from "react"
-import {
-  $getSelectionStyleValueForProperty,
-  $patchStyleText,
-} from "@lexical/selection"
-import { $getSelection, $isRangeSelection, BaseSelection } from "lexical"
-import { BaselineIcon } from "lucide-react"
+import { useCallback, useState } from 'react';
+import { $getSelectionStyleValueForProperty, $patchStyleText } from '@lexical/selection';
+import { $getSelection, $isRangeSelection, BaseSelection } from 'lexical';
+import { BaselineIcon } from 'lucide-react';
 
-import { useToolbarContext } from "@/components/editor/context/toolbar-context"
-import { useUpdateToolbarHandler } from "@/components/editor/editor-hooks/use-update-toolbar"
+import { useToolbarContext } from '@/components/editor/context/toolbar-context';
+import { useUpdateToolbarHandler } from '@/components/editor/editor-hooks/use-update-toolbar';
 import {
   ColorPicker,
   ColorPickerAlphaSlider,
@@ -20,43 +17,41 @@ import {
   ColorPickerHueSlider,
   ColorPickerInput,
   ColorPickerTrigger,
-} from "@/components/editor/editor-ui/color-picker"
-import { Button } from "@/components/ui/button"
+} from '@/components/editor/editor-ui/color-picker';
+import { Button } from '@/components/ui/button';
 
 export function FontColorToolbarPlugin() {
-  const { activeEditor } = useToolbarContext()
+  const { activeEditor } = useToolbarContext();
 
-  const [fontColor, setFontColor] = useState("#000")
+  const [fontColor, setFontColor] = useState('#000');
 
   const $updateToolbar = (selection: BaseSelection) => {
     if ($isRangeSelection(selection)) {
-      setFontColor(
-        $getSelectionStyleValueForProperty(selection, "color", "#000")
-      )
+      setFontColor($getSelectionStyleValueForProperty(selection, 'color', '#000'));
     }
-  }
+  };
 
-  useUpdateToolbarHandler($updateToolbar)
+  useUpdateToolbarHandler($updateToolbar);
 
   const applyStyleText = useCallback(
     (styles: Record<string, string>) => {
       activeEditor.update(() => {
-        const selection = $getSelection()
-        activeEditor.setEditable(false)
+        const selection = $getSelection();
+        activeEditor.setEditable(false);
         if (selection !== null) {
-          $patchStyleText(selection, styles)
+          $patchStyleText(selection, styles);
         }
-      })
+      });
     },
     [activeEditor]
-  )
+  );
 
   const onFontColorSelect = useCallback(
     (value: string) => {
-      applyStyleText({ color: value })
+      applyStyleText({ color: value });
     },
     [applyStyleText]
-  )
+  );
 
   return (
     <ColorPicker
@@ -66,8 +61,8 @@ export function FontColorToolbarPlugin() {
       onValueChange={onFontColorSelect}
       onOpenChange={(open) => {
         if (!open) {
-          activeEditor.setEditable(true)
-          activeEditor.focus()
+          activeEditor.setEditable(true);
+          activeEditor.focus();
         }
       }}
     >
@@ -91,5 +86,5 @@ export function FontColorToolbarPlugin() {
         </div>
       </ColorPickerContent>
     </ColorPicker>
-  )
+  );
 }
