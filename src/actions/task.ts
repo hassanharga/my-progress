@@ -13,7 +13,7 @@ import prisma from '@/lib/db';
 import type { Prisma, Task } from '../../generated/prisma/client';
 
 export const createTask = actionClient
-  .inputSchema(z.object({ title: z.string(), project: z.string(), progress: z.string().optional() }))
+  .inputSchema(z.object({ title: z.string(), project: z.string().optional(), progress: z.string().optional() }))
   .action(async ({ parsedInput: { title, progress, project } }) => {
     const user = await validateUserToken();
 

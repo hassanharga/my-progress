@@ -10,7 +10,7 @@ type Props = {
 const Status: FC<Props> = ({ status }) => {
   return (
     <div
-      className="p-1 border-spacing-0 rounded-md text-center text-sm font-medium"
+      className="p-1 rounded-[5px] text-center text-sm font-medium"
       style={{
         color: StatusColors[status].textColor,
         backgroundColor: StatusColors[status].bgColor,

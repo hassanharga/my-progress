@@ -18,7 +18,7 @@ const TaskDrawer: FC<Props> = ({ task, open, onClose }) => {
   return (
     <Sheet open={open} onOpenChange={onClose}>
       {/* <SheetTrigger>Open</SheetTrigger> */}
-      <SheetContent side="left" className="w-full md:max-w-[70vw]">
+      <SheetContent side="left" className="w-full md:max-w-[70vw] p-3">
         <SheetHeader>
           <SheetTitle>{task?.title}</SheetTitle>
         </SheetHeader>
@@ -31,7 +31,7 @@ const TaskDrawer: FC<Props> = ({ task, open, onClose }) => {
           </div>
           <div>Total Time: {task?.duration}</div>
           {/* progress and todo */}
-          <div className="flex flex-col sm:flex-row">
+          <div className="flex flex-col">
             {/* progress */}
             <ProgressAndTodo title="Completed" text={task?.progress} />
             {/* todo */}

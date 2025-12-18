@@ -2,9 +2,11 @@
 
 import { type FC, type PropsWithChildren } from 'react';
 import { format } from 'date-fns';
+import { SerializedEditorState, SerializedLexicalNode } from 'lexical';
 
 import { type LastTaskWithLoggedTime } from '@/actions/task';
 
+import Editor from '../shared/Editor';
 import InlineHTML from '../shared/InlineHtml';
 import Status from '../shared/Status';
 import TaskButtons from './Buttons';
@@ -37,11 +39,11 @@ const TaskCard: FC<Props> = ({ task, title, showActions, lastTaskTodo, progressL
             </div>
           </div>
           {/* progress and todo */}
-          <div className="flex flex-col sm:flex-row">
+          <div className="flex flex-col overflow-hidden">
             {/* progress */}
             <ProgressAndTodo title={progressLabel} text={task?.progress} />
             {/* todo */}
-            {!['IN_PROGRESS', 'RESUMED'].includes(task.status) ? (
+            {!['IN_PROGRESS', 'RESUMED', 'PAUSED'].includes(task.status) ? (
               <ProgressAndTodo title={todoLabel || 'Todo'} text={task?.todo} />
             ) : null}
           </div>
@@ -55,10 +57,14 @@ const TaskCard: FC<Props> = ({ task, title, showActions, lastTaskTodo, progressL
 
 export const ProgressAndTodo: FC<{ title: string; text: string | null }> = ({ title, text }) => {
   return (
-    <div className="flex flex-col gap-1 p-1 flex-1">
+    <div className="flex flex-col gap-1 p-1 flex-1 w-full">
       <h6 className="font-medium">{title}</h6>
 
-      {text ? <InlineHTML html={text} /> : <div className="border rounded-sm p-1 text-sm text-center">No Data</div>}
+      {text ? (
+        <Editor defaultValue={text} disabled />
+      ) : (
+        <div className="border rounded-sm p-1 text-sm text-center">No Data</div>
+      )}
     </div>
   );
 };

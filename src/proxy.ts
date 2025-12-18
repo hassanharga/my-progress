@@ -5,7 +5,7 @@ import { paths } from './paths';
 import { isTokenExpired } from './utils/token';
 
 // Define the paths to exclude from validation
-const excludedPaths = [paths.auth];
+const excludedPaths = [paths.auth, paths.playground];
 
 // This function can be marked `async` if using `await` inside
 export async function proxy(req: NextRequest): Promise<NextResponse> {
@@ -19,7 +19,6 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
 
     // Check if the token has expired
     const isExpired = await isTokenExpired(); // current time in seconds
-    // console.log('isExpired ====>', isExpired);
     if (isExpired) {
       return NextResponse.redirect(new URL(paths.auth, req.url));
     }

@@ -40,11 +40,11 @@ export const CreateTask: FC<Props> = ({ createTask, isExecuting, lastTaskTodo })
           Start new task
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]" aria-describedby="Create task">
+      <DialogContent className="sm:max-w-[60vw]" aria-describedby="Create task">
         <DialogHeader>
           <DialogTitle>Create Task</DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 overflow-hidden">
           <div className="flex flex-col gap-2">
             <Label htmlFor="currentCompany" className="text-start">
               Title*
@@ -60,7 +60,7 @@ export const CreateTask: FC<Props> = ({ createTask, isExecuting, lastTaskTodo })
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="currentCompany" className="text-start">
-              Project*
+              Project
             </Label>
             <Input
               id="project"
@@ -71,7 +71,7 @@ export const CreateTask: FC<Props> = ({ createTask, isExecuting, lastTaskTodo })
               }}
             />
           </div>
-          <div className="flex flex-col gap-2 overflow-hidden">
+          <div className="flex flex-col gap-2">
             <Label htmlFor="currentCompany" className="text-start">
               What are you going to do in this task?
             </Label>
@@ -89,7 +89,7 @@ export const CreateTask: FC<Props> = ({ createTask, isExecuting, lastTaskTodo })
             onClick={async () => {
               createTask({ title, progress, project });
             }}
-            disabled={isExecuting || !title || !project}
+            disabled={isExecuting || !title}
           >
             Create Task
           </Button>

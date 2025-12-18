@@ -32,13 +32,13 @@ export const CompleteTask: FC<Props> = ({ completeTask, isExecuting, taskProgres
           Complete Task
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:min-w-[425px]" aria-describedby="Complete task">
+      <DialogContent className="sm:max-w-[60vw]" aria-describedby="Complete task">
         <DialogHeader>
           <DialogTitle>Complete Task</DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col gap-4">
-          {/* prgress */}
-          <div className="flex flex-col gap-2 overflow-hidden">
+        <div className="flex flex-col gap-4 overflow-hidden">
+          {/* progress */}
+          <div className="flex flex-col gap-2 ">
             <Label htmlFor="currentCompany" className="text-start w-[120px]">
               Your Progress
             </Label>
@@ -50,7 +50,7 @@ export const CompleteTask: FC<Props> = ({ completeTask, isExecuting, taskProgres
             />
           </div>
           {/* todo */}
-          <div className="flex flex-col gap-2 overflow-hidden">
+          <div className="flex flex-col gap-2">
             <Label htmlFor="currentCompany" className="text-start w-[120px]">
               What todo next?
             </Label>
