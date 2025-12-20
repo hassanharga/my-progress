@@ -3,7 +3,6 @@
 import type { FC } from 'react';
 
 import type { LastTaskWithLoggedTime, TaskWithLoggedTime } from '@/types/task';
-import Navbar from '@/components/shared/Navbar';
 import TaskCard from '@/components/task/Card';
 import TasksList from '@/components/task/List';
 
@@ -12,11 +11,9 @@ type Props = {
   lastTask: LastTaskWithLoggedTime | null;
 };
 
-const TaskDetails: FC<Props> = ({ task, lastTask }) => {
+const TaskPage: FC<Props> = ({ task, lastTask }) => {
   return (
     <>
-      {/* navbar */}
-      <Navbar />
       {/* task card */}
       <TaskCard
         task={task}
@@ -33,4 +30,4 @@ const TaskDetails: FC<Props> = ({ task, lastTask }) => {
   );
 };
 
-export default TaskDetails;
+export default TaskPage;

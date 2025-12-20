@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { useAction } from 'next-safe-action/hooks';
 
 import type { TaskWithLoggedTime } from '@/types/task';
@@ -14,38 +14,54 @@ interface TaskButtonsProps {
 }
 
 const TaskButtons: FC<TaskButtonsProps> = ({ task, lastTaskTodo }) => {
-  const { execute: executeCreateTask, isExecuting } = useAction(createTask);
-  const { execute: executeUpdateTask } = useAction(updateTask);
+  const { executeAsync: executeCreateTask, isExecuting } = useAction(createTask);
+  const { executeAsync: executeUpdateTask } = useAction(updateTask);
 
-  const onStartTask = ({ title, progress, project }: { title: string; progress: string; project: string }): void => {
+  const onStartTask = async ({
+    title,
+    progress,
+    project,
+  }: {
+    title: string;
+    progress: string;
+    project: string;
+  }): Promise<void> => {
     if (!title?.trim()) return;
-    executeCreateTask({ title, progress, project });
+    await executeCreateTask({ title, progress, project });
   };
 
-  const onPauseTask = (): void => {
-    if (!task) return;
-    executeUpdateTask({ status: 'PAUSED', id: task.id });
+  const updateTaskHandler = async (data: {
+    status: 'PAUSED' | 'RESUMED' | 'COMPLETED' | 'CANCELLED';
+    id: string;
+    progress?: string;
+    todo?: string;
+  }): Promise<void> => {
+    await executeUpdateTask(data);
   };
 
-  const onResumeTask = (): void => {
+  const onPauseTask = async (): Promise<void> => {
     if (!task) return;
-    executeUpdateTask({ status: 'RESUMED', id: task.id });
+    await updateTaskHandler({ status: 'PAUSED', id: task.id });
   };
 
-  const onCancelTask = (): void => {
+  const onResumeTask = async (): Promise<void> => {
     if (!task) return;
-    executeUpdateTask({ status: 'CANCELLED', id: task.id });
+    await updateTaskHandler({ status: 'RESUMED', id: task.id });
   };
 
-  const onCompleteTask = ({ progress, todo }: { progress: string; todo: string }): void => {
+  const onCancelTask = async (): Promise<void> => {
     if (!task) return;
-    executeUpdateTask({ status: 'COMPLETED', id: task.id, progress, todo });
+    await updateTaskHandler({ status: 'CANCELLED', id: task.id });
+  };
+
+  const onCompleteTask = async ({ progress, todo }: { progress: string; todo: string }): Promise<void> => {
+    if (!task) return;
+    await updateTaskHandler({ status: 'COMPLETED', id: task.id, progress, todo });
   };
 
   return (
     <div className="flex space-x-2 items-center justify-start sm:justify-center flex-wrap gap-2">
       {/* start new task button */}
-      {/* {!task ? <Button onClick={onStartTask}>Start Task</Button> : null} */}
       {!task ? (
         <CreateTask createTask={onStartTask} isExecuting={isExecuting} lastTaskTodo={lastTaskTodo || ''} />
       ) : null}

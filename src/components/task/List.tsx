@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, type FC } from 'react';
 import { useAction } from 'next-safe-action/hooks';
 
-import type { Task, TaskWithLoggedTime } from '@/types/task';
 import { getTaskById, getTasksList } from '@/actions/task';
 
 import Status from '../shared/Status';
@@ -11,28 +10,23 @@ import TaskDrawer from './TaskDrawer';
 const List: FC = () => {
   const limit = useMemo(() => 4, []);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [tasks, setTasks] = useState<
-    (Pick<Task, 'id' | 'title' | 'status' | 'currentProject' | 'currentCompany'> & { duration: string })[]
-  >([]);
 
   const [openDrawer, setOpenDrawer] = useState(false);
-  const [taskDetails, setTaskDetails] = useState<TaskWithLoggedTime>();
 
   // task list
-  const { execute } = useAction(getTasksList, {
-    onSuccess: ({ data }) => {
-      setTotalPages(data?.total || 0);
-      setTasks(data?.tasks || []);
-    },
-  });
+  const {
+    execute,
+    result: { data },
+  } = useAction(getTasksList);
 
   // get task by id
-  const { execute: executeGetTaskById } = useAction(getTaskById, {
+  const {
+    execute: executeGetTaskById,
+    result: { data: taskData },
+  } = useAction(getTaskById, {
     onSuccess: ({ data }) => {
       if (!data) return;
       setOpenDrawer(true);
-      setTaskDetails(data);
     },
   });
 
@@ -41,8 +35,10 @@ const List: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit]);
 
-  if (!tasks.length) {
-    return <div className="mt-4">You don&apos;t have any task yet</div>;
+  if (!data) return null;
+
+  if (!data?.tasks.length) {
+    return <div className="my-4 p-4">You don&apos;t have any task yet</div>;
   }
 
   return (
@@ -50,7 +46,7 @@ const List: FC = () => {
       <TableData
         captionLabel="list of your tasks."
         headers={['Title', 'Status', 'Duration', 'Project', 'Company']}
-        rows={tasks?.map((task, idx) => ({
+        rows={data?.tasks?.map((task, idx) => ({
           data: task,
           values: [
             task.title,
@@ -61,7 +57,7 @@ const List: FC = () => {
           ],
         }))}
         currentPage={page}
-        totalPages={Math.ceil(totalPages / limit)}
+        totalPages={Math.ceil(data?.total / limit)}
         onChangePage={(newPage) => {
           setPage(newPage);
         }}
@@ -71,10 +67,9 @@ const List: FC = () => {
       />
       <TaskDrawer
         open={openDrawer}
-        task={taskDetails}
+        task={taskData}
         onClose={() => {
           setOpenDrawer(false);
-          setTaskDetails(undefined);
         }}
       />
     </>

@@ -36,7 +36,7 @@ const Navbar: FC = () => {
   return (
     <div className="border-b w-full p-4 flex justify-between items-center flex-wrap space-y-2">
       {/* greetings user */}
-      <div className="flex flex-col sm:flex-row gap-x-3 gap-y-1">
+      <div className="flex flex-col sm:flex-row gap-x-1 gap-y-1">
         <h3>{greetings},</h3>
         {/* user name */}
         {user?.name}

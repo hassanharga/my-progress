@@ -42,7 +42,7 @@ export const createTask = actionClient
 export const updateTask = actionClient
   .inputSchema(
     z.object({
-      id: z.string().uuid(),
+      id: z.uuid(),
       status: z.enum(['PAUSED', 'RESUMED', 'CANCELLED', 'COMPLETED']),
       progress: z.string().optional(),
       todo: z.string().optional(),
@@ -175,6 +175,8 @@ export const getTasksList = actionClient
 
     const [total, tasks] = await Promise.all([tasksCount, tasksPromise]);
 
+    logger.debug('[getTasksList]', { limit, skip, total, tasks });
+
     return {
       total,
       tasks: tasks.map(({ loggedTime, currentCompany, currentProject, ...task }) => ({
@@ -186,19 +188,17 @@ export const getTasksList = actionClient
     };
   });
 
-export const getTaskById = actionClient
-  .inputSchema(z.object({ taskId: z.string().uuid() }))
-  .action(async ({ parsedInput }) => {
-    const { taskId } = parsedInput;
+export const getTaskById = actionClient.inputSchema(z.object({ taskId: z.uuid() })).action(async ({ parsedInput }) => {
+  const { taskId } = parsedInput;
 
-    const task = await prisma.task.findUnique({
-      where: { id: taskId },
-      include: {
-        loggedTime: { select: { from: true, to: true } },
-      },
-    });
-
-    logger.debug('[getTaskById]', task);
-
-    return mapTask(task);
+  const task = await prisma.task.findUnique({
+    where: { id: taskId },
+    include: {
+      loggedTime: { select: { from: true, to: true } },
+    },
   });
+
+  logger.debug('[getTaskById]', task);
+
+  return mapTask(task);
+});
