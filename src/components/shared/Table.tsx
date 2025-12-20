@@ -2,7 +2,7 @@ import { type JSX } from 'react';
 
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-import PaginationDemo from './Pagination';
+import Pagination from './Pagination';
 
 type Props<T> = {
   captionLabel?: string;
@@ -59,7 +59,7 @@ const TableData = <T extends object>({
           )}
         </TableBody>
       </Table>
-      <PaginationDemo currentPage={currentPage} onChangePage={onChangePage} totalPages={totalPages} />
+      <Pagination currentPage={currentPage} onChangePage={onChangePage} totalPages={totalPages} />
     </div>
   );
 };

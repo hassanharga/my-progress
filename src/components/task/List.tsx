@@ -66,7 +66,6 @@ const List: FC = () => {
           setPage(newPage);
         }}
         onRowClick={(task) => {
-          // console.log('task ====>', task?.id);
           executeGetTaskById({ taskId: task?.id });
         }}
       />

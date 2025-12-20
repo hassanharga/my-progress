@@ -36,7 +36,7 @@ const PaginationDemo: FC<Props> = ({ onChangePage, currentPage, totalPages }) =>
     <Pagination>
       <PaginationContent>
         {/* previous page */}
-        <PaginationItem className="cursor-pointer">
+        <PaginationItem className={`cursor-pointer ${currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}`}>
           <PaginationPrevious
             onClick={() => {
               if (currentPage <= 1) return;
@@ -45,7 +45,7 @@ const PaginationDemo: FC<Props> = ({ onChangePage, currentPage, totalPages }) =>
           />
         </PaginationItem>
         {/* first page */}
-        <PaginationItem className="cursor-pointer">
+        <PaginationItem className={`cursor-pointer ${currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}`}>
           <PaginationLink
             isActive={currentPage === 1}
             onClick={() => {
@@ -65,7 +65,9 @@ const PaginationDemo: FC<Props> = ({ onChangePage, currentPage, totalPages }) =>
                 <PaginationEllipsis />
               </PaginationItem>
             ) : (
-              <PaginationItem className="cursor-pointer">
+              <PaginationItem
+                className={`cursor-pointer ${currentPage === page ? 'pointer-events-none opacity-50' : ''}`}
+              >
                 <PaginationLink
                   isActive={currentPage === page}
                   onClick={() => {
@@ -81,7 +83,9 @@ const PaginationDemo: FC<Props> = ({ onChangePage, currentPage, totalPages }) =>
 
         {/* Last Page */}
         {totalPages > 1 && (
-          <PaginationItem className="cursor-pointer">
+          <PaginationItem
+            className={`cursor-pointer ${currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}`}
+          >
             <PaginationLink
               isActive={currentPage === totalPages}
               onClick={() => {
@@ -95,7 +99,9 @@ const PaginationDemo: FC<Props> = ({ onChangePage, currentPage, totalPages }) =>
         )}
 
         {/* next page */}
-        <PaginationItem className="cursor-pointer">
+        <PaginationItem
+          className={`cursor-pointer ${currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}`}
+        >
           <PaginationNext
             onClick={() => {
               if (currentPage >= totalPages) return;
