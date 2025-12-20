@@ -2,7 +2,7 @@
   "name": "new",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10.24.0",
+  "packageManager": "pnpm@10.26.1",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
