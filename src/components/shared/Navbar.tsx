@@ -47,15 +47,19 @@ const Navbar: FC = () => {
         {/* theme toggle */}
         <ModeToggle />
         {/* settings */}
-        <Settings
-          currentCompany={user?.currentCompany ?? ''}
-          currentProject={user?.currentProject ?? ''}
-          refetch={refetchUser}
-        />
-        {/* logout */}
-        <Button variant="ghost" onClick={logout}>
-          logout
-        </Button>
+        {user && user?.id ? (
+          <>
+            <Settings
+              currentCompany={user?.currentCompany ?? ''}
+              currentProject={user?.currentProject ?? ''}
+              refetch={refetchUser}
+            />
+            {/* logout */}
+            <Button variant="ghost" onClick={logout}>
+              logout
+            </Button>
+          </>
+        ) : null}
       </div>
     </div>
   );
