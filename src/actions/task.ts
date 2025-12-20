@@ -202,6 +202,3 @@ export const getTaskById = actionClient
 
     return mapTask(task);
   });
-
-export type TaskWithLoggedTime = Awaited<ReturnType<typeof findUserLastWorkingTask>>;
-export type LastTaskWithLoggedTime = Awaited<ReturnType<typeof findUserLastTask>>;

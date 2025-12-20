@@ -2,7 +2,7 @@
 
 import type { FC } from 'react';
 
-import { type LastTaskWithLoggedTime, type TaskWithLoggedTime } from '@/actions/task';
+import type { LastTaskWithLoggedTime, TaskWithLoggedTime } from '@/types/task';
 import Navbar from '@/components/shared/Navbar';
 import TaskCard from '@/components/task/Card';
 import TasksList from '@/components/task/List';

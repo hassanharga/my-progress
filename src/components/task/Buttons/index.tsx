@@ -1,7 +1,8 @@
 import { type FC } from 'react';
 import { useAction } from 'next-safe-action/hooks';
 
-import { createTask, updateTask, type TaskWithLoggedTime } from '@/actions/task';
+import type { TaskWithLoggedTime } from '@/types/task';
+import { createTask, updateTask } from '@/actions/task';
 import { Button } from '@/components/ui/button';
 
 import { CompleteTask } from './CompleteTask';

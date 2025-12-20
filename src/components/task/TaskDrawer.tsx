@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { format } from 'date-fns';
 
-import { type TaskWithLoggedTime } from '@/actions/task';
+import type { TaskWithLoggedTime } from '@/types/task';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 import Status from '../shared/Status';

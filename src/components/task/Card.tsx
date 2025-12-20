@@ -3,7 +3,7 @@
 import { type FC, type PropsWithChildren } from 'react';
 import { format } from 'date-fns';
 
-import { type LastTaskWithLoggedTime } from '@/actions/task';
+import type { LastTaskWithLoggedTime } from '@/types/task';
 
 import Editor from '../shared/Editor';
 import Status from '../shared/Status';
