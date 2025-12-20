@@ -1,6 +1,7 @@
 import { sign, verify, type JwtPayload, type SignOptions } from 'jsonwebtoken';
 
-import type { User } from '../../generated/prisma/client';
+import { User } from '@/types/user';
+
 import { config } from '../config';
 
 type TR = SignOptions['expiresIn'];

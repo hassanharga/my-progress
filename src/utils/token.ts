@@ -1,6 +1,7 @@
 import { jwtDecode, type JwtPayload } from 'jwt-decode';
 
-import { type User } from '../../generated/prisma/client';
+import { User } from '@/types/user';
+
 import { getFromCookies } from './cookie';
 import { logger } from './logger';
 

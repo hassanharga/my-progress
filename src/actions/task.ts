@@ -6,11 +6,10 @@ import { calculateElapsedTime } from '@/utils/calculate-elapsed-time';
 import { logger } from '@/utils/logger';
 import { z } from 'zod';
 
+import { Task, TaskUpdateInput } from '@/types/task';
 import { paths } from '@/paths';
 import { actionClient } from '@/lib/action-client';
 import prisma from '@/lib/db';
-
-import type { Prisma, Task } from '../../generated/prisma/client';
 
 export const createTask = actionClient
   .inputSchema(z.object({ title: z.string(), project: z.string().optional(), progress: z.string().optional() }))
@@ -64,7 +63,7 @@ export const updateTask = actionClient
     // if status is 'CANCELLED' then set status 'CANCELLED update last logged time
     // if status is 'COMPLETED' then set status 'COMPLETED and add todo and progress data and update last logged time
 
-    const data: Prisma.TaskUpdateInput = { status };
+    const data: TaskUpdateInput = { status };
 
     if (status && ['PAUSED', 'CANCELLED', 'COMPLETED'].includes(status as string) && !lastLoggedTime?.to) {
       data.loggedTime = {

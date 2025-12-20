@@ -3,11 +3,11 @@
 import { redirect, RedirectType } from 'next/navigation';
 import { getFromCookies } from '@/utils/cookie';
 
+import { User } from '@/types/user';
 import { paths } from '@/paths';
 import { verifyToken } from '@/lib/generate-token';
 
 // import { isTokenExpired } from '@/utils/token';
-import { type User } from '../../generated/prisma/client';
 
 export const validateUserToken = async (): Promise<Partial<User>> => {
   // const isExpired = await isTokenExpired();

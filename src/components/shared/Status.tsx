@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { StatusColors, Statuses } from '@/constants/status';
 
-import { type TaskStatus } from '../../../generated/prisma/client';
+import { TaskStatus } from '../../../generated/prisma/enums';
 
 type Props = {
   status: TaskStatus;

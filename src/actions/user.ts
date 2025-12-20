@@ -5,13 +5,12 @@ import { validateUserToken } from '@/helpers/validate-user';
 import { loginSchema, registerSchema, settingsSchema } from '@/schema/user';
 import { getFromCookies, setCookie } from '@/utils/cookie';
 
+import { User, UserSelect } from '@/types/user';
 import { paths } from '@/paths';
 import { actionClient } from '@/lib/action-client';
 import db from '@/lib/db';
 import { generateToken, verifyToken } from '@/lib/generate-token';
 import { hashPassword, verifyPassword } from '@/lib/hash';
-
-import { type Prisma, type User } from '../../generated/prisma/client';
 
 /**
  * Maps the returned user data to include a generated JWT token and redirects to the home page.
@@ -33,7 +32,7 @@ const mapReturnedUser = async (user: User): Promise<never> => {
   redirect(paths.home, RedirectType.replace);
 };
 
-const findUser = async (email: string, select?: Prisma.UserSelect): Promise<User | null> => {
+const findUser = async (email: string, select?: UserSelect): Promise<User | null> => {
   return await db.user.findUnique({
     where: { email },
     select,

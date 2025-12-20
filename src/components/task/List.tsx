@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState, type FC } from 'react';
 import { useAction } from 'next-safe-action/hooks';
 
+import { Task } from '@/types/task';
 import { getTaskById, getTasksList, type TaskWithLoggedTime } from '@/actions/task';
 
-import { type Task } from '../../../generated/prisma/client';
 import Status from '../shared/Status';
 import TableData from '../shared/Table';
 import TaskDrawer from './TaskDrawer';

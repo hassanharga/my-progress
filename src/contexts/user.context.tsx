@@ -3,9 +3,8 @@
 import { createContext, useContext, useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useAction } from 'next-safe-action/hooks';
 
+import { User } from '@/types/user';
 import { me } from '@/actions/user';
-
-import type { User } from '../../generated/prisma/client';
 
 interface UserContextType {
   user: User | null;
