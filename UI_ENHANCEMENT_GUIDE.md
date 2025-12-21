@@ -45,7 +45,7 @@
 pnpm add framer-motion
 
 # UI enhancements
-pnpm add cmdk vaul sonner react-hot-toast
+pnpm add cmdk sonner react-hot-toast
 
 # Virtual scrolling for performance
 pnpm add @tanstack/react-virtual

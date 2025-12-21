@@ -27,9 +27,9 @@
 - **Framework**: Next.js 16 with App Router (React Server Components)
 - **Language**: TypeScript (strict mode)
 - **Database**: PostgreSQL with Prisma ORM
-- **UI**: Radix UI + Tailwind CSS 4
+- **UI**: Shadcn + Radix UI + Tailwind CSS 4
 - **Forms**: React Hook Form + Zod validation
-- **Server Actions**: next-safe-action for type-safe mutations
+- **Server Actions**: next-safe-action 8 for type-safe mutations
 - **Authentication**: JWT tokens stored in HTTP-only cookies
 
 ### Architectural Principles
@@ -76,7 +76,7 @@ my-progress/
 │   ├── lib/                 # Core utilities and setup
 │   │   ├── db.ts           # Prisma client singleton
 │   │   ├── action-client.ts # Safe action client config
-│   │   ├── hash.ts         # Password hashing (bcrypt)
+│   │   ├── hash.ts         # Password hashing (node:crypto)
 │   │   └── generate-token.ts # JWT generation/verification
 │   │
 │   ├── helpers/             # Server-side helpers
@@ -676,6 +676,7 @@ type Task = ArrayElement<typeof tasks>;
 - Use TypeScript for all props
 - Extract reusable logic to hooks
 - Keep components small and focused
+- always check first if there is a component in shadcn before creating new one
 
 ❌ **DON'T:**
 - Make everything a Client Component
@@ -1244,8 +1245,8 @@ model UserPreferences {
 - `react-intersection-observer` - Lazy loading
 - `react-hot-toast` - Beautiful notifications
 - `cmdk` - Command palette
-- `vaul` - Beautiful drawers
-- `sonner` - Toast notifications
+- `shadcn drawer` - Beautiful drawers
+- `shadcn + sonner` - Toast notifications
 
 ### Implementation Timeline (UI Enhancements)
 
@@ -1330,16 +1331,18 @@ model Task {
 
 **Database Changes**:
 ```prisma
-model TaskTime {
-  id         String    @id @default(uuid())
-  from       DateTime
-  to         DateTime?
-  isBillable Boolean   @default(true)
-  isManual   Boolean   @default(false)
-  notes      String?
-  
-  Task   Task   @relation(fields: [taskId], references: [id])
-  taskId String
+model Task {
+  id             String     @id @default(uuid())
+  title          String
+  status         TaskStatus @default(IN_PROGRESS)
+  progress       String?
+  todo           String?
+  currentProject String?
+  currentCompany String?
+  isBillable     Boolean   @default(true)
+  isManual       Boolean   @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 }
 ```
 
@@ -1355,7 +1358,7 @@ model TaskTime {
 
 **Implementation**:
 - Create analytics service functions
-- Build chart components (use recharts or chart.js)
+- Build chart components (use shadcn charts first and if not exists use recharts or chart.js)
 - Add date range pickers
 - Implement data aggregation queries
 - Create export functionality
