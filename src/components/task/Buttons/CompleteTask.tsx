@@ -39,7 +39,7 @@ export const CompleteTask: FC<Props> = ({ completeTask, isExecuting, taskProgres
         <div className="flex flex-col gap-4 overflow-hidden">
           {/* progress */}
           <div className="flex flex-col gap-2 ">
-            <Label htmlFor="currentCompany" className="text-start w-[120px]">
+            <Label htmlFor="currentCompany" className="text-start w-30">
               Your Progress
             </Label>
             <Editor
@@ -51,7 +51,7 @@ export const CompleteTask: FC<Props> = ({ completeTask, isExecuting, taskProgres
           </div>
           {/* todo */}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="currentCompany" className="text-start w-[120px]">
+            <Label htmlFor="currentCompany" className="text-start w-30">
               What todo next?
             </Label>
             <Editor

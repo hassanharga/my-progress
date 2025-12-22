@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 
 import './globals.css';
 
+import TaskProvider from '@/contexts/task.context';
 import ThemeProvider from '@/contexts/theme-provider';
 import UserProvider from '@/contexts/user.context';
 import Navbar from '@/components/shared/Navbar';
@@ -30,7 +31,7 @@ export default function RootLayout({
               <Suspense>
                 <Navbar />
               </Suspense>
-              {children}
+              <TaskProvider>{children}</TaskProvider>
             </div>
           </UserProvider>
         </ThemeProvider>

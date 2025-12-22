@@ -23,12 +23,6 @@ export const CreateTask: FC<Props> = ({ createTask, isExecuting, lastTaskTodo })
   const [project, setProject] = useState(user?.currentProject || '');
   const [progress, setProgress] = useState(lastTaskTodo);
 
-  // useEffect(() => {
-  //   // console.log('user ====>', user);
-  //   if (!user) return;
-  //   setProject(user?.currentProject || '');
-  // }, [user]);
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
