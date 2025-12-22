@@ -2,60 +2,173 @@
 
 **Status**: 🔥 HIGHEST PRIORITY  
 **Timeline**: 6-8 weeks  
-**Last Updated**: December 20, 2025
+**Last Updated**: December 22, 2025
+
+---
+
+## ⚠️ IMPORTANT: Component Library Priority
+
+**ALWAYS USE SHADCN/UI FIRST!**
+
+Before installing any external UI library or creating custom components:
+
+1. **Check shadcn/ui**: Visit [ui.shadcn.com](https://ui.shadcn.com/docs/components)
+2. **Install if available**: Use `npx shadcn@latest add <component-name>`
+3. **Customize as needed**: Edit the component in `src/components/ui/`
+4. **Only then consider alternatives**: If shadcn doesn't have it, look elsewhere
+
+**Why shadcn/ui?**
+- ✅ Full control - components are copied into your project
+- ✅ Built on Radix UI - accessibility is guaranteed
+- ✅ Tailwind CSS - fully customizable styling
+- ✅ TypeScript support - type-safe by default
+- ✅ No dependencies - no npm bloat
+
+**Available shadcn Components**: button, card, dialog, drawer, toast, sonner, command, skeleton, badge, avatar, calendar, select, input, textarea, dropdown-menu, popover, tabs, accordion, alert, separator, progress, and [many more](https://ui.shadcn.com/docs/components)!
 
 ---
 
 ## Quick Start Checklist
 
 ### Week 1-2: Foundation Setup
-- [ ] Install required packages
+- [ ] **Install shadcn components** (see Quick Reference above)
+- [ ] Install Framer Motion for animations
 - [ ] Create design system file
-- [ ] Set up Framer Motion
-- [ ] Build skeleton loaders
-- [ ] Create empty state components
+- [ ] Build loading skeletons using shadcn Skeleton
+- [ ] Create empty state components using shadcn Card & Button
 
 ### Week 3-4: Core Components
-- [ ] Redesign task cards
-- [ ] Enhance dashboard layout
-- [ ] Update navigation header
-- [ ] Add statistics cards
+- [ ] Redesign task cards using shadcn Card
+- [ ] Enhance dashboard layout with shadcn components
+- [ ] Update navigation header using shadcn DropdownMenu
+- [ ] Add statistics cards with shadcn Card & Badge
 - [ ] Implement responsive layouts
 
 ### Week 5-6: Animations & Interactions
-- [ ] Add page transitions
+- [ ] Add page transitions with Framer Motion
 - [ ] Implement micro-interactions
-- [ ] Create command palette
+- [ ] Create command palette using shadcn Command
 - [ ] Add success animations
-- [ ] Set up toast notifications
+- [ ] Set up toast notifications using shadcn Sonner
 
 ### Week 7-8: Polish & Optimization
-- [ ] Theme customization UI
-- [ ] Accessibility improvements
-- [ ] Performance optimization
+- [ ] Build theme customization UI with shadcn Select & Switch
+- [ ] Implement accessibility improvements
+- [ ] Add shadcn Dialog for modals
 - [ ] Cross-browser testing
+- [ ] Performance optimization
 - [ ] Documentation updates
+
+---
+
+## Quick Reference: shadcn Components
+
+Use these commands to install commonly needed components:
+
+```bash
+# Layout & Structure
+npx shadcn@latest add card
+npx shadcn@latest add separator
+npx shadcn@latest add tabs
+npx shadcn@latest add accordion
+
+# Forms & Inputs
+npx shadcn@latest add input
+npx shadcn@latest add textarea
+npx shadcn@latest add button
+npx shadcn@latest add select
+npx shadcn@latest add checkbox
+npx shadcn@latest add radio-group
+npx shadcn@latest add switch
+npx shadcn@latest add slider
+npx shadcn@latest add calendar
+npx shadcn@latest add date-picker
+
+# Overlays & Feedback
+npx shadcn@latest add dialog
+npx shadcn@latest add drawer
+npx shadcn@latest add popover
+npx shadcn@latest add toast
+npx shadcn@latest add sonner
+npx shadcn@latest add alert
+npx shadcn@latest add alert-dialog
+
+# Navigation
+npx shadcn@latest add command
+npx shadcn@latest add dropdown-menu
+npx shadcn@latest add menubar
+npx shadcn@latest add navigation-menu
+
+# Data Display
+npx shadcn@latest add table
+npx shadcn@latest add badge
+npx shadcn@latest add avatar
+npx shadcn@latest add skeleton
+npx shadcn@latest add progress
+npx shadcn@latest add chart
+
+# Utility
+npx shadcn@latest add tooltip
+npx shadcn@latest add context-menu
+npx shadcn@latest add hover-card
+npx shadcn@latest add scroll-area
+```
+
+**Full list**: https://ui.shadcn.com/docs/components
 
 ---
 
 ## Step 1: Install Required Packages
 
+**IMPORTANT**: Always check [shadcn/ui](https://ui.shadcn.com) first before installing external packages!
+
+### Core Animation & Enhancement Packages
 ```bash
 # Animations
 pnpm add framer-motion
-
-# UI enhancements
-pnpm add cmdk sonner react-hot-toast
 
 # Virtual scrolling for performance
 pnpm add @tanstack/react-virtual
 
 # Intersection observer for lazy loading
 pnpm add react-intersection-observer
-
-# Icons (if not already installed)
-pnpm add lucide-react
 ```
+
+### Install shadcn Components (Use these instead of external libraries!)
+```bash
+# Dialog/Modal components
+npx shadcn@latest add dialog
+npx shadcn@latest add drawer
+
+# Feedback components  
+npx shadcn@latest add toast
+npx shadcn@latest add sonner  # For better toast notifications
+
+# Command palette
+npx shadcn@latest add command
+
+# Form components (if not already installed)
+npx shadcn@latest add input
+npx shadcn@latest add button
+npx shadcn@latest add card
+npx shadcn@latest add dropdown-menu
+
+# Other useful components
+npx shadcn@latest add skeleton
+npx shadcn@latest add separator
+npx shadcn@latest add badge
+npx shadcn@latest add avatar
+npx shadcn@latest add progress
+```
+
+**Why shadcn?**
+- ✅ Components are added to your project (full control)
+- ✅ Built on Radix UI (accessibility out of the box)
+- ✅ Fully customizable with Tailwind CSS
+- ✅ TypeScript support included
+- ✅ No npm dependency bloat
+
+**Rule**: If shadcn has the component, use it. Only install external packages for features shadcn doesn't provide (like Framer Motion for animations).
 
 ---
 
@@ -337,24 +450,18 @@ export const StaggerItem = ({ children, className }: { children: ReactNode; clas
 
 ## Step 4: Create Loading Skeletons
 
-Create `src/components/shared/skeletons/`:
-
-### Skeleton.tsx (Base Component)
-```typescript
-import { cn } from '@/lib/utils';
-import type { HTMLAttributes } from 'react';
-
-export const Skeleton = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn('animate-pulse rounded-md bg-muted', className)}
-    {...props}
-  />
-);
+### Install shadcn Skeleton Component First!
+```bash
+npx shadcn@latest add skeleton
 ```
+
+This installs `Skeleton` component to `src/components/ui/skeleton.tsx`.
+
+**OR** if you need custom skeleton, create `src/components/shared/skeletons/`:
 
 ### TaskCardSkeleton.tsx
 ```typescript
-import { Skeleton } from './Skeleton';
+import { Skeleton } from '@/components/ui/skeleton'; // Using shadcn skeleton
 
 export const TaskCardSkeleton = () => (
   <div className="border rounded-xl p-6 space-y-4">
@@ -378,7 +485,7 @@ export const TaskCardSkeleton = () => (
 ### DashboardSkeleton.tsx
 ```typescript
 import { TaskCardSkeleton } from './TaskCardSkeleton';
-import { Skeleton } from './Skeleton';
+import { Skeleton } from '@/components/ui/skeleton'; // Using shadcn skeleton
 
 export const DashboardSkeleton = () => (
   <div className="space-y-8">
@@ -650,10 +757,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
 ## Step 8: Add Toast Notifications
 
-Install and set up:
+### Use shadcn Sonner Component!
 ```bash
-pnpm add sonner
+npx shadcn@latest add sonner
 ```
+
+This installs the Sonner toast component with full shadcn styling.
 
 Update layout:
 ```typescript
@@ -742,9 +851,9 @@ Before marking UI enhancement complete:
 - [Framer Motion Examples](https://www.framer.com/motion/examples/)
 
 ### Design Systems
-- [Radix UI](https://www.radix-ui.com/)
-- [shadcn/ui](https://ui.shadcn.com/)
-- [Tailwind UI](https://tailwindui.com/)
+- **[shadcn/ui](https://ui.shadcn.com/)** - PRIMARY component library (check here FIRST!)
+- [Radix UI](https://www.radix-ui.com/) - Underlying primitives (shadcn is built on this)
+- [Tailwind UI](https://tailwindui.com/) - Premium templates for inspiration only
 
 ### Inspiration
 - [Linear](https://linear.app) - Clean, fast, beautiful

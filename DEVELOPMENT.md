@@ -27,10 +27,17 @@
 - **Framework**: Next.js 16 with App Router (React Server Components)
 - **Language**: TypeScript (strict mode)
 - **Database**: PostgreSQL with Prisma ORM
-- **UI**: Shadcn + Radix UI + Tailwind CSS 4
+- **UI**: shadcn/ui (default component library) built on Radix UI + Tailwind CSS 4
 - **Forms**: React Hook Form + Zod validation
 - **Server Actions**: next-safe-action 8 for type-safe mutations
 - **Authentication**: JWT tokens stored in HTTP-only cookies
+
+**Component Library Philosophy**:
+- **shadcn/ui is PRIMARY**: Always check [shadcn/ui](https://ui.shadcn.com) first before creating new components
+- Components are copied into your project (not installed as npm packages)
+- Full customization and ownership of UI components
+- Built on top of Radix UI primitives for accessibility
+- Only use external libraries if shadcn doesn't provide the component
 
 ### Architectural Principles
 1. **Server-First**: Maximize Server Components, minimize client JavaScript
@@ -67,10 +74,11 @@ my-progress/
 │   │   ├── task/           # Task-related components
 │   │   ├── editor/         # Lexical rich text editor
 │   │   ├── shared/         # Reusable components
-│   │   └── ui/             # Base UI primitives (Radix)
+│   │   └── ui/             # shadcn/ui components (button, card, dialog, etc.)
 │   │
 │   ├── contexts/            # React Context providers
 │   │   ├── user.context.tsx    # User state management
+│   │   ├── task.context.tsx    # Task state & operations management
 │   │   └── theme-provider.tsx  # Dark/light theme
 │   │
 │   ├── lib/                 # Core utilities and setup
@@ -204,15 +212,66 @@ const { user } = useUserContext();
 ### 1. Root Layout (`src/app/layout.tsx`)
 - Wraps entire app with providers
 - Sets up UserProvider (fetches current user)
+- Sets up TaskProvider (manages task state - should be nested in pages that need it)
 - Sets up ThemeProvider (dark/light mode)
 - Renders Navbar in Suspense boundary
+
+**Note**: TaskProvider should be used at page level, not in root layout, to avoid unnecessary context on auth pages.
 
 ### 2. User Context (`src/contexts/user.context.tsx`)
 - Fetches current user on mount via `me` action
 - Provides user data to all client components
 - Exposes `refetchUser()` for manual refresh
 
-### 3. Action Client (`src/lib/action-client.ts`)
+### 3. Task Context (`src/contexts/task.context.tsx`)
+- Manages task list state with pagination
+- Handles task CRUD operations (create, read, update)
+- Manages task drawer open/close state
+- Provides loading states for async operations
+- Auto-fetches tasks on page/limit changes
+- Exposes task operations to all client components
+
+**Key Features:**
+- **Pagination**: Page-based task list with configurable limit (default: 4)
+- **Task List**: Fetches and caches tasks with `getTasksList` action
+- **Task Details**: Loads individual task with `getTaskById` action
+- **Create Task**: Optimistically creates task and refreshes list
+- **Update Task**: Updates task and refreshes list if on page 1
+- **Drawer Management**: Controls task detail drawer visibility
+- **Loading States**: Exposes `isExecutingCreateTask` and `isExecutingUpdateTask`
+
+**Usage Pattern:**
+```typescript
+'use client';
+
+import { useTaskContext } from '@/contexts/task.context';
+
+export function TaskList() {
+  const {
+    tasks,
+    totalTasks,
+    page,
+    setPage,
+    createTask,
+    updateTask,
+    executeGetTaskById,
+    isExecutingCreateTask,
+  } = useTaskContext();
+
+  return (
+    <div>
+      {tasks?.map(task => (
+        <div key={task.id} onClick={() => executeGetTaskById({ taskId: task.id })}>
+          {task.title}
+        </div>
+      ))}
+      <Pagination page={page} total={totalTasks} onPageChange={setPage} />
+    </div>
+  );
+}
+```
+
+### 4. Action Client (`src/lib/action-client.ts`)
 - Configures next-safe-action error handling
 - Returns error messages to client
 - Used as base for all Server Actions
@@ -391,6 +450,8 @@ export const actionName = actionClient
 - `updateTask` - Update task status (PAUSED/RESUMED/COMPLETED/CANCELLED)
 - `findUserLastWorkingTask` - Get current active task
 - `findUserLastTask` - Get last completed task
+- `getTasksList` - Get paginated list of user's tasks
+- `getTaskById` - Get single task with details by ID
 
 **User Actions** (`src/actions/user.ts`):
 - `createUser` - Register new user
@@ -524,10 +585,20 @@ export const paths = {
 
 ### 4. Add a New UI Component
 
-**Step 1:** Create component (`src/components/shared/ProjectCard.tsx`)
+**Step 0:** Check shadcn/ui first!
+```bash
+# Visit https://ui.shadcn.com to see available components
+# Install if component exists
+npx shadcn@latest add card
+npx shadcn@latest add button
+# etc.
+```
+
+**Step 1:** Create component using shadcn components (`src/components/shared/ProjectCard.tsx`)
 ```typescript
 import type { FC } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import type { Project } from '@/types/project';
 
 type Props = {
@@ -537,8 +608,13 @@ type Props = {
 export const ProjectCard: FC<Props> = ({ project }) => {
   return (
     <Card>
-      <h3>{project.name}</h3>
-      <p>{project.description}</p>
+      <CardHeader>
+        <CardTitle>{project.name}</CardTitle>
+        <CardDescription>{project.description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button>View Details</Button>
+      </CardContent>
     </Card>
   );
 };
@@ -676,13 +752,17 @@ type Task = ArrayElement<typeof tasks>;
 - Use TypeScript for all props
 - Extract reusable logic to hooks
 - Keep components small and focused
-- always check first if there is a component in shadcn before creating new one
+- **ALWAYS check shadcn/ui first** - Visit [ui.shadcn.com](https://ui.shadcn.com) before creating any new component
+- Use `npx shadcn@latest add <component-name>` to install shadcn components
+- Customize shadcn components in `src/components/ui/` as needed
 
 ❌ **DON'T:**
 - Make everything a Client Component
 - Put business logic in components
 - Create overly complex component trees
 - Forget to memoize expensive computations
+- Install external component libraries without checking shadcn first
+- Reinvent components that shadcn already provides
 
 ### 3. Database Queries
 ✅ **DO:**
