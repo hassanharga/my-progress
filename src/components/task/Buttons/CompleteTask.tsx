@@ -2,36 +2,25 @@ import { useState, type FC } from 'react';
 import dynamic from 'next/dynamic';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-
-// import Editor from '../shared/Editor';
 
 const Editor = dynamic(() => import('../../shared/Editor'), { ssr: false });
 
 type Props = {
   completeTask: ({ progress, todo }: { progress: string; todo: string }) => void;
-  isExecuting: boolean;
+  isLoading: boolean;
   taskProgress: string | null;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 };
 
-export const CompleteTask: FC<Props> = ({ completeTask, isExecuting, taskProgress }) => {
-  const [open, setOpen] = useState(false);
-
+export const CompleteTask: FC<Props> = ({ completeTask, isLoading, taskProgress, open, setOpen }) => {
   const [progress, setProgress] = useState(taskProgress || '');
   const [todo, setTodo] = useState('');
 
   return (
     <Dialog open={open} onOpenChange={setOpen} modal>
-      <DialogTrigger asChild>
-        <Button
-          onClick={() => {
-            setOpen(true);
-          }}
-        >
-          Complete Task
-        </Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-[60vw]" aria-describedby="Complete task">
         <DialogHeader>
           <DialogTitle>Complete Task</DialogTitle>
@@ -67,7 +56,7 @@ export const CompleteTask: FC<Props> = ({ completeTask, isExecuting, taskProgres
             onClick={async () => {
               completeTask({ progress, todo });
             }}
-            disabled={isExecuting}
+            disabled={isLoading}
           >
             Complete Task
           </Button>

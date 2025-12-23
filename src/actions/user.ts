@@ -1,12 +1,10 @@
 'use server';
 
-import { redirect, RedirectType } from 'next/navigation';
 import { validateUserToken } from '@/helpers/validate-user';
 import { loginSchema, registerSchema, settingsSchema } from '@/schema/user';
 import { getFromCookies, setCookie } from '@/utils/cookie';
 
 import { User, UserSelect } from '@/types/user';
-import { paths } from '@/paths';
 import { actionClient } from '@/lib/action-client';
 import db from '@/lib/db';
 import { generateToken, verifyToken } from '@/lib/generate-token';
@@ -18,7 +16,7 @@ import { hashPassword, verifyPassword } from '@/lib/hash';
  * @param user  - The user object to be mapped.
  * @returns Never, as the function redirects to the home page.
  */
-const mapReturnedUser = async (user: User): Promise<never> => {
+const mapReturnedUser = async (user: User): Promise<User> => {
   const { id, name, email } = user;
 
   // generate token
@@ -28,8 +26,7 @@ const mapReturnedUser = async (user: User): Promise<never> => {
 
   //  return user and token
   // return { user: { id, name, email }, token: generateToken({ id, name, email }) };
-
-  redirect(paths.home, RedirectType.replace);
+  return user;
 };
 
 const findUser = async (email: string, select?: UserSelect): Promise<User | null> => {

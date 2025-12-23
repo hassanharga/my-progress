@@ -1,11 +1,14 @@
 'use client';
 
 import type { FC } from 'react';
+import { useRouter } from 'next/navigation';
 import { loginSchema } from '@/schema/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useHookFormAction } from '@next-safe-action/adapter-react-hook-form/hooks';
 
+import { paths } from '@/paths';
 import { loginUser } from '@/actions/user';
+import { useUserContext } from '@/contexts/user.context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,20 +22,20 @@ type Props = {
 };
 
 const Login: FC<Props> = ({ value }) => {
+  const { setUserData } = useUserContext();
+  const router = useRouter();
+
   const { form, action, handleSubmitWithAction } = useHookFormAction(loginUser, zodResolver(loginSchema), {
     errorMapProps: {},
     formProps: {
       mode: 'onChange',
     },
-    // actionProps: {
-    //   onSuccess: ({ data }) => {
-    //     console.log("data ====>", data);
-    //     resetFormAndAction();
-    //   },
-    //   onError: (error) => {
-    //     console.log("error ====>", error);
-    //   },
-    // },
+    actionProps: {
+      onSuccess: ({ data }) => {
+        setUserData(data);
+        router.replace(paths.home);
+      },
+    },
   });
 
   // console.log('action.result[login] ====>', action.result);

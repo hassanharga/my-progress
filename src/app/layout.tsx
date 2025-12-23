@@ -7,7 +7,9 @@ import './globals.css';
 import TaskProvider from '@/contexts/task.context';
 import ThemeProvider from '@/contexts/theme-provider';
 import UserProvider from '@/contexts/user.context';
-import Navbar from '@/components/shared/Navbar';
+import EnhancedNavbar from '@/components/shared/EnhancedNavbar';
+import { PageTransition } from '@/components/shared/PageTransition';
+import { Toaster } from '@/components/ui/sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -23,16 +25,19 @@ export default function RootLayout({
 }>): JSX.Element {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} overflow-hidden`}>
+      <body className={`${inter.className}`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <UserProvider>
             <div className="h-screen w-screen flex flex-col gap-5">
               {/* navbar */}
               <Suspense>
-                <Navbar />
+                <EnhancedNavbar />
               </Suspense>
-              <TaskProvider>{children}</TaskProvider>
+              <TaskProvider>
+                <PageTransition>{children}</PageTransition>
+              </TaskProvider>
             </div>
+            <Toaster position="top-right" richColors />
           </UserProvider>
         </ThemeProvider>
       </body>

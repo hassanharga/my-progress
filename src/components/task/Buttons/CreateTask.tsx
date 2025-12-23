@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic';
 
 import { useUserContext } from '@/contexts/user.context';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -11,12 +11,13 @@ const Editor = dynamic(() => import('../../shared/Editor'), { ssr: false });
 
 type Props = {
   createTask: ({ progress, title }: { progress: string; title: string; project: string }) => void;
-  isExecuting: boolean;
+  isLoading: boolean;
   lastTaskTodo: string;
+  setOpen: (open: boolean) => void;
+  open: boolean;
 };
 
-export const CreateTask: FC<Props> = ({ createTask, isExecuting, lastTaskTodo }) => {
-  const [open, setOpen] = useState(false);
+export const CreateTask: FC<Props> = ({ createTask, isLoading, lastTaskTodo, open, setOpen }) => {
   const { user } = useUserContext();
 
   const [title, setTitle] = useState('');
@@ -25,15 +26,6 @@ export const CreateTask: FC<Props> = ({ createTask, isExecuting, lastTaskTodo })
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          onClick={() => {
-            setOpen(true);
-          }}
-        >
-          Start new task
-        </Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-[60vw]" aria-describedby="Create task">
         <DialogHeader>
           <DialogTitle>Create Task</DialogTitle>
@@ -83,7 +75,7 @@ export const CreateTask: FC<Props> = ({ createTask, isExecuting, lastTaskTodo })
             onClick={async () => {
               createTask({ title, progress, project });
             }}
-            disabled={isExecuting || !title}
+            disabled={isLoading || !title}
           >
             Create Task
           </Button>

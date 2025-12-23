@@ -18,10 +18,16 @@ import { Label } from '@/components/ui/label';
 
 import DisplayServerActionResponse from './DisplayServerActionResponse';
 
-type Props = { currentProject: string; currentCompany: string; refetch: () => void };
+type Props = {
+  currentProject: string;
+  currentCompany: string;
+  refetch: () => void;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+};
 
-export const Settings: FC<Props> = ({ currentProject, currentCompany, refetch }) => {
-  const [open, setOpen] = useState(false);
+export const Settings: FC<Props> = ({ currentProject, currentCompany, refetch, open, setOpen }) => {
+  // const [open, setOpen] = useState(false);
 
   const {
     form,
@@ -57,7 +63,7 @@ export const Settings: FC<Props> = ({ currentProject, currentCompany, refetch })
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+      {/* <DialogTrigger asChild>
         <Button
           variant="outline"
           onClick={() => {
@@ -66,8 +72,8 @@ export const Settings: FC<Props> = ({ currentProject, currentCompany, refetch })
         >
           Settings
         </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      </DialogTrigger> */}
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription>Make changes to your settings here. Click save when you are done.</DialogDescription>
@@ -76,7 +82,7 @@ export const Settings: FC<Props> = ({ currentProject, currentCompany, refetch })
         <form onSubmit={handleSubmitWithAction}>
           <div className="flex flex-col gap-4 py-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="currentProject" className="text-start w-[120px]">
+              <Label htmlFor="currentProject" className="text-start w-30">
                 Current Project
               </Label>
               <Input id="currentProject" {...form.register('currentProject')} />
@@ -85,7 +91,7 @@ export const Settings: FC<Props> = ({ currentProject, currentCompany, refetch })
               ) : null}
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="currentCompany" className="text-start w-[120px]">
+              <Label htmlFor="currentCompany" className="text-start w-30">
                 Current Company
               </Label>
               <Input id="currentCompany" {...form.register('currentCompany')} />

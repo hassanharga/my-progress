@@ -1,10 +1,12 @@
 import type { FC } from 'react';
+import { ClipboardList } from 'lucide-react';
 
 import { useTaskContext } from '@/contexts/task.context';
+import { EmptyState } from '@/components/shared/EmptyState';
 
 import Status from '../shared/Status';
 import TableData from '../shared/Table';
-import TaskDrawer from './TaskDrawer';
+import { TaskDetails } from './Buttons/TaskDetails';
 
 const List: FC = () => {
   const { executeGetTaskById, openDrawer, closeDrawer, setPage, taskData, tasks, totalTasks, limit, page } =
@@ -13,7 +15,13 @@ const List: FC = () => {
   if (!tasks) return null;
 
   if (!tasks?.length) {
-    return <div className="my-4 p-4">You don&apos;t have any task yet</div>;
+    return (
+      <EmptyState
+        icon={<ClipboardList className="w-16 h-16" />}
+        title="No tasks found"
+        description="You don't have any tasks yet. Create your first task to get started."
+      />
+    );
   }
 
   return (
@@ -40,7 +48,8 @@ const List: FC = () => {
           executeGetTaskById({ taskId: task?.id });
         }}
       />
-      <TaskDrawer open={openDrawer} task={taskData} onClose={closeDrawer} />
+      {/* task details modal */}
+      {openDrawer ? <TaskDetails task={taskData} open={openDrawer} setOpen={closeDrawer} /> : null}
     </>
   );
 };

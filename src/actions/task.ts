@@ -96,7 +96,7 @@ const mapTask = (task: (Task & { loggedTime: { from: Date; to: Date | null }[] }
 
   const { loggedTime, ...data } = task || {};
 
-  return { ...data, duration: loggedTime ? calculateElapsedTime(loggedTime) : '' };
+  return { ...data, duration: loggedTime ? calculateElapsedTime(loggedTime)?.timeFormatted : '' };
 };
 
 export const findUserLastWorkingTask = async () => {
@@ -183,7 +183,7 @@ export const getTasksList = actionClient
         ...task,
         currentCompany: currentCompany || '-',
         currentProject: currentProject || '-',
-        duration: calculateElapsedTime(loggedTime),
+        duration: calculateElapsedTime(loggedTime)?.timeFormatted,
       })),
     };
   });
@@ -202,3 +202,61 @@ export const getTaskById = actionClient.inputSchema(z.object({ taskId: z.uuid() 
 
   return mapTask(task);
 });
+
+export const getTaskStats = async () => {
+  const user = await validateUserToken();
+
+  // Get all tasks for the user
+  const tasks = await prisma.task.findMany({
+    where: { userId: user.id },
+    include: {
+      loggedTime: { select: { from: true, to: true } },
+    },
+  });
+
+  // Calculate total time
+  let totalMinutes = 0;
+  tasks.forEach((task) => {
+    const duration = calculateElapsedTime(task.loggedTime);
+    // Parse duration like "2h 30m" or "45m"
+    const hours = duration?.hours || 0;
+    const minutes = duration?.minutes || 0;
+    totalMinutes += hours * 60 + minutes;
+  });
+
+  const totalHours = Math.floor(totalMinutes / 60);
+  const totalMins = totalMinutes % 60;
+  const totalTime = totalHours > 0 ? `${totalHours}h ${totalMins}m` : `${totalMins}m`;
+
+  // Count completed tasks
+  const completedTasks = tasks.filter((t) => t.status === 'COMPLETED').length;
+
+  // Count active tasks
+  const activeTasks = tasks.filter((t) => ['IN_PROGRESS', 'RESUMED', 'PAUSED'].includes(t.status)).length;
+
+  // Calculate this week's time
+  const now = new Date();
+  const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+
+  let thisWeekMinutes = 0;
+  tasks.forEach((task) => {
+    task.loggedTime.forEach((log) => {
+      if (new Date(log.from) >= startOfWeek) {
+        const end = log.to ? new Date(log.to) : new Date();
+        const diff = Math.floor((end.getTime() - new Date(log.from).getTime()) / 1000 / 60);
+        thisWeekMinutes += diff;
+      }
+    });
+  });
+
+  const thisWeekHours = Math.floor(thisWeekMinutes / 60);
+  const thisWeekMins = thisWeekMinutes % 60;
+  const thisWeekTime = thisWeekHours > 0 ? `${thisWeekHours}h ${thisWeekMins}m` : `${thisWeekMins}m`;
+
+  return {
+    totalTime,
+    completedTasks,
+    activeTasks,
+    thisWeekTime,
+  };
+};

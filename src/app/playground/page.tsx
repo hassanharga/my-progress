@@ -1,46 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { SerializedEditorState } from 'lexical';
-
-import { Editor } from '@/components/blocks/editor-00/editor';
-
-const initialValue = {
-  root: {
-    children: [
-      {
-        children: [
-          {
-            detail: 0,
-            format: 0,
-            mode: 'normal',
-            style: '',
-            text: '',
-            type: 'text',
-            version: 1,
-          },
-        ],
-        direction: 'ltr',
-        format: '',
-        indent: 0,
-        type: 'paragraph',
-        version: 1,
-      },
-    ],
-    direction: 'ltr',
-    format: '',
-    indent: 0,
-    type: 'root',
-    version: 1,
-  },
-} as unknown as SerializedEditorState;
+import ExampleDashboard from '@/components/examples/ExampleDashboard';
+import { DashboardSkeleton, TaskCardSkeleton } from '@/components/ui-enhancements';
 
 export default function EditorPage() {
-  const [editorState, setEditorState] = useState<SerializedEditorState>(initialValue);
-
   return (
-    <section className="flex w-full min-h-screen p-4">
-      <Editor editorSerializedState={editorState} onSerializedChange={(value) => setEditorState(value)} />
+    <section className="flex flex-col flex-1 w-full min-h-screen p-4 gap-4">
+      <ExampleDashboard />
+      <DashboardSkeleton />
+      <TaskCardSkeleton />
     </section>
   );
 }
