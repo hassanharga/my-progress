@@ -46,15 +46,12 @@ const EnhancedNavbar: FC = () => {
 
   return (
     <div className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Left section - Greetings */}
         <div className="flex items-center gap-4">
-          <div className="hidden sm:flex flex-col">
+          <div className="flex flex-col">
             <h3 className="text-sm font-medium">{greetings}</h3>
             {user?.name && <p className="text-sm text-muted-foreground">{user.name}</p>}
-          </div>
-          <div className="sm:hidden">
-            <h3 className="text-sm font-medium">{user?.name || 'User'}</h3>
           </div>
         </div>
 
