@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import { useEffect, type FC } from 'react';
 import { ClipboardList } from 'lucide-react';
 
 import { useTaskContext } from '@/contexts/task.context';
@@ -9,8 +9,14 @@ import TableData from '../shared/Table';
 import { TaskDetails } from './Buttons/TaskDetails';
 
 const List: FC = () => {
-  const { executeGetTaskById, openDrawer, closeDrawer, setPage, taskData, tasks, totalTasks, limit, page } =
+  const { executeGetTaskById, openDrawer, closeDrawer, setPage, taskData, tasks, totalTasks, limit, page, fetchTasks } =
     useTaskContext();
+
+  // fetch tasks list on page or limit change
+  useEffect(() => {
+    fetchTasks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [limit, page]);
 
   if (!tasks) return null;
 

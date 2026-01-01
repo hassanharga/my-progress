@@ -9,13 +9,13 @@ import { useHookFormAction } from '@next-safe-action/adapter-react-hook-form/hoo
 import { paths } from '@/paths';
 import { loginUser } from '@/actions/user';
 import { useUserContext } from '@/contexts/user.context';
+import DisplayServerActionResponse from '@/components/shared/DisplayServerActionResponse';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { TabsContent } from '@/components/ui/tabs';
-
-import DisplayServerActionResponse from '../shared/DisplayServerActionResponse';
 
 type Props = {
   value: string;
@@ -37,8 +37,6 @@ const Login: FC<Props> = ({ value }) => {
       },
     },
   });
-
-  // console.log('action.result[login] ====>', action.result);
 
   return (
     <TabsContent value={value}>
@@ -67,7 +65,8 @@ const Login: FC<Props> = ({ value }) => {
                 <p className="text-rose-700 text-sm">{form.formState.errors.password.message}</p>
               ) : null}
             </div>
-            <Button className="mt-2" type="submit">
+            <Button className="mt-2 cursor-pointer" type="submit" disabled={action.isExecuting}>
+              {action.isExecuting ? <Spinner /> : null}
               Login
             </Button>
           </form>

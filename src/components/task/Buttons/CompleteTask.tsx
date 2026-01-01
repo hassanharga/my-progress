@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 
 const Editor = dynamic(() => import('../../shared/Editor'), { ssr: false });
 
@@ -58,6 +59,7 @@ export const CompleteTask: FC<Props> = ({ completeTask, isLoading, taskProgress,
             }}
             disabled={isLoading}
           >
+            {isLoading ? <Spinner /> : null}
             Complete Task
           </Button>
         </DialogFooter>

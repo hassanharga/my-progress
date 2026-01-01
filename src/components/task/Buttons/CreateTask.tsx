@@ -71,7 +71,7 @@ export const CreateTask: FC<Props> = ({ createTask, isLoading, lastTaskTodo, ope
         </div>
         <DialogFooter>
           <Button
-            className="self-end"
+            className={`self-end ${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             onClick={async () => {
               createTask({ title, progress, project });
             }}

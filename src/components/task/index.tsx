@@ -45,7 +45,7 @@ const TaskPage: FC<Props> = ({ task, lastTask, stats }) => {
   };
 
   const handleCompleteTask = async (data: { progress?: string; todo?: string }) => {
-    if (!task) return;
+    if (!task || isExecutingUpdateTask) return;
     await updateTask({ status: 'COMPLETED', id: task.id, ...data });
     setOpenUpdateTaskDrawer(false);
     toast.success('Task completed! 🎉', {
@@ -55,13 +55,13 @@ const TaskPage: FC<Props> = ({ task, lastTask, stats }) => {
 
   const handlePlay = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    if (!task) return;
+    if (!task || isExecutingUpdateTask) return;
     updateTask({ status: 'RESUMED', id: task.id });
   };
 
   const handlePause = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    if (!task) return;
+    if (!task || isExecutingUpdateTask) return;
     updateTask({ status: 'PAUSED', id: task.id });
   };
 
@@ -71,7 +71,7 @@ const TaskPage: FC<Props> = ({ task, lastTask, stats }) => {
   };
 
   const openTaskDetailsAction = (task: TaskWithLoggedTime) => {
-    if (!task) return;
+    if (!task || isExecutingUpdateTask) return;
     setSelectedTask(task);
     setOpenTaskDetailsDrawer(true);
   };

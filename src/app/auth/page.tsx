@@ -9,8 +9,12 @@ const Auth: FC = async () => {
     <div className="flex flex-1 items-center justify-center">
       <Tabs defaultValue="login" className="w-100">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="login">Login</TabsTrigger>
-          <TabsTrigger value="register">Register</TabsTrigger>
+          <TabsTrigger value="login" className="cursor-pointer">
+            Login
+          </TabsTrigger>
+          <TabsTrigger value="register" className="cursor-pointer">
+            Register
+          </TabsTrigger>
         </TabsList>
         <Login value="login" />
         <Register value="register" />

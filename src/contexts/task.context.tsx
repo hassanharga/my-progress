@@ -51,6 +51,7 @@ interface TaskContextType {
   executeGetTaskById: (input: { taskId: string }) => void;
   createTask: (data: CreateTaskInput) => Promise<void>;
   updateTask: (data: UpdateTaskInput) => Promise<void>;
+  fetchTasks: () => Promise<void>;
   closeDrawer: () => void;
 }
 
@@ -67,6 +68,7 @@ const TaskContext = createContext<TaskContextType>({
   createTask: async () => {},
   updateTask: async () => {},
   closeDrawer: async () => {},
+  fetchTasks: async () => {},
 });
 
 const TaskProvider = ({ children }: { children: ReactNode }): JSX.Element => {
@@ -125,11 +127,6 @@ const TaskProvider = ({ children }: { children: ReactNode }): JSX.Element => {
   };
 
   // HOOKS
-  // fetch tasks list on page or limit change
-  useEffect(() => {
-    fetchTasks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [limit, page]);
 
   // close drawer on unmount
   useEffect(() => {
@@ -154,6 +151,7 @@ const TaskProvider = ({ children }: { children: ReactNode }): JSX.Element => {
         executeGetTaskById,
         createTask: onStartTask,
         updateTask: updateTaskHandler,
+        fetchTasks,
       }}
     >
       {children}

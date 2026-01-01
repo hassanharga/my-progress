@@ -145,7 +145,7 @@ export const EnhancedTaskCard: FC<Props> = ({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="cursor-pointer"
+                  className={`${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                   disabled={isLoading}
                   onClick={onPlayAction}
                 >
@@ -157,7 +157,7 @@ export const EnhancedTaskCard: FC<Props> = ({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="cursor-pointer"
+                  className={`${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                   disabled={isLoading}
                   onClick={onPauseAction}
                 >
@@ -169,7 +169,7 @@ export const EnhancedTaskCard: FC<Props> = ({
                 <Button
                   size="sm"
                   variant="default"
-                  className="cursor-pointer"
+                  className={`${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                   disabled={isLoading}
                   onClick={onCompleteAction}
                 >
