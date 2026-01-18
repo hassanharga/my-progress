@@ -1,0 +1,16 @@
+import type { MetadataRoute } from 'next';
+import { config } from '@/config';
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: [
+      {
+        userAgent: '*',
+        allow: '/',
+        disallow: ['/api/', '/generated/', '/data/'],
+      },
+    ],
+    sitemap: `${config.site.url}/sitemap.xml`,
+    host: config.site.url,
+  };
+}
