@@ -18,7 +18,7 @@ export const config = {
       'productivity app',
     ],
     url: getSiteURL(),
-    ogImage: `${getSiteURL()}/og-image.png`,
+    ogImage: `${getSiteURL()}/opengraph-image.png`,
     twitterHandle: '@hassanharga',
     twitterCreator: '@hassanharga',
     locale: 'en_US',
