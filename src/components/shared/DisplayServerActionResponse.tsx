@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { TriangleAlert } from 'lucide-react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -15,7 +15,7 @@ export type DisplayServerActionResponseProps = {
 const AlertDestructive: FC<{ message?: string }> = ({ message }) => {
   return (
     <Alert variant="destructive">
-      <ExclamationTriangleIcon className="h-4 w-4" />
+      <TriangleAlert className="h-4 w-4" />
       <AlertTitle>Error</AlertTitle>
       <AlertDescription>{message || 'Something went wrong'}</AlertDescription>
     </Alert>
