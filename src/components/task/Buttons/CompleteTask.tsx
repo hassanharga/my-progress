@@ -22,7 +22,7 @@ export const CompleteTask: FC<Props> = ({ completeTask, isLoading, taskProgress,
 
   return (
     <Dialog open={open} onOpenChange={setOpen} modal>
-      <DialogContent className="sm:max-w-[60vw]" aria-describedby="Complete task">
+      <DialogContent className="sm:max-w-[60vw] sm:max-h-[95%] overflow-y-auto" aria-describedby="Complete task">
         <DialogHeader>
           <DialogTitle>Complete Task</DialogTitle>
         </DialogHeader>
@@ -39,7 +39,6 @@ export const CompleteTask: FC<Props> = ({ completeTask, isLoading, taskProgress,
               }}
             />
           </div>
-          {/* todo */}
           <div className="flex flex-col gap-2">
             <Label htmlFor="currentCompany" className="text-start w-30">
               What todo next?

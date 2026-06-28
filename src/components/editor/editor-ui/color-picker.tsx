@@ -1,6 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 /* eslint-disable react/display-name */
+/* eslint-disable react-hooks/use-memo */
+/* eslint-disable react-hooks/refs */
+/* eslint-disable react-hooks/set-state-in-effect */
 
 'use client';
 
