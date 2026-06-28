@@ -1,4 +1,5 @@
 import { useEffect, type FC } from 'react';
+import { Controller } from 'react-hook-form';
 import { settingsSchema } from '@/schema/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useHookFormAction } from '@next-safe-action/adapter-react-hook-form/hooks';
@@ -8,18 +9,20 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import DisplayServerActionResponse from './DisplayServerActionResponse';
 
 type Props = {
   currentProject: string;
   currentCompany: string;
+  weekStartDay: 'SUNDAY' | 'MONDAY' | 'SATURDAY';
   refetch: () => void;
   open: boolean;
   setOpen: (open: boolean) => void;
 };
 
-export const Settings: FC<Props> = ({ currentProject, currentCompany, refetch, open, setOpen }) => {
+export const Settings: FC<Props> = ({ currentProject, currentCompany, weekStartDay, refetch, open, setOpen }) => {
   // const [open, setOpen] = useState(false);
 
   const {
@@ -33,6 +36,7 @@ export const Settings: FC<Props> = ({ currentProject, currentCompany, refetch, o
       defaultValues: {
         currentProject,
         currentCompany,
+        weekStartDay,
       },
     },
     actionProps: {
@@ -51,8 +55,9 @@ export const Settings: FC<Props> = ({ currentProject, currentCompany, refetch, o
       form.setValue('currentProject', currentProject);
       form.setValue('currentCompany', currentCompany);
     }
+    form.setValue('weekStartDay', weekStartDay);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentProject, currentCompany]);
+  }, [currentProject, currentCompany, weekStartDay]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -91,6 +96,27 @@ export const Settings: FC<Props> = ({ currentProject, currentCompany, refetch, o
               {form.formState.errors.currentCompany ? (
                 <p className="text-rose-700 text-sm">{form.formState.errors.currentCompany.message}</p>
               ) : null}
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="weekStartDay" className="text-start w-30">
+                Week starts on
+              </Label>
+              <Controller
+                control={form.control}
+                name="weekStartDay"
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="weekStartDay">
+                      <SelectValue placeholder="Select a day" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="SUNDAY">Sunday</SelectItem>
+                      <SelectItem value="MONDAY">Monday</SelectItem>
+                      <SelectItem value="SATURDAY">Saturday</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
             <Button type="submit" className="self-end" disabled={isExecuting}>
               Save changes

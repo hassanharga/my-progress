@@ -139,6 +139,7 @@ const EnhancedNavbar: FC = () => {
             <Settings
               currentCompany={user?.currentCompany ?? ''}
               currentProject={user?.currentProject ?? ''}
+              weekStartDay={user?.weekStartDay ?? 'MONDAY'}
               refetch={refetchUser}
               open={settingsOpen}
               setOpen={setSettingsOpen}
