@@ -80,6 +80,7 @@ export const me = actionClient.action(async () => {
     email: true,
     currentCompany: true,
     currentProject: true,
+    weekStartDay: true,
   });
 
   if (!user) return null;
@@ -98,10 +99,12 @@ export const updateSettings = actionClient.inputSchema(settingsSchema).action(as
       email: true,
       currentCompany: true,
       currentProject: true,
+      weekStartDay: true,
     },
     data: {
       currentCompany: parsedInput.currentCompany,
       currentProject: parsedInput.currentProject,
+      weekStartDay: parsedInput.weekStartDay,
     },
   });
 
