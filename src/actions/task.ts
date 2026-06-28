@@ -1,8 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { startOfMonth, startOfWeek } from 'date-fns';
 import { validateUserToken } from '@/helpers/validate-user';
 import { calculateElapsedTime } from '@/utils/calculate-elapsed-time';
+import { WEEK_STARTS_ON, formatDuration, type WeekStartDay } from '@/utils/time-stats';
 import { logger } from '@/utils/logger';
 import { z } from 'zod';
 
@@ -203,60 +205,53 @@ export const getTaskById = actionClient.inputSchema(z.object({ taskId: z.uuid() 
   return mapTask(task);
 });
 
+type StatsRow = { total_seconds: number; week_seconds: number; month_seconds: number };
+
 export const getTaskStats = async () => {
   const user = await validateUserToken();
 
-  // Get all tasks for the user
-  const tasks = await prisma.task.findMany({
-    where: { userId: user.id },
-    include: {
-      loggedTime: { select: { from: true, to: true } },
-    },
+  const userPrefs = await prisma.user.findUnique({
+    where: { id: user.id! },
+    select: { weekStartDay: true },
   });
+  const weekStartDay: WeekStartDay = userPrefs?.weekStartDay ?? 'MONDAY';
 
-  // Calculate total time
-  let totalMinutes = 0;
-  tasks.forEach((task) => {
-    const duration = calculateElapsedTime(task.loggedTime);
-    // Parse duration like "2h 30m" or "45m"
-    const hours = duration?.hours || 0;
-    const minutes = duration?.minutes || 0;
-    totalMinutes += hours * 60 + minutes;
-  });
-
-  const totalHours = Math.floor(totalMinutes / 60);
-  const totalMins = totalMinutes % 60;
-  const totalTime = totalHours > 0 ? `${totalHours}h ${totalMins}m` : `${totalMins}m`;
-
-  // Count completed tasks
-  const completedTasks = tasks.filter((t) => t.status === 'COMPLETED').length;
-
-  // Count active tasks
-  const activeTasks = tasks.filter((t) => ['IN_PROGRESS', 'RESUMED', 'PAUSED'].includes(t.status)).length;
-
-  // Calculate this week's time
   const now = new Date();
-  const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+  const weekStart = startOfWeek(now, { weekStartsOn: WEEK_STARTS_ON[weekStartDay] });
+  const monthStart = startOfMonth(now);
 
-  let thisWeekMinutes = 0;
-  tasks.forEach((task) => {
-    task.loggedTime.forEach((log) => {
-      if (new Date(log.from) >= startOfWeek) {
-        const end = log.to ? new Date(log.to) : new Date();
-        const diff = Math.floor((end.getTime() - new Date(log.from).getTime()) / 1000 / 60);
-        thisWeekMinutes += diff;
-      }
-    });
-  });
+  const [statsRows, statusGroups] = await Promise.all([
+    prisma.$queryRaw<StatsRow[]>`
+      SELECT
+        COALESCE(SUM(GREATEST(0, EXTRACT(EPOCH FROM (LEAST(COALESCE("to", ${now}), ${now}) - "from")))), 0)::float AS total_seconds,
+        COALESCE(SUM(GREATEST(0, EXTRACT(EPOCH FROM (LEAST(COALESCE("to", ${now}), ${now}) - GREATEST("from", ${weekStart}))))), 0)::float AS week_seconds,
+        COALESCE(SUM(GREATEST(0, EXTRACT(EPOCH FROM (LEAST(COALESCE("to", ${now}), ${now}) - GREATEST("from", ${monthStart}))))), 0)::float AS month_seconds
+      FROM "TaskTime" tt
+      JOIN "Task" t ON t.id = tt."taskId"
+      WHERE t."userId" = ${user.id}
+    `,
+    prisma.task.groupBy({
+      by: ['status'],
+      where: { userId: user.id },
+      _count: { status: true },
+    }),
+  ]);
 
-  const thisWeekHours = Math.floor(thisWeekMinutes / 60);
-  const thisWeekMins = thisWeekMinutes % 60;
-  const thisWeekTime = thisWeekHours > 0 ? `${thisWeekHours}h ${thisWeekMins}m` : `${thisWeekMins}m`;
+  const row = statsRows[0] ?? { total_seconds: 0, week_seconds: 0, month_seconds: 0 };
+  const counts = statusGroups.reduce(
+    (acc, g) => {
+      if (g.status === 'COMPLETED') acc.completed = g._count.status;
+      if (['IN_PROGRESS', 'RESUMED', 'PAUSED'].includes(g.status)) acc.active += g._count.status;
+      return acc;
+    },
+    { completed: 0, active: 0 }
+  );
 
   return {
-    totalTime,
-    completedTasks,
-    activeTasks,
-    thisWeekTime,
+    totalTime: formatDuration(row.total_seconds),
+    completedTasks: counts.completed,
+    activeTasks: counts.active,
+    thisWeekTime: formatDuration(row.week_seconds),
+    thisMonthTime: formatDuration(row.month_seconds),
   };
 };
