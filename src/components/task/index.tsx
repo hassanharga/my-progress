@@ -24,6 +24,7 @@ type Props = {
     completedTasks: number;
     activeTasks: number;
     thisWeekTime: string;
+    thisMonthTime: string;
   };
 };
 
@@ -85,6 +86,7 @@ const TaskPage: FC<Props> = ({ task, lastTask, stats }) => {
           completedTasks={stats.completedTasks}
           activeTasks={stats.activeTasks}
           thisWeekTime={stats.thisWeekTime}
+          thisMonthTime={stats.thisMonthTime}
         />
       </FadeIn>
 

@@ -2,7 +2,7 @@
 
 import type { FC, ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Clock, ListTodo, TrendingUp } from 'lucide-react';
+import { CalendarDays, CheckCircle2, Clock, ListTodo, TrendingUp } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -60,11 +60,12 @@ type StatsGridProps = {
   completedTasks: number;
   activeTasks: number;
   thisWeekTime: string;
+  thisMonthTime: string;
 };
 
-export const StatsGrid: FC<StatsGridProps> = ({ totalTime, completedTasks, activeTasks, thisWeekTime }) => {
+export const StatsGrid: FC<StatsGridProps> = ({ totalTime, completedTasks, activeTasks, thisWeekTime, thisMonthTime }) => {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
       <StatCard
         title="Total Time Tracked"
         value={totalTime}
@@ -93,7 +94,13 @@ export const StatsGrid: FC<StatsGridProps> = ({ totalTime, completedTasks, activ
         description="Time this week"
         delay={0.3}
       />
-      {/* trend={{ value: '+12%', isPositive: true }} */}
+      <StatCard
+        title="This Month"
+        value={thisMonthTime}
+        icon={<CalendarDays className="h-4 w-4" />}
+        description="Time this month"
+        delay={0.4}
+      />
     </div>
   );
 };
