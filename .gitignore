@@ -43,11 +43,5 @@ next-env.d.ts
 /.env.local
 .env
 
-.DS_Store
 /.DS_Store/
 /generated/prisma
-.DS_Store
-
-
-pnpm-workspace.yaml
-.DS_Store/
