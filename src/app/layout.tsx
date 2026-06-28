@@ -53,15 +53,6 @@ export const metadata: Metadata = {
     siteName: config.site.name,
     title: config.site.title,
     description: config.site.description,
-    images: [
-      {
-        url: config.site.ogImage,
-        width: 1200,
-        height: 630,
-        alt: `${config.site.name} - Track Your Progress`,
-        type: 'image/png',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
@@ -69,7 +60,6 @@ export const metadata: Metadata = {
     description: config.site.description,
     site: config.site.twitterHandle,
     creator: config.site.twitterCreator,
-    images: [config.site.ogImage],
   },
   robots: {
     index: true,
@@ -84,13 +74,8 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
-    ],
     apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
   },
-  manifest: '/manifest.json',
   alternates: {
     canonical: config.site.url,
   },

@@ -7,8 +7,11 @@ export function getSiteURL(): string {
   // Make sure to include `https://` when not localhost.
   url = url.includes('http') ? url : `https://${url}`;
 
-  // Make sure to include a trailing `/`.
-  // url = url.endsWith('/') ? url : `${url}/`;
+  if (process.env.NODE_ENV === 'production' && url.startsWith('http://localhost')) {
+    console.warn(
+      'NEXT_PUBLIC_SITE_URL is not set. OG images and canonical URLs will resolve against localhost. Set it in your production environment.',
+    );
+  }
 
   return url;
 }

@@ -1,13 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { config } from '@/config';
 
-/**
- * Web App Manifest
- * Defines how the app appears when installed as a PWA
- * 
- * Note: This is a TypeScript version. The actual manifest.json in /public
- * is what browsers will use. Keep them in sync.
- */
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: config.site.name,
@@ -42,6 +35,21 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any',
+      },
+    ],
+    categories: ['productivity', 'business', 'utilities'],
+    screenshots: [
+      {
+        src: '/screenshot-wide.png',
+        sizes: '1280x720',
+        type: 'image/png',
+        form_factor: 'wide',
+      },
+      {
+        src: '/screenshot-narrow.png',
+        sizes: '750x1334',
+        type: 'image/png',
+        form_factor: 'narrow',
       },
     ],
   };

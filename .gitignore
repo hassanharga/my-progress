@@ -45,3 +45,5 @@ next-env.d.ts
 
 /.DS_Store/
 /generated/prisma
+
+/docs/superpowers
