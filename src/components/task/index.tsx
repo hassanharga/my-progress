@@ -31,11 +31,17 @@ type Props = {
 const TaskPage: FC<Props> = ({ task, lastTask, stats }) => {
   const [openCreateTaskDrawer, setOpenCreateTaskDrawer] = useState(false);
   const [openUpdateTaskDrawer, setOpenUpdateTaskDrawer] = useState(false);
-  const [openTaskDetailsDrawer, setOpenTaskDetailsDrawer] = useState(false);
 
-  const [selectedTask, setSelectedTask] = useState<TaskWithLoggedTime | null>(null);
-
-  const { updateTask, createTask, isExecutingCreateTask, isExecutingUpdateTask } = useTaskContext();
+  const {
+    updateTask,
+    createTask,
+    isExecutingCreateTask,
+    isExecutingUpdateTask,
+    executeGetTaskById,
+    taskData,
+    openDrawer,
+    closeDrawer,
+  } = useTaskContext();
 
   const handleCreateTask = async (data: { progress: string; title: string; project: string }) => {
     await createTask(data);
@@ -73,8 +79,7 @@ const TaskPage: FC<Props> = ({ task, lastTask, stats }) => {
 
   const openTaskDetailsAction = (task: TaskWithLoggedTime) => {
     if (!task || isExecutingUpdateTask) return;
-    setSelectedTask(task);
-    setOpenTaskDetailsDrawer(true);
+    executeGetTaskById({ taskId: task.id });
   };
 
   return (
@@ -159,16 +164,7 @@ const TaskPage: FC<Props> = ({ task, lastTask, stats }) => {
       ) : null}
 
       {/* task details modal */}
-      {openTaskDetailsDrawer ? (
-        <TaskDetails
-          task={selectedTask}
-          open={openTaskDetailsDrawer}
-          setOpen={() => {
-            setOpenTaskDetailsDrawer(false);
-            setSelectedTask(null);
-          }}
-        />
-      ) : null}
+      {openDrawer ? <TaskDetails task={taskData} open={openDrawer} setOpen={closeDrawer} /> : null}
     </>
   );
 };

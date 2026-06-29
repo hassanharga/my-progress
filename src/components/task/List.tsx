@@ -6,11 +6,9 @@ import { EmptyState } from '@/components/shared/EmptyState';
 
 import Status from '../shared/Status';
 import TableData from '../shared/Table';
-import { TaskDetails } from './Buttons/TaskDetails';
 
 const List: FC = () => {
-  const { executeGetTaskById, openDrawer, closeDrawer, setPage, taskData, tasks, totalTasks, limit, page, fetchTasks } =
-    useTaskContext();
+  const { executeGetTaskById, setPage, tasks, totalTasks, limit, page, fetchTasks } = useTaskContext();
 
   // fetch tasks list on page or limit change
   useEffect(() => {
@@ -54,8 +52,6 @@ const List: FC = () => {
           executeGetTaskById({ taskId: task?.id });
         }}
       />
-      {/* task details modal */}
-      {openDrawer ? <TaskDetails task={taskData} open={openDrawer} setOpen={closeDrawer} /> : null}
     </>
   );
 };
