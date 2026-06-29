@@ -14,10 +14,11 @@ import {
 import { useAction } from 'next-safe-action/hooks';
 
 import { TaskStatus } from '@/types/task';
-import { createTask, getTaskById, getTasksList, updateTask } from '@/actions/task';
+import { createTask, getTaskById, getTasksList, updateTask, updateTaskDetails } from '@/actions/task';
 
 export type CreateTaskInput = Parameters<typeof createTask>[0];
 export type UpdateTaskInput = Parameters<typeof updateTask>[0];
+export type EditTaskInput = Parameters<typeof updateTaskDetails>[0];
 
 interface TaskContextType {
   limit: number;
@@ -47,6 +48,8 @@ interface TaskContextType {
   } | null;
   isExecutingCreateTask: boolean;
   isExecutingUpdateTask: boolean;
+  isExecutingEditTask: boolean;
+  editTask: (data: EditTaskInput) => Promise<void>;
   setPage: Dispatch<SetStateAction<number>>;
   executeGetTaskById: (input: { taskId: string }) => void;
   createTask: (data: CreateTaskInput) => Promise<void>;
@@ -63,6 +66,8 @@ const TaskContext = createContext<TaskContextType>({
   openDrawer: false,
   isExecutingCreateTask: false,
   isExecutingUpdateTask: false,
+  isExecutingEditTask: false,
+  editTask: async () => {},
   setPage: () => {},
   executeGetTaskById: () => {},
   createTask: async () => {},
@@ -101,6 +106,9 @@ const TaskProvider = ({ children }: { children: ReactNode }): JSX.Element => {
   // update task
   const { executeAsync: executeUpdateTask, isExecuting: isExecutingUpdateTask } = useAction(updateTask);
 
+  // edit task details
+  const { executeAsync: executeEditTask, isExecuting: isExecutingEditTask } = useAction(updateTaskDetails);
+
   // HANDLERS
 
   // fetch tasks list
@@ -119,6 +127,14 @@ const TaskProvider = ({ children }: { children: ReactNode }): JSX.Element => {
     if (!data?.id) return undefined;
     await executeUpdateTask(data);
     if (page == 1) fetchTasks();
+  };
+
+  // edit task details handler
+  const editTaskHandler = async (data: EditTaskInput): Promise<void> => {
+    if (!data?.id) return;
+    await executeEditTask(data);
+    if (page === 1) fetchTasks();
+    executeGetTaskById({ taskId: data.id });
   };
 
   const closeDrawer = () => {
@@ -146,6 +162,8 @@ const TaskProvider = ({ children }: { children: ReactNode }): JSX.Element => {
         taskData,
         isExecutingCreateTask: isExecuting,
         isExecutingUpdateTask,
+        isExecutingEditTask,
+        editTask: editTaskHandler,
         closeDrawer,
         setPage,
         executeGetTaskById,
