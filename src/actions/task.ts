@@ -108,10 +108,14 @@ export const updateTaskDetails = actionClient
     const user = await validateUserToken();
     const { id, ...fields } = parsedInput;
 
-    await prisma.task.updateMany({
+    const { count } = await prisma.task.updateMany({
       where: { id, userId: user.id },
       data: fields,
     });
+
+    if (count === 0) {
+      throw new Error('Task not found');
+    }
 
     revalidatePath(paths.home);
   });
@@ -215,9 +219,10 @@ export const getTasksList = actionClient
 
 export const getTaskById = actionClient.inputSchema(z.object({ taskId: z.uuid() })).action(async ({ parsedInput }) => {
   const { taskId } = parsedInput;
+  const user = await validateUserToken();
 
-  const task = await prisma.task.findUnique({
-    where: { id: taskId },
+  const task = await prisma.task.findFirst({
+    where: { id: taskId, userId: user.id },
     include: {
       loggedTime: { select: { from: true, to: true } },
     },

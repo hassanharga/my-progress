@@ -49,7 +49,7 @@ interface TaskContextType {
   isExecutingCreateTask: boolean;
   isExecutingUpdateTask: boolean;
   isExecutingEditTask: boolean;
-  editTask: (data: EditTaskInput) => Promise<void>;
+  editTask: (data: EditTaskInput) => Promise<boolean>;
   setPage: Dispatch<SetStateAction<number>>;
   executeGetTaskById: (input: { taskId: string }) => void;
   createTask: (data: CreateTaskInput) => Promise<void>;
@@ -67,7 +67,7 @@ const TaskContext = createContext<TaskContextType>({
   isExecutingCreateTask: false,
   isExecutingUpdateTask: false,
   isExecutingEditTask: false,
-  editTask: async () => {},
+  editTask: async () => false,
   setPage: () => {},
   executeGetTaskById: () => {},
   createTask: async () => {},
@@ -130,11 +130,12 @@ const TaskProvider = ({ children }: { children: ReactNode }): JSX.Element => {
   };
 
   // edit task details handler
-  const editTaskHandler = async (data: EditTaskInput): Promise<void> => {
-    if (!data?.id) return;
-    await executeEditTask(data);
+  const editTaskHandler = async (data: EditTaskInput): Promise<boolean> => {
+    const result = await executeEditTask(data);
+    if (!result || result.serverError) return false;
     if (page === 1) fetchTasks();
     executeGetTaskById({ taskId: data.id });
+    return true;
   };
 
   const closeDrawer = () => {
