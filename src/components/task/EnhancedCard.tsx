@@ -13,13 +13,17 @@ import { Card } from '@/components/ui/card';
 
 import Editor from '../shared/Editor';
 
-export const ProgressAndTodo: FC<{ title: string; text: string | null }> = ({ title, text }) => {
+export const ProgressAndTodo: FC<{
+  title: string;
+  text: string | null;
+  disabled?: boolean;
+  onChange?: (value: string) => void;
+}> = ({ title, text, disabled = true, onChange }) => {
   return (
     <div className="flex flex-col gap-1 p-1 flex-1 w-full">
       <h6 className="font-medium">{title}</h6>
-
-      {text ? (
-        <Editor defaultValue={text} disabled />
+      {text || !disabled ? (
+        <Editor defaultValue={text ?? undefined} disabled={disabled} onChange={onChange} />
       ) : (
         <div className="border rounded-sm p-1 text-sm text-center">No Data</div>
       )}
