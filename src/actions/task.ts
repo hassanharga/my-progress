@@ -93,6 +93,29 @@ export const updateTask = actionClient
     revalidatePath(paths.home);
   });
 
+export const updateTaskDetails = actionClient
+  .inputSchema(
+    z.object({
+      id: z.uuid(),
+      title: z.string().min(1).optional(),
+      currentProject: z.string().optional(),
+      currentCompany: z.string().optional(),
+      progress: z.string().optional(),
+      todo: z.string().optional(),
+    })
+  )
+  .action(async ({ parsedInput }) => {
+    const user = await validateUserToken();
+    const { id, ...fields } = parsedInput;
+
+    await prisma.task.updateMany({
+      where: { id, userId: user.id },
+      data: fields,
+    });
+
+    revalidatePath(paths.home);
+  });
+
 const mapTask = (task: (Task & { loggedTime: { from: Date; to: Date | null }[] }) | null) => {
   if (!task) return null;
 
