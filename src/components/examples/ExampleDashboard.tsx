@@ -56,6 +56,7 @@ export default function ExampleDashboard({
       createdAt: new Date('2025-12-23T11:29:32.865Z'),
       updatedAt: new Date('2025-12-23T11:39:50.058Z'),
       userId: 'example-user-id',
+      totalSeconds: 0,
     },
     {
       id: 'b2ae3cab-c235-4052-825f-db6a9f0df955',
@@ -69,6 +70,7 @@ export default function ExampleDashboard({
       createdAt: new Date('2025-12-23T11:29:32.865Z'),
       updatedAt: new Date('2025-12-23T11:39:50.058Z'),
       userId: 'example-user-id',
+      totalSeconds: 0,
     },
     {
       id: 'b2ae3cab-c235-4052-825f-db6a9f0df955',
@@ -82,6 +84,7 @@ export default function ExampleDashboard({
       createdAt: new Date('2025-12-23T11:29:32.865Z'),
       updatedAt: new Date('2025-12-23T11:39:50.058Z'),
       userId: 'example-user-id',
+      totalSeconds: 0,
     },
   ],
   isLoading = false,

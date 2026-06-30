@@ -45,6 +45,7 @@ interface TaskContextType {
     status: TaskStatus;
     progress: string | null;
     todo: string | null;
+    totalSeconds: number;
   } | null;
   isExecutingCreateTask: boolean;
   isExecutingUpdateTask: boolean;
