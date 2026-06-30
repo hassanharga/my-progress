@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import {
   ChevronRight,
   ClipboardList,
-  BarChart3,
   Settings as SettingsIcon,
   LogOut,
   PanelLeftClose,
@@ -34,7 +33,6 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { icon: ClipboardList, label: 'Tasks', href: '/dashboard' },
-  { icon: BarChart3, label: 'Stats', action: 'stats' },
   { icon: SettingsIcon, label: 'Settings', action: 'settings' },
 ];
 

@@ -35,10 +35,6 @@ export const STATUS_STYLES = {
     badge: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
     stripe: 'bg-amber-500',
   },
-  RESUMED: {
-    badge: 'bg-accent/10 text-accent border-accent/20',
-    stripe: 'bg-accent',
-  },
   COMPLETED: {
     badge: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
     stripe: 'bg-emerald-500',

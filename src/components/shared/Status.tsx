@@ -9,13 +9,14 @@ type Props = {
 };
 
 const Status: FC<Props> = ({ status }) => {
-  const style = STATUS_STYLES[status];
+  const displayStatus = status === 'RESUMED' ? 'IN_PROGRESS' : status;
+  const style = STATUS_STYLES[displayStatus as keyof typeof STATUS_STYLES];
 
   return (
     <span
       className={`inline-flex items-center rounded-md border px-2 py-0.5 text-center text-sm font-medium ${style.badge}`}
     >
-      {status === 'RESUMED' ? Statuses.IN_PROGRESS : Statuses[status]}
+      {Statuses[displayStatus]}
     </span>
   );
 };

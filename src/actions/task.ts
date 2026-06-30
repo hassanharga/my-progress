@@ -291,7 +291,7 @@ export const getTaskStats = async () => {
           (LEAST(COALESCE("to", ${now}), ${now}) - GREATEST("from", ${monthStart}))))), 0)::float AS month_seconds
       FROM "TaskTime" tt
       JOIN "Task" t ON t.id = tt."taskId"
-      WHERE t."userId" = ${user.id} AND tt."from" >= ${monthStart}
+      WHERE t."userId" = ${user.id} AND (tt."to" IS NULL OR tt."to" >= ${monthStart})
     `,
     prisma.task.groupBy({
       by: ['status'],
