@@ -20,7 +20,7 @@ export const createTask = actionClient
 
     const useData = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { id: true, currentCompany: true, currentProject: true },
+      select: { currentCompany: true, currentProject: true },
     });
 
     await prisma.task.create({
@@ -38,7 +38,7 @@ export const createTask = actionClient
       },
     });
 
-    revalidatePath(paths.home);
+    revalidatePath('/dashboard');
   });
 
 export const updateTask = actionClient
