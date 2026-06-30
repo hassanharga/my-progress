@@ -19,7 +19,6 @@ export { EnhancedTaskCard } from './task/EnhancedCard';
 export { StatCard, StatsGrid } from './shared/StatsCard';
 export { EmptyState } from './shared/EmptyState';
 export { PageTransition } from './shared/PageTransition';
-export { default as EnhancedNavbar } from './shared/EnhancedNavbar';
 
 // Skeleton Loaders
 export { TaskCardSkeleton, DashboardSkeleton } from './shared/skeletons';
