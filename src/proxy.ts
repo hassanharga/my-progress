@@ -1,6 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+import { logger } from './utils/logger';
+
 import { paths } from './paths';
 import { isTokenExpired } from './utils/token';
 
@@ -15,6 +17,7 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
 
     // Redirect authenticated users away from /auth
     if (pathname === paths.auth && !isExpired) {
+      logger.debug('Proxy: redirecting authenticated user away from /auth');
       return NextResponse.redirect(new URL(paths.dashboard, req.url));
     }
 
@@ -25,6 +28,7 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
 
     // Redirect unauthenticated users to login
     if (isExpired) {
+      logger.debug(`Proxy: redirecting unauthenticated request from ${pathname} to /auth`);
       return NextResponse.redirect(new URL(paths.auth, req.url));
     }
 

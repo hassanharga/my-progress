@@ -6,6 +6,7 @@ import { EditorState, SerializedEditorState } from 'lexical';
 
 import { editorTheme } from '@/components/editor/themes/editor-theme';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { logger } from '@/utils/logger';
 
 import { nodes } from './nodes';
 import { Plugins } from './plugins';
@@ -15,7 +16,7 @@ const editorConfig: InitialConfigType = {
   theme: editorTheme,
   nodes,
   onError: (error: Error) => {
-    console.error(error);
+    logger.error('Lexical editor error:', error);
   },
 };
 

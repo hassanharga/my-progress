@@ -3,6 +3,8 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 
+import { logger } from '@/utils/logger';
+
 // Convert scrypt to promise-based
 const scryptAsync = promisify(scrypt);
 
@@ -26,7 +28,7 @@ export async function hashPassword(password: string): Promise<string> {
     // Combine salt and hash with a separator
     return `${salt.toString('base64')}${SEPARATOR}${derivedKey.toString('base64')}`;
   } catch (error) {
-    console.error('Error hashing password:', error);
+    logger.error('Error hashing password:', error);
     throw new Error('Password hashing failed');
   }
 }
@@ -62,7 +64,7 @@ export async function verifyPassword(hashedPassword: string, plainPassword: stri
     // Compare hashes using timing-safe equality
     return timingSafeEqual(derivedKey, hashBuffer);
   } catch (error) {
-    console.error('Error verifyPassword password:', error);
-    throw new Error('Password verifyPassword failed');
+    logger.error('Error verifying password:', error);
+    throw new Error('Password verification failed');
   }
 }

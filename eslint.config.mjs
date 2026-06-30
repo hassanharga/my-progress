@@ -7,6 +7,17 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   prettier,
+  {
+    rules: {
+      'no-console': 'error',
+    },
+  },
+  {
+    files: ['src/lib/create-logger.ts', 'src/utils/get-site-url.ts'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

@@ -1,8 +1,11 @@
 'use client';
 
+import { useEffect } from 'react';
+
 import { AlertCircle, RotateCcw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { logger } from '@/utils/logger';
 
 type Props = {
   error: Error & { digest?: string };
@@ -10,6 +13,14 @@ type Props = {
 };
 
 export default function ErrorPage({ error, reset }: Props) {
+  useEffect(() => {
+    logger.error('App error boundary caught:', {
+      message: error.message,
+      digest: error.digest,
+      stack: error.stack,
+    });
+  }, [error]);
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8 text-center">
       <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-destructive/10">
