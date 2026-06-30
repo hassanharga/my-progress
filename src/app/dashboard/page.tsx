@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
 
-import { config } from '@/config';
-import { generateOrganizationSchema, generateWebPageSchema, JsonLd } from '@/lib/structured-data';
 import { findUserLastTask, findUserLastWorkingTask, getTaskStats, getTasksListData } from '@/actions/task';
 import { validateUserToken } from '@/helpers/validate-user';
 import TaskPage from '@/components/task';
@@ -10,10 +8,9 @@ import TaskProvider from '@/contexts/task.context';
 export const metadata: Metadata = {
   title: 'Dashboard',
   description: 'View and manage your current tasks, track work progress, and analyze productivity statistics.',
-  openGraph: {
-    title: 'Dashboard | My Progress',
-    description: 'View and manage your current tasks, track work progress, and analyze productivity statistics.',
-    url: config.site.url,
+  robots: {
+    index: false,
+    follow: false,
   },
 };
 
@@ -38,14 +35,6 @@ export default async function Dashboard() {
 
   return (
     <>
-      <JsonLd data={generateOrganizationSchema()} />
-      <JsonLd
-        data={generateWebPageSchema(
-          'Dashboard | My Progress',
-          'View and manage your current tasks, track work progress, and analyze productivity statistics.',
-          config.site.url
-        )}
-      />
       <TaskProvider
         initialTasks={initialTasksData.tasks}
         initialTotal={initialTasksData.total}

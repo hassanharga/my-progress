@@ -83,9 +83,6 @@ export const metadata: Metadata = {
   icons: {
     apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
   },
-  alternates: {
-    canonical: config.site.url,
-  },
 };
 
 export default function RootLayout({

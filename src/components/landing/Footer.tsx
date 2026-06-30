@@ -8,20 +8,6 @@ export default function Footer() {
         { label: 'FAQ', href: '#faq' },
       ],
     },
-    {
-      title: 'Company',
-      links: [
-        { label: 'About', href: '#' },
-        { label: 'Blog', href: '#' },
-      ],
-    },
-    {
-      title: 'Legal',
-      links: [
-        { label: 'Privacy', href: '#' },
-        { label: 'Terms', href: '#' },
-      ],
-    },
   ];
 
   return (

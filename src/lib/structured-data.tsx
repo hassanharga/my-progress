@@ -24,11 +24,6 @@ export function generateOrganizationSchema() {
       price: '0',
       priceCurrency: 'USD',
     },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      ratingCount: '100',
-    },
   };
 }
 
@@ -43,14 +38,6 @@ export function generateWebSiteSchema() {
     name: config.site.name,
     url: config.site.url,
     description: config.site.description,
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${config.site.url}/search?q={search_term_string}`,
-      },
-      'query-input': 'required name=search_term_string',
-    },
   };
 }
 
@@ -93,6 +80,25 @@ export function generateWebPageSchema(title: string, description: string, url: s
       name: config.site.name,
       url: config.site.url,
     },
+  };
+}
+
+/**
+ * Generate FAQPage Schema
+ * Enables FAQ rich results in search
+ */
+export function generateFaqSchema(faqs: Array<{ question: string; answer: string }>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
   };
 }
 
