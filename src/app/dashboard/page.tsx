@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 
 import { config } from '@/config';
 import { generateOrganizationSchema, generateWebPageSchema, JsonLd } from '@/lib/structured-data';
-import { findUserLastTask, findUserLastWorkingTask, getTaskStats } from '@/actions/task';
+import { findUserLastTask, findUserLastWorkingTask, getTaskStats, getTasksListData } from '@/actions/task';
+import { validateUserToken } from '@/helpers/validate-user';
 import TaskPage from '@/components/task';
+import TaskProvider from '@/contexts/task.context';
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -15,8 +17,24 @@ export const metadata: Metadata = {
   },
 };
 
+function getGreeting() {
+  const hours = new Date().getHours();
+  if (hours < 12) return 'Good morning';
+  if (hours < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
 export default async function Dashboard() {
-  const [task, lastTask, stats] = await Promise.all([findUserLastWorkingTask(), findUserLastTask(), getTaskStats()]);
+  const user = await validateUserToken();
+
+  const [task, lastTask, stats, initialTasksData] = await Promise.all([
+    findUserLastWorkingTask(),
+    findUserLastTask(),
+    getTaskStats(),
+    getTasksListData(4, 0),
+  ]);
+
+  const greeting = getGreeting();
 
   return (
     <>
@@ -28,10 +46,20 @@ export default async function Dashboard() {
           config.site.url
         )}
       />
-      <main className="w-full flex flex-col items-center gap-5 overflow-y-auto p-4 overflow-hidden">
-        {/* page details */}
-        <TaskPage task={task} lastTask={lastTask} stats={stats} />
-      </main>
+      <TaskProvider
+        initialTasks={initialTasksData.tasks}
+        initialTotal={initialTasksData.total}
+      >
+        <main className="w-full max-w-7xl space-y-6 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <div>
+            <h1 className="font-display text-2xl font-bold">
+              {greeting}, {user.name} 👋
+            </h1>
+            <p className="text-sm text-muted-foreground">Here&apos;s your progress at a glance.</p>
+          </div>
+          <TaskPage task={task} lastTask={lastTask} stats={stats} />
+        </main>
+      </TaskProvider>
     </>
   );
 }

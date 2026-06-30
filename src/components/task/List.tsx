@@ -1,4 +1,4 @@
-import { useEffect, type FC } from 'react';
+import { useEffect, useRef, type FC } from 'react';
 import { ClipboardList } from 'lucide-react';
 
 import { useTaskContext } from '@/contexts/task.context';
@@ -9,9 +9,14 @@ import TableData from '../shared/Table';
 
 const List: FC = () => {
   const { executeGetTaskById, setPage, tasks, totalTasks, limit, page, fetchTasks } = useTaskContext();
+  const isFirstRender = useRef(true);
 
-  // fetch tasks list on page or limit change
+  // fetch tasks list on page or limit change (skip first render — data from server)
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     fetchTasks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [limit, page]);

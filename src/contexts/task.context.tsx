@@ -77,17 +77,31 @@ const TaskContext = createContext<TaskContextType>({
   fetchTasks: async () => {},
 });
 
-const TaskProvider = ({ children }: { children: ReactNode }): JSX.Element => {
+const TaskProvider = ({
+  children,
+  initialTasks,
+  initialTotal,
+}: {
+  children: ReactNode;
+  initialTasks?: TaskContextType['tasks'];
+  initialTotal?: number;
+}): JSX.Element => {
   const limit = useMemo(() => 4, []);
   const [page, setPage] = useState(1);
   const [openDrawer, setOpenDrawer] = useState(false);
+  const [tasks, setTasks] = useState(initialTasks);
+  const [totalTasks, setTotalTasks] = useState(initialTotal ?? 0);
 
   // ACTIONS
   // task list
-  const {
-    execute,
-    result: { data },
-  } = useAction(getTasksList);
+  const { execute } = useAction(getTasksList, {
+    onSuccess: ({ data }) => {
+      if (data?.tasks) {
+        setTasks(data.tasks);
+        setTotalTasks(data.total);
+      }
+    },
+  });
 
   // get task by id
   const {
@@ -159,8 +173,8 @@ const TaskProvider = ({ children }: { children: ReactNode }): JSX.Element => {
         limit,
         page,
         openDrawer,
-        totalTasks: data?.total ?? 0,
-        tasks: data?.tasks || [],
+        totalTasks,
+        tasks,
         taskData,
         isExecutingCreateTask: isExecuting,
         isExecutingUpdateTask,

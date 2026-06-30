@@ -184,19 +184,12 @@ export const findUserLastTask = async () => {
   return mapTask(task);
 };
 
-export const getTasksList = actionClient
-  .inputSchema(
-    z.object({
-      limit: z.number().default(10),
-      skip: z.number().default(0),
-    })
-  )
-  .action(async ({ parsedInput: { limit, skip } }) => {
-    const user = await validateUserToken();
+export const getTasksListData = async (limit: number = 10, skip: number = 0) => {
+  const user = await validateUserToken();
 
-    const tasksCount = prisma.task.count({ where: { userId: user.id } });
-
-    const tasksPromise = prisma.task.findMany({
+  const [total, tasks] = await Promise.all([
+    prisma.task.count({ where: { userId: user.id } }),
+    prisma.task.findMany({
       where: { userId: user.id },
       orderBy: { updatedAt: 'desc' },
       skip,
@@ -215,27 +208,35 @@ export const getTasksList = actionClient
           where: { to: null },
         },
       },
-    });
+    }),
+  ]);
 
-    const [total, tasks] = await Promise.all([tasksCount, tasksPromise]);
+  return {
+    total,
+    tasks: tasks.map(({ loggedTime, currentCompany, currentProject, ...task }) => {
+      const isActive = ['IN_PROGRESS', 'RESUMED'].includes(task.status);
+      const openSession = loggedTime?.find((s) => !s.to);
+      const activeFrom = isActive && openSession ? openSession.from : null;
 
-    logger.debug('[getTasksList]', { limit, skip, total, tasks });
+      return {
+        ...task,
+        currentCompany: currentCompany || '-',
+        currentProject: currentProject || '-',
+        duration: formatTaskDuration(task.totalSeconds, activeFrom),
+      };
+    }),
+  };
+};
 
-    return {
-      total,
-      tasks: tasks.map(({ loggedTime, currentCompany, currentProject, ...task }) => {
-        const isActive = ['IN_PROGRESS', 'RESUMED'].includes(task.status);
-        const openSession = loggedTime?.find((s) => !s.to);
-        const activeFrom = isActive && openSession ? openSession.from : null;
-
-        return {
-          ...task,
-          currentCompany: currentCompany || '-',
-          currentProject: currentProject || '-',
-          duration: formatTaskDuration(task.totalSeconds, activeFrom),
-        };
-      }),
-    };
+export const getTasksList = actionClient
+  .inputSchema(
+    z.object({
+      limit: z.number().default(10),
+      skip: z.number().default(0),
+    })
+  )
+  .action(async ({ parsedInput: { limit, skip } }) => {
+    return getTasksListData(limit, skip);
   });
 
 export const getTaskById = actionClient.inputSchema(z.object({ taskId: z.uuid() })).action(async ({ parsedInput }) => {
