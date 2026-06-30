@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type FC } from 'react';
-import { STATUS_COLORS, type TaskStatus } from '@/constants/design-system';
+import { STATUS_STYLES } from '@/constants/status';
 import { format } from 'date-fns';
 import { Building2, Calendar, Clock, FolderOpen, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
@@ -38,7 +38,7 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
   if (!task) return null;
 
   const displayStatus = task.status === 'RESUMED' ? 'IN_PROGRESS' : task.status;
-  const statusColor = STATUS_COLORS[displayStatus as TaskStatus];
+  const statusColor = STATUS_STYLES[displayStatus as keyof typeof STATUS_STYLES];
 
   const handleEdit = () => {
     setTitle(task.title);
@@ -76,7 +76,7 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
         <DialogContent className="sm:max-w-[60vw] max-h-[80vh] overflow-y-auto" aria-describedby="Edit task">
           <DialogHeader>
             <DialogTitle>Edit Task</DialogTitle>
-            <Badge className={`${statusColor.bg} ${statusColor.text} border-0 w-fit`}>
+            <Badge className={`${statusColor.badge} w-fit`}>
               {displayStatus.replace('_', ' ')}
             </Badge>
           </DialogHeader>
@@ -169,7 +169,7 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
               Edit
             </Button>
           </div>
-          <Badge className={`${statusColor.bg} ${statusColor.text} border-0 w-fit`}>
+          <Badge className={`${statusColor.badge} w-fit`}>
             {displayStatus.replace('_', ' ')}
           </Badge>
         </DialogHeader>

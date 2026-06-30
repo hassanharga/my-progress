@@ -1,5 +1,6 @@
 import type { FC } from 'react';
-import { StatusColors, Statuses } from '@/constants/status';
+
+import { STATUS_STYLES, Statuses } from '@/constants/status';
 
 import { TaskStatus } from '../../../generated/prisma/enums';
 
@@ -8,16 +9,14 @@ type Props = {
 };
 
 const Status: FC<Props> = ({ status }) => {
+  const style = STATUS_STYLES[status];
+
   return (
-    <div
-      className="p-1 rounded-[5px] text-center text-sm font-medium"
-      style={{
-        color: StatusColors[status].textColor,
-        backgroundColor: StatusColors[status].bgColor,
-      }}
+    <span
+      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-center text-sm font-medium ${style.badge}`}
     >
       {status === 'RESUMED' ? Statuses.IN_PROGRESS : Statuses[status]}
-    </div>
+    </span>
   );
 };
 

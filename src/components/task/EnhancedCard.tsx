@@ -1,7 +1,7 @@
 'use client';
 
 import type { FC, MouseEvent } from 'react';
-import { STATUS_COLORS, type TaskStatus } from '@/constants/design-system';
+import { STATUS_STYLES } from '@/constants/status';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { Calendar, Check, Clock, Pause, Play } from 'lucide-react';
@@ -51,7 +51,7 @@ export const EnhancedTaskCard: FC<Props> = ({
   if (!task) return null;
 
   const displayStatus = task.status === 'RESUMED' ? 'IN_PROGRESS' : task.status;
-  const statusColor = STATUS_COLORS[displayStatus as TaskStatus];
+  const statusColor = STATUS_STYLES[displayStatus as keyof typeof STATUS_STYLES];
   const isActive = ['IN_PROGRESS', 'RESUMED'].includes(task.status);
   const isPaused = task.status === 'PAUSED';
   const isCompleted = task.status === 'COMPLETED';
@@ -106,7 +106,7 @@ export const EnhancedTaskCard: FC<Props> = ({
           {/* Meta info */}
           <div className="flex flex-wrap items-center gap-3 text-sm">
             {/* status */}
-            <Badge className={`${statusColor.bg} ${statusColor.text} border-0 p-2`}>
+            <Badge className={`${statusColor.badge} p-2`}>
               {displayStatus.replace('_', ' ')}
             </Badge>
 
