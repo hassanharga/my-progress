@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { startOfMonth, startOfWeek } from 'date-fns';
 import { validateUserToken } from '@/helpers/validate-user';
-import { calculateElapsedTime } from '@/utils/calculate-elapsed-time';
+import { formatTaskDuration } from '@/utils/calculate-elapsed-time';
 import { WEEK_STARTS_ON, formatDuration, type WeekStartDay } from '@/utils/time-stats';
 import { logger } from '@/utils/logger';
 import { z } from 'zod';
@@ -102,7 +102,7 @@ export const updateTask = actionClient
       data,
     });
 
-    revalidatePath(paths.home);
+    revalidatePath('/dashboard');
   });
 
 export const updateTaskDetails = actionClient
@@ -129,15 +129,25 @@ export const updateTaskDetails = actionClient
       throw new Error('Task not found');
     }
 
-    revalidatePath(paths.home);
+    revalidatePath('/dashboard');
   });
 
-const mapTask = (task: (Task & { loggedTime: { from: Date; to: Date | null }[] }) | null) => {
+const mapTask = (
+  task:
+    | (Task & { loggedTime?: { from: Date; to: Date | null }[] })
+    | null
+) => {
   if (!task) return null;
 
-  const { loggedTime, ...data } = task || {};
+  const { loggedTime, ...data } = task;
+  const isActive = ['IN_PROGRESS', 'RESUMED'].includes(task.status);
+  const openSession = loggedTime?.find((s) => !s.to);
+  const activeFrom = isActive && openSession ? openSession.from : null;
 
-  return { ...data, duration: loggedTime ? calculateElapsedTime(loggedTime)?.timeFormatted : '' };
+  return {
+    ...data,
+    duration: formatTaskDuration(task.totalSeconds, activeFrom),
+  };
 };
 
 export const findUserLastWorkingTask = async () => {
@@ -148,10 +158,10 @@ export const findUserLastWorkingTask = async () => {
     orderBy: { updatedAt: 'desc' },
     include: {
       loggedTime: {
-        select: {
-          from: true,
-          to: true,
-        },
+        select: { from: true, to: true },
+        orderBy: { from: 'desc' },
+        take: 1,
+        where: { to: null },
       },
     },
   });
@@ -167,14 +177,6 @@ export const findUserLastTask = async () => {
   const task = await prisma.task.findFirst({
     where: { status: { notIn: ['IN_PROGRESS', 'RESUMED', 'PAUSED'] }, userId: user.id },
     orderBy: { updatedAt: 'desc' },
-    include: {
-      loggedTime: {
-        select: {
-          from: true,
-          to: true,
-        },
-      },
-    },
   });
 
   logger.debug('[findUserLastTask]', task);
@@ -205,11 +207,12 @@ export const getTasksList = actionClient
         status: true,
         currentCompany: true,
         currentProject: true,
+        totalSeconds: true,
         loggedTime: {
-          select: {
-            from: true,
-            to: true,
-          },
+          select: { from: true, to: true },
+          orderBy: { from: 'desc' },
+          take: 1,
+          where: { to: null },
         },
       },
     });
@@ -220,12 +223,18 @@ export const getTasksList = actionClient
 
     return {
       total,
-      tasks: tasks.map(({ loggedTime, currentCompany, currentProject, ...task }) => ({
-        ...task,
-        currentCompany: currentCompany || '-',
-        currentProject: currentProject || '-',
-        duration: calculateElapsedTime(loggedTime)?.timeFormatted,
-      })),
+      tasks: tasks.map(({ loggedTime, currentCompany, currentProject, ...task }) => {
+        const isActive = ['IN_PROGRESS', 'RESUMED'].includes(task.status);
+        const openSession = loggedTime?.find((s) => !s.to);
+        const activeFrom = isActive && openSession ? openSession.from : null;
+
+        return {
+          ...task,
+          currentCompany: currentCompany || '-',
+          currentProject: currentProject || '-',
+          duration: formatTaskDuration(task.totalSeconds, activeFrom),
+        };
+      }),
     };
   });
 
@@ -236,7 +245,12 @@ export const getTaskById = actionClient.inputSchema(z.object({ taskId: z.uuid() 
   const task = await prisma.task.findFirst({
     where: { id: taskId, userId: user.id },
     include: {
-      loggedTime: { select: { from: true, to: true } },
+      loggedTime: {
+        select: { from: true, to: true },
+        orderBy: { from: 'desc' },
+        take: 1,
+        where: { to: null },
+      },
     },
   });
 
@@ -245,7 +259,7 @@ export const getTaskById = actionClient.inputSchema(z.object({ taskId: z.uuid() 
   return mapTask(task);
 });
 
-type StatsRow = { total_seconds: number; week_seconds: number; month_seconds: number };
+type StatsRow = { week_seconds: number; month_seconds: number };
 
 export const getTaskStats = async () => {
   const user = await validateUserToken();
@@ -260,15 +274,23 @@ export const getTaskStats = async () => {
   const weekStart = startOfWeek(now, { weekStartsOn: WEEK_STARTS_ON[weekStartDay] });
   const monthStart = startOfMonth(now);
 
-  const [statsRows, statusGroups] = await Promise.all([
+  const [totalSecondsRow, periodStats, statusGroups] = await Promise.all([
+    // Total time from cached column (fast — scans Task only)
+    prisma.$queryRaw<{ total: number }[]>`
+      SELECT COALESCE(SUM("totalSeconds"), 0)::float AS total
+      FROM "Task"
+      WHERE "userId" = ${user.id}
+    `,
+    // Weekly/monthly from TaskTime bounded to current month (fast — fewer rows)
     prisma.$queryRaw<StatsRow[]>`
       SELECT
-        COALESCE(SUM(GREATEST(0, EXTRACT(EPOCH FROM (LEAST(COALESCE("to", ${now}), ${now}) - "from")))), 0)::float AS total_seconds,
-        COALESCE(SUM(GREATEST(0, EXTRACT(EPOCH FROM (LEAST(COALESCE("to", ${now}), ${now}) - GREATEST("from", ${weekStart}))))), 0)::float AS week_seconds,
-        COALESCE(SUM(GREATEST(0, EXTRACT(EPOCH FROM (LEAST(COALESCE("to", ${now}), ${now}) - GREATEST("from", ${monthStart}))))), 0)::float AS month_seconds
+        COALESCE(SUM(GREATEST(0, EXTRACT(EPOCH FROM
+          (LEAST(COALESCE("to", ${now}), ${now}) - GREATEST("from", ${weekStart}))))), 0)::float AS week_seconds,
+        COALESCE(SUM(GREATEST(0, EXTRACT(EPOCH FROM
+          (LEAST(COALESCE("to", ${now}), ${now}) - GREATEST("from", ${monthStart}))))), 0)::float AS month_seconds
       FROM "TaskTime" tt
       JOIN "Task" t ON t.id = tt."taskId"
-      WHERE t."userId" = ${user.id}
+      WHERE t."userId" = ${user.id} AND tt."from" >= ${monthStart}
     `,
     prisma.task.groupBy({
       by: ['status'],
@@ -277,7 +299,8 @@ export const getTaskStats = async () => {
     }),
   ]);
 
-  const row = statsRows[0] ?? { total_seconds: 0, week_seconds: 0, month_seconds: 0 };
+  const totalSeconds = totalSecondsRow[0]?.total ?? 0;
+  const row = periodStats[0] ?? { week_seconds: 0, month_seconds: 0 };
   const counts = statusGroups.reduce(
     (acc, g) => {
       if (g.status === 'COMPLETED') acc.completed = g._count.status;
@@ -288,7 +311,7 @@ export const getTaskStats = async () => {
   );
 
   return {
-    totalTime: formatDuration(row.total_seconds),
+    totalTime: formatDuration(totalSeconds),
     completedTasks: counts.completed,
     activeTasks: counts.active,
     thisWeekTime: formatDuration(row.week_seconds),
