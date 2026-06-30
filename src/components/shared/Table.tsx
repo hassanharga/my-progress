@@ -24,41 +24,47 @@ const TableData = <T extends object>({
   onRowClick,
 }: Props<T>): JSX.Element => {
   return (
-    <div className="self-stretch flex flex-col items-center gap-3 p-4 pb-10 mt-4">
-      <Table>
-        <TableCaption className="caption-top py-2">{captionLabel}</TableCaption>
-        <TableHeader>
-          <TableRow>
-            {headers?.map((header) => (
-              <TableHead key={header}>{header}</TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {/* table data */}
-          {rows?.length ? (
-            rows?.map((row, rowIdx) => (
-              <TableRow
-                key={rowIdx}
-                className="cursor-pointer"
-                onClick={() => {
-                  onRowClick(row.data);
-                }}
-              >
-                {row.values.map((value, cellIdx) => (
-                  <TableCell key={cellIdx}>{value}</TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow className="cursor-pointer">
-              <TableCell className="text-center" colSpan={headers?.length}>
-                No Data Found
-              </TableCell>
+    <div className="self-stretch flex flex-col items-center gap-3 p-4 pb-10 mt-4 w-full">
+      <div className="w-full rounded-xl overflow-hidden border">
+        <Table>
+          <TableCaption className="caption-top py-2">{captionLabel}</TableCaption>
+          <TableHeader>
+            <TableRow className="bg-muted/50 border-b hover:bg-muted/50">
+              {headers?.map((header) => (
+                <TableHead key={header} className="font-medium text-sm px-4 py-3">
+                  {header}
+                </TableHead>
+              ))}
             </TableRow>
-          )}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {/* table data */}
+            {rows?.length ? (
+              rows?.map((row, rowIdx) => (
+                <TableRow
+                  key={rowIdx}
+                  className="cursor-pointer hover:bg-primary/5 transition-colors border-b last:border-b-0"
+                  onClick={() => {
+                    onRowClick(row.data);
+                  }}
+                >
+                  {row.values.map((value, cellIdx) => (
+                    <TableCell key={cellIdx} className="px-4 py-3">
+                      {value}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow className="cursor-pointer">
+                <TableCell className="text-center px-4 py-3" colSpan={headers?.length}>
+                  No Data Found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
       <Pagination currentPage={currentPage} onChangePage={onChangePage} totalPages={totalPages} />
     </div>
   );

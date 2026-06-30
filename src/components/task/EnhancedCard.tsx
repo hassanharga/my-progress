@@ -65,7 +65,7 @@ export const EnhancedTaskCard: FC<Props> = ({
       transition={{ type: 'spring', stiffness: 300, damping: 24 }}
     >
       <Card
-        className="group relative overflow-hidden hover:shadow-lg transition-shadow duration-250 cursor-pointer"
+        className="group relative overflow-hidden rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all duration-250 cursor-pointer"
         onClick={openTaskDetailsAction}
       >
         {/* Status indicator stripe */}
@@ -114,7 +114,7 @@ export const EnhancedTaskCard: FC<Props> = ({
             {task.duration && (
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Clock className="w-3.5 h-3.5" />
-                <span>{task.duration}</span>
+                <span className="tabular-nums font-medium text-primary">{task.duration}</span>
               </div>
             )}
 
@@ -137,14 +137,14 @@ export const EnhancedTaskCard: FC<Props> = ({
                   repeat: Infinity,
                   repeatType: 'reverse',
                 }}
-                className="absolute left-0 top-0 bottom-0 bg-primary opacity-50"
+                className="absolute left-0 top-0 bottom-0 bg-primary"
               />
             </div>
           )} */}
 
           {/* Quick actions */}
           {!isCompleted && (
-            <div className="flex gap-2 opacity-1000 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+            <div className="flex gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
               {(isPaused || isCancelled) && onPlayAction && (
                 <Button
                   size="sm"
