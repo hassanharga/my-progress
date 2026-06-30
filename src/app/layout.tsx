@@ -1,6 +1,7 @@
 import { type JSX, type ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 
 import './globals.css';
 
@@ -99,6 +100,7 @@ export default function RootLayout({
             <Toaster position="top-right" richColors />
           </UserProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
