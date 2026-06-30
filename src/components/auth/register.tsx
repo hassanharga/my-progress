@@ -33,7 +33,7 @@ const Register: FC<Props> = ({ value }) => {
     actionProps: {
       onSuccess: ({ data }) => {
         setUserData(data);
-        router.replace(paths.home);
+        router.replace(paths.dashboard);
       },
     },
   });

@@ -38,7 +38,7 @@ export const createTask = actionClient
       },
     });
 
-    revalidatePath('/dashboard');
+    revalidatePath(paths.dashboard);
   });
 
 export const updateTask = actionClient
@@ -102,7 +102,7 @@ export const updateTask = actionClient
       data,
     });
 
-    revalidatePath('/dashboard');
+    revalidatePath(paths.dashboard);
   });
 
 export const updateTaskDetails = actionClient
@@ -129,7 +129,7 @@ export const updateTaskDetails = actionClient
       throw new Error('Task not found');
     }
 
-    revalidatePath('/dashboard');
+    revalidatePath(paths.dashboard);
   });
 
 const mapTask = (
