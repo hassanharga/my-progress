@@ -67,13 +67,25 @@ export const updateTask = actionClient
 
     const data: TaskUpdateInput = { status };
 
-    if (status && ['PAUSED', 'CANCELLED', 'COMPLETED'].includes(status as string) && !lastLoggedTime?.to) {
+    // When ending a session (PAUSED/CANCELLED/COMPLETED), calculate the
+    // session duration and increment totalSeconds
+    if (
+      status &&
+      ['PAUSED', 'CANCELLED', 'COMPLETED'].includes(status as string) &&
+      !lastLoggedTime?.to
+    ) {
+      const now = new Date();
+      const sessionSeconds = lastLoggedTime?.from
+        ? (now.getTime() - lastLoggedTime.from.getTime()) / 1000
+        : 0;
+
       data.loggedTime = {
         update: {
-          data: { to: new Date() },
+          data: { to: now },
           where: { id: lastLoggedTime?.id },
         },
       };
+      data.totalSeconds = { increment: Math.max(0, sessionSeconds) };
     }
 
     if (status === 'RESUMED') {
