@@ -2,6 +2,7 @@
 
 import type { FC } from 'react';
 import { useRouter } from 'next/navigation';
+import { ArrowRight } from 'lucide-react';
 import { loginSchema } from '@/schema/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useHookFormAction } from '@next-safe-action/adapter-react-hook-form/hooks';
@@ -11,25 +12,21 @@ import { loginUser } from '@/actions/user';
 import { useUserContext } from '@/contexts/user.context';
 import DisplayServerActionResponse from '@/components/shared/DisplayServerActionResponse';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { TabsContent } from '@/components/ui/tabs';
 
 type Props = {
-  value: string;
+  onSwitchToRegister: () => void;
 };
 
-const Login: FC<Props> = ({ value }) => {
+const Login: FC<Props> = ({ onSwitchToRegister }) => {
   const { setUserData } = useUserContext();
   const router = useRouter();
 
   const { form, action, handleSubmitWithAction } = useHookFormAction(loginUser, zodResolver(loginSchema), {
     errorMapProps: {},
-    formProps: {
-      mode: 'onChange',
-    },
+    formProps: { mode: 'onChange' },
     actionProps: {
       onSuccess: ({ data }) => {
         setUserData(data);
@@ -39,40 +36,46 @@ const Login: FC<Props> = ({ value }) => {
   });
 
   return (
-    <TabsContent value={value}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>Login to your account.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {!action?.isExecuting ? <DisplayServerActionResponse result={action.result} /> : null}
-          <form className="space-y-4" onSubmit={handleSubmitWithAction}>
-            {form.formState.errors.root ? (
-              <p className="text-rose-700 text-sm">{form.formState.errors.root.message}</p>
-            ) : null}
-            <div className="space-y-1">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" {...form.register('email')} />
-              {form.formState.errors.email ? (
-                <p className="text-rose-700 text-sm">{form.formState.errors.email.message}</p>
-              ) : null}
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="password">Password</Label>
-              <Input type="password" id="password" {...form.register('password')} />
-              {form.formState.errors.password ? (
-                <p className="text-rose-700 text-sm">{form.formState.errors.password.message}</p>
-              ) : null}
-            </div>
-            <Button className="mt-2 cursor-pointer" type="submit" disabled={action.isExecuting}>
-              {action.isExecuting ? <Spinner /> : null}
-              Login
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </TabsContent>
+    <div className="w-full max-w-sm space-y-6">
+      <div className="space-y-2 text-center">
+        <h1 className="font-display text-2xl font-bold">Welcome back</h1>
+        <p className="text-sm text-muted-foreground">Log in to your account</p>
+      </div>
+
+      {!action?.isExecuting ? <DisplayServerActionResponse result={action.result} /> : null}
+
+      <form className="space-y-4" onSubmit={handleSubmitWithAction}>
+        {form.formState.errors.root ? (
+          <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
+        ) : null}
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" type="email" placeholder="you@example.com" {...form.register('email')} />
+          {form.formState.errors.email ? (
+            <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>
+          ) : null}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input type="password" id="password" placeholder="••••••••" {...form.register('password')} />
+          {form.formState.errors.password ? (
+            <p className="text-sm text-destructive">{form.formState.errors.password.message}</p>
+          ) : null}
+        </div>
+        <Button className="w-full" type="submit" disabled={action.isExecuting}>
+          {action.isExecuting ? <Spinner /> : null}
+          Log in
+          {!action.isExecuting && <ArrowRight className="ml-2 h-4 w-4" />}
+        </Button>
+      </form>
+
+      <p className="text-center text-sm text-muted-foreground">
+        Don&apos;t have an account?{' '}
+        <button onClick={onSwitchToRegister} className="font-medium text-primary underline-offset-4 hover:underline">
+          Sign up
+        </button>
+      </p>
+    </div>
   );
 };
 
