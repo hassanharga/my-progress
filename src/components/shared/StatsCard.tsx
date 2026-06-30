@@ -4,7 +4,7 @@ import type { FC, ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { CalendarDays, CheckCircle2, Clock, ListTodo, TrendingUp } from 'lucide-react';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 type StatCardProps = {
   title: string;
@@ -25,30 +25,32 @@ export const StatCard: FC<StatCardProps> = ({ title, value, icon, description, t
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.3, ease: 'easeOut' }}
     >
-      <Card className="hover:shadow-md transition-shadow duration-250">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{title}</CardTitle>
-          <div className="text-muted-foreground">{icon}</div>
-        </CardHeader>
-        <CardContent>
-          <motion.div
-            initial={{ scale: 0.5 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: delay + 0.2, type: 'spring', stiffness: 200, damping: 15 }}
-            className="text-2xl font-bold"
-          >
-            {value}
-          </motion.div>
-          {description && <p className="text-xs text-muted-foreground mt-1">{description}</p>}
-          {trend && (
-            <div className="flex items-center gap-1 mt-2">
-              <TrendingUp
-                className={`w-3 h-3 ${trend.isPositive ? 'text-green-600' : 'text-red-600'} ${!trend.isPositive && 'rotate-180'}`}
-              />
-              <span className={`text-xs ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>{trend.value}</span>
-              <span className="text-xs text-muted-foreground">vs last week</span>
-            </div>
-          )}
+      <Card className="group transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+        <CardContent className="flex flex-col items-start gap-3 p-5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+            {icon}
+          </div>
+          <div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: delay + 0.2 }}
+              className="text-2xl font-bold tabular-nums text-primary"
+            >
+              {value}
+            </motion.p>
+            <p className="text-sm text-muted-foreground">{title}</p>
+            {description && <p className="text-xs text-muted-foreground/70 mt-0.5">{description}</p>}
+            {trend && (
+              <div className="flex items-center gap-1 mt-2">
+                <TrendingUp
+                  className={`w-3 h-3 ${trend.isPositive ? 'text-emerald-600' : 'text-red-600'} ${!trend.isPositive && 'rotate-180'}`}
+                />
+                <span className={`text-xs ${trend.isPositive ? 'text-emerald-600' : 'text-red-600'}`}>{trend.value}</span>
+                <span className="text-xs text-muted-foreground">vs last week</span>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </motion.div>
@@ -69,35 +71,35 @@ export const StatsGrid: FC<StatsGridProps> = ({ totalTime, completedTasks, activ
       <StatCard
         title="Total Time Tracked"
         value={totalTime}
-        icon={<Clock className="h-4 w-4" />}
+        icon={<Clock className="h-5 w-5" />}
         description="All time"
         delay={0}
       />
       <StatCard
         title="Completed Tasks"
         value={completedTasks}
-        icon={<CheckCircle2 className="h-4 w-4" />}
+        icon={<CheckCircle2 className="h-5 w-5" />}
         description="Total completed"
         delay={0.1}
       />
       <StatCard
         title="Active Tasks"
         value={activeTasks}
-        icon={<ListTodo className="h-4 w-4" />}
+        icon={<ListTodo className="h-5 w-5" />}
         description="In progress"
         delay={0.2}
       />
       <StatCard
         title="This Week"
         value={thisWeekTime}
-        icon={<Clock className="h-4 w-4" />}
+        icon={<Clock className="h-5 w-5" />}
         description="Time this week"
         delay={0.3}
       />
       <StatCard
         title="This Month"
         value={thisMonthTime}
-        icon={<CalendarDays className="h-4 w-4" />}
+        icon={<CalendarDays className="h-5 w-5" />}
         description="Time this month"
         delay={0.4}
       />
