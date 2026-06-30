@@ -1,15 +1,12 @@
-import { Suspense, type JSX, type ReactNode } from 'react';
+import { type JSX, type ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 
 import './globals.css';
 
 import { config } from '@/config';
-import TaskProvider from '@/contexts/task.context';
 import ThemeProvider from '@/contexts/theme-provider';
 import UserProvider from '@/contexts/user.context';
-import EnhancedNavbar from '@/components/shared/EnhancedNavbar';
-import { PageTransition } from '@/components/shared/PageTransition';
 import { Toaster } from '@/components/ui/sonner';
 
 const inter = Inter({
@@ -101,15 +98,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${jakarta.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <UserProvider>
-            <div className="h-screen w-screen flex flex-col gap-5">
-              {/* navbar */}
-              <Suspense>
-                <EnhancedNavbar />
-              </Suspense>
-              <TaskProvider>
-                <PageTransition>{children}</PageTransition>
-              </TaskProvider>
-            </div>
+            {children}
             <Toaster position="top-right" richColors />
           </UserProvider>
         </ThemeProvider>
