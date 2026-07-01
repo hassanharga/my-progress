@@ -12,14 +12,7 @@ import {
 
 import { useUserContext } from '@/contexts/user.context';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 
 import { Settings } from '@/components/shared/Settings';
@@ -96,7 +89,7 @@ export default function DashboardSidebar({
             <button
               key={item.label}
               onClick={() => handleNavClick(item)}
-              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 collapsed ? 'justify-center' : ''
               } ${
                 isActive
@@ -116,7 +109,7 @@ export default function DashboardSidebar({
       <div className="hidden border-t p-3 md:block">
         <button
           onClick={toggleCollapsed}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           {collapsed ? (
             <ChevronRight className="h-5 w-5" />
@@ -131,45 +124,30 @@ export default function DashboardSidebar({
 
       {/* User section */}
       <div className={`border-t p-3 ${collapsed ? 'flex justify-center' : ''}`}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className={`flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted ${
-                collapsed ? '' : 'w-full'
-              }`}
+        <div className={`flex items-center gap-3 ${collapsed ? '' : 'w-full'}`}>
+          <Avatar className="h-8 w-8 shrink-0">
+            <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
+              {userInitials}
+            </AvatarFallback>
+          </Avatar>
+          {!collapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="truncate text-sm font-medium">{user?.name}</p>
+              <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+            </div>
+          )}
+          {!collapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={logout}
+              className="h-8 w-8 shrink-0 cursor-pointer text-muted-foreground hover:text-destructive"
+              title="Log out"
             >
-              <Avatar className="h-8 w-8 shrink-0">
-                <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
-                  {userInitials}
-                </AvatarFallback>
-              </Avatar>
-              {!collapsed && user?.name && (
-                <div className="flex-1 text-left">
-                  <p className="truncate text-sm font-medium">{user.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                </div>
-              )}
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" side="top">
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{user?.name}</p>
-                <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
-              <SettingsIcon className="mr-2 h-4 w-4" />
-              Settings
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <LogOut className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Settings Dialog */}

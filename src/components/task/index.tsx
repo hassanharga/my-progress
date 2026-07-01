@@ -1,10 +1,10 @@
 'use client';
 
 import { MouseEvent, useState, type FC } from 'react';
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
-import type { LastTaskWithLoggedTime, TaskWithLoggedTime } from '@/types/task';
+import type { TaskWithLoggedTime } from '@/types/task';
 import { useTaskContext } from '@/contexts/task.context';
 import { FadeIn, SlideIn } from '@/components/shared/animations';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -18,19 +18,18 @@ import { TaskDetails } from './Buttons/TaskDetails';
 
 type Props = {
   task: TaskWithLoggedTime | null;
-  lastTask: LastTaskWithLoggedTime | null;
   stats: {
     totalTime: string;
     completedTasks: number;
-    activeTasks: number;
     thisWeekTime: string;
     thisMonthTime: string;
   };
+  lastTaskTodo?: string;
 };
 
-const TaskPage: FC<Props> = ({ task, lastTask, stats }) => {
+const TaskPage: FC<Props> = ({ task, stats, lastTaskTodo }) => {
   const [openCreateTaskDrawer, setOpenCreateTaskDrawer] = useState(false);
-  const [openUpdateTaskDrawer, setOpenUpdateTaskDrawer] = useState(false);
+  const [openCompleteTaskDrawer, setOpenCompleteTaskDrawer] = useState(false);
 
   const {
     updateTask,
@@ -54,7 +53,7 @@ const TaskPage: FC<Props> = ({ task, lastTask, stats }) => {
   const handleCompleteTask = async (data: { progress?: string; todo?: string }) => {
     if (!task || isExecutingUpdateTask) return;
     await updateTask({ status: 'COMPLETED', id: task.id, ...data });
-    setOpenUpdateTaskDrawer(false);
+    setOpenCompleteTaskDrawer(false);
     toast.success('Task completed! 🎉', {
       description: 'Great job! The task has been marked as complete.',
     });
@@ -74,12 +73,12 @@ const TaskPage: FC<Props> = ({ task, lastTask, stats }) => {
 
   const handleComplete = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    setOpenUpdateTaskDrawer(true);
+    setOpenCompleteTaskDrawer(true);
   };
 
-  const openTaskDetailsAction = (task: TaskWithLoggedTime) => {
-    if (!task || isExecutingUpdateTask) return;
-    executeGetTaskById({ taskId: task.id });
+  const openTaskDetailsAction = (t: TaskWithLoggedTime) => {
+    if (!t || isExecutingUpdateTask) return;
+    executeGetTaskById({ taskId: t.id });
   };
 
   return (
@@ -89,27 +88,24 @@ const TaskPage: FC<Props> = ({ task, lastTask, stats }) => {
         <StatsGrid
           totalTime={stats.totalTime}
           completedTasks={stats.completedTasks}
-          activeTasks={stats.activeTasks}
           thisWeekTime={stats.thisWeekTime}
           thisMonthTime={stats.thisMonthTime}
         />
       </FadeIn>
 
-      {/* Current task - Enhanced */}
+      {/* Current task */}
       <FadeIn delay={0} className="w-full sm:w-1/2">
         {task ? (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Current Task</h2>
-            <div className="space-y-4">
-              <EnhancedTaskCard
-                task={task}
-                onPlayAction={handlePlay}
-                onPauseAction={handlePause}
-                onCompleteAction={handleComplete}
-                openTaskDetailsAction={() => openTaskDetailsAction(task)}
-                isLoading={isExecutingUpdateTask}
-              />
-            </div>
+            <h2 className="text-xl font-bold">Current Task</h2>
+            <EnhancedTaskCard
+              task={task}
+              onPlayAction={handlePlay}
+              onPauseAction={handlePause}
+              onCompleteAction={handleComplete}
+              openTaskDetailsAction={() => openTaskDetailsAction(task)}
+              isLoading={isExecutingUpdateTask}
+            />
           </div>
         ) : (
           <EmptyState
@@ -118,26 +114,21 @@ const TaskPage: FC<Props> = ({ task, lastTask, stats }) => {
             description="Start a new task to begin tracking your work."
             action={{
               label: 'Create Task',
-              onClick: () => {
-                setOpenCreateTaskDrawer(true);
-              },
+              onClick: () => setOpenCreateTaskDrawer(true),
             }}
           />
         )}
       </FadeIn>
 
-      {/* Last completed task */}
-      {lastTask && (
-        <SlideIn direction="up" delay={0.1} className="w-full sm:w-1/2">
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Last Completed Task</h2>
-            <EnhancedTaskCard task={lastTask} openTaskDetailsAction={() => openTaskDetailsAction(lastTask)} />
-          </div>
-        </SlideIn>
-      )}
-
       {/* List of user tasks */}
-      <SlideIn direction="up" delay={0.2} className="w-full sm:w-2/3 overflow-auto">
+      <SlideIn direction="up" delay={0.2} className="w-full">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold">Tasks</h2>
+          <Plus
+            className="w-5 h-5 cursor-pointer text-muted-foreground hover:text-primary transition-colors"
+            onClick={() => setOpenCreateTaskDrawer(true)}
+          />
+        </div>
         <TasksList />
       </SlideIn>
 
@@ -148,18 +139,18 @@ const TaskPage: FC<Props> = ({ task, lastTask, stats }) => {
           setOpen={setOpenCreateTaskDrawer}
           createTask={handleCreateTask}
           isLoading={isExecutingCreateTask}
-          lastTaskTodo={lastTask?.todo || ''}
+          lastTaskTodo={lastTaskTodo || ''}
         />
       ) : null}
 
       {/* complete task modal */}
-      {openUpdateTaskDrawer ? (
+      {openCompleteTaskDrawer ? (
         <CompleteTask
           completeTask={handleCompleteTask}
           isLoading={isExecutingUpdateTask}
           taskProgress={task?.progress || ''}
-          open={openUpdateTaskDrawer}
-          setOpen={() => setOpenUpdateTaskDrawer}
+          open={openCompleteTaskDrawer}
+          setOpen={setOpenCompleteTaskDrawer}
         />
       ) : null}
 

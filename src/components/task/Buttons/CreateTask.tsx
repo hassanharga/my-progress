@@ -30,7 +30,7 @@ export const CreateTask: FC<Props> = ({ createTask, isLoading, lastTaskTodo, ope
         <DialogHeader>
           <DialogTitle>Create Task</DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col gap-4 overflow-hidden">
+        <div className="flex flex-col gap-4 overflow-x-hidden">
           <div className="flex flex-col gap-2">
             <Label htmlFor="currentCompany" className="text-start">
               Title*

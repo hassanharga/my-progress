@@ -3,7 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { TaskCardSkeleton } from './TaskCardSkeleton';
 
 export const DashboardSkeleton = () => (
-  <div className="flex h-screen overflow-hidden">
+  <div className="flex h-screen overflow-hidden w-full">
     {/* Sidebar */}
     <div className="hidden w-60 shrink-0 border-r bg-background md:block">
       {/* Logo */}

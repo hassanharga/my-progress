@@ -2,7 +2,7 @@
 
 import type { FC, ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { CalendarDays, CheckCircle2, Clock, ListTodo, TrendingUp } from 'lucide-react';
+import { CalendarDays, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
 
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -26,8 +26,8 @@ export const StatCard: FC<StatCardProps> = ({ title, value, icon, description, t
       transition={{ delay, duration: 0.3, ease: 'easeOut' }}
     >
       <Card className="group transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-        <CardContent className="flex flex-col items-start gap-3 p-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+        <CardContent className="flex flex-col items-start gap-2 p-3 sm:p-5 sm:gap-3">
+          <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
             {icon}
           </div>
           <div>
@@ -35,7 +35,7 @@ export const StatCard: FC<StatCardProps> = ({ title, value, icon, description, t
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: delay + 0.2 }}
-              className="text-2xl font-bold tabular-nums text-primary"
+              className="text-xl sm:text-2xl font-bold tabular-nums text-primary"
             >
               {value}
             </motion.p>
@@ -60,48 +60,40 @@ export const StatCard: FC<StatCardProps> = ({ title, value, icon, description, t
 type StatsGridProps = {
   totalTime: string;
   completedTasks: number;
-  activeTasks: number;
   thisWeekTime: string;
   thisMonthTime: string;
 };
 
-export const StatsGrid: FC<StatsGridProps> = ({ totalTime, completedTasks, activeTasks, thisWeekTime, thisMonthTime }) => {
+export const StatsGrid: FC<StatsGridProps> = ({ totalTime, completedTasks, thisWeekTime, thisMonthTime }) => {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       <StatCard
-        title="Total Time Tracked"
+        title="Total Time"
         value={totalTime}
         icon={<Clock className="h-5 w-5" />}
         description="All time"
         delay={0}
       />
       <StatCard
-        title="Completed Tasks"
+        title="Completed"
         value={completedTasks}
         icon={<CheckCircle2 className="h-5 w-5" />}
-        description="Total completed"
+        description="Total tasks"
         delay={0.1}
-      />
-      <StatCard
-        title="Active Tasks"
-        value={activeTasks}
-        icon={<ListTodo className="h-5 w-5" />}
-        description="In progress"
-        delay={0.2}
       />
       <StatCard
         title="This Week"
         value={thisWeekTime}
         icon={<Clock className="h-5 w-5" />}
         description="Time this week"
-        delay={0.3}
+        delay={0.2}
       />
       <StatCard
         title="This Month"
         value={thisMonthTime}
         icon={<CalendarDays className="h-5 w-5" />}
         description="Time this month"
-        delay={0.4}
+        delay={0.3}
       />
     </div>
   );

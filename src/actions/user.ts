@@ -67,25 +67,28 @@ export const loginUser = actionClient.inputSchema(loginSchema).action(async ({ p
 });
 
 export const me = actionClient.action(async () => {
-  await validateUserToken();
+  const token = await getFromCookies<string>('token');
+  if (!token) return null;
 
-  const token = (await getFromCookies<string>('token'))!;
+  try {
+    const data = verifyToken(token) as Partial<User>;
+    if (!data) return null;
 
-  const data = verifyToken(token) as Partial<User>;
-  if (!data) throw new Error('Unauthorized');
+    const user = await findUser(data?.email || '', {
+      id: true,
+      name: true,
+      email: true,
+      currentCompany: true,
+      currentProject: true,
+      weekStartDay: true,
+    });
 
-  const user = await findUser(data?.email || '', {
-    id: true,
-    name: true,
-    email: true,
-    currentCompany: true,
-    currentProject: true,
-    weekStartDay: true,
-  });
+    if (!user) return null;
 
-  if (!user) return null;
-
-  return { user };
+    return { user };
+  } catch {
+    return null;
+  }
 });
 
 export const updateSettings = actionClient.inputSchema(settingsSchema).action(async ({ parsedInput }) => {

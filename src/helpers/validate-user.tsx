@@ -10,16 +10,14 @@ import { verifyToken } from '@/lib/generate-token';
 // import { isTokenExpired } from '@/utils/token';
 
 export const validateUserToken = async (): Promise<Partial<User>> => {
-  // const isExpired = await isTokenExpired();
-  // if (isExpired) throw new Error('Unauthorized');
-
   const token = await getFromCookies<string>('token');
-  // if (!token) throw new Error('Unauthorized');
   if (!token) redirect(paths.auth, RedirectType.replace);
 
-  const data = verifyToken(token) as Partial<User>;
-  // if (!data) throw new Error('Unauthorized');
-  if (!data) redirect(paths.auth, RedirectType.replace);
-
-  return data;
+  try {
+    const data = verifyToken(token) as Partial<User>;
+    if (!data) redirect(paths.auth, RedirectType.replace);
+    return data;
+  } catch {
+    redirect(paths.auth, RedirectType.replace);
+  }
 };

@@ -20,7 +20,7 @@ export const ProgressAndTodo: FC<{
   onChange?: (value: string) => void;
 }> = ({ title, text, disabled = true, onChange }) => {
   return (
-    <div className="flex flex-col gap-1 p-1 flex-1 w-full">
+    <div className="flex flex-col gap-1 p-1 flex-1 w-full min-w-0">
       <h6 className="font-medium">{title}</h6>
       {text || !disabled ? (
         <Editor defaultValue={text ?? undefined} disabled={disabled} onChange={onChange} />

@@ -52,7 +52,7 @@ export const CompleteTask: FC<Props> = ({ completeTask, isLoading, taskProgress,
         </div>
         <DialogFooter>
           <Button
-            className="self-end"
+            className="self-end cursor-pointer"
             onClick={async () => {
               completeTask({ progress, todo });
             }}

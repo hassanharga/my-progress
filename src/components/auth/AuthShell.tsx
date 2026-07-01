@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode } from 'react';
-import { Timer, BarChart3, PenLine } from 'lucide-react';
+import { BarChart3, PenLine, Timer } from 'lucide-react';
 
 type AuthShellProps = {
   children: ReactNode;
@@ -15,7 +15,7 @@ const features = [
 
 export default function AuthShell({ children }: AuthShellProps) {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen w-full">
       {/* Branding panel — hidden on mobile */}
       <div className="relative hidden w-1/2 flex-col justify-between bg-gradient-to-br from-primary to-accent p-12 lg:flex">
         {/* Logo */}
@@ -23,9 +23,7 @@ export default function AuthShell({ children }: AuthShellProps) {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 font-display text-lg font-bold text-white">
             M
           </div>
-          <span className="font-display text-xl font-semibold text-primary-foreground">
-            My Progress
-          </span>
+          <span className="font-display text-xl font-semibold text-primary-foreground">My Progress</span>
         </div>
 
         {/* Tagline */}

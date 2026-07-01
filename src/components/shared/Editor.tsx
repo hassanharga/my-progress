@@ -52,7 +52,7 @@ const Editor: FC<Props> = ({ onChange, defaultValue, disabled }) => {
   };
 
   return (
-    <div className="flex">
+    <div className="flex w-full min-w-0">
       <ShadCNEditor editorSerializedState={editorState} onSerializedChange={onChangeContent} disabled={disabled} />
     </div>
   );
