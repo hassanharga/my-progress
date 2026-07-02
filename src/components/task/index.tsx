@@ -1,6 +1,6 @@
 'use client';
 
-import { MouseEvent, useState, type FC } from 'react';
+import { MouseEvent, useEffect, useState, type FC } from 'react';
 import { ClipboardList, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -30,6 +30,12 @@ type Props = {
 const TaskPage: FC<Props> = ({ task, stats, lastTaskTodo }) => {
   const [openCreateTaskDrawer, setOpenCreateTaskDrawer] = useState(false);
   const [openCompleteTaskDrawer, setOpenCompleteTaskDrawer] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setOpenCreateTaskDrawer(true);
+    window.addEventListener('create-task', handler);
+    return () => window.removeEventListener('create-task', handler);
+  }, []);
 
   const {
     updateTask,
