@@ -1,7 +1,7 @@
 'use client';
 
 import type { FC, MouseEvent } from 'react';
-import { STATUS_STYLES } from '@/constants/status';
+import { STATUS_TOKENS } from '@/constants/status';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { Calendar, Check, Clock, Pause, Play } from 'lucide-react';
@@ -21,11 +21,11 @@ export const ProgressAndTodo: FC<{
 }> = ({ title, text, disabled = true, onChange }) => {
   return (
     <div className="flex flex-col gap-1 p-1 flex-1 w-full min-w-0">
-      <h6 className="font-medium">{title}</h6>
+      <h6 className="text-body-small font-weight-bold text-text-subtlest">{title}</h6>
       {text || !disabled ? (
         <Editor defaultValue={text ?? undefined} disabled={disabled} onChange={onChange} />
       ) : (
-        <div className="border rounded-sm p-1 text-sm text-center">No Data</div>
+        <div className="border rounded-sm p-1 text-body-small text-text-subtle text-center">No data</div>
       )}
     </div>
   );
@@ -51,7 +51,7 @@ export const EnhancedTaskCard: FC<Props> = ({
   if (!task) return null;
 
   const displayStatus = task.status === 'RESUMED' ? 'IN_PROGRESS' : task.status;
-  const statusColor = STATUS_STYLES[displayStatus as keyof typeof STATUS_STYLES];
+  const statusColor = STATUS_TOKENS[displayStatus as keyof typeof STATUS_TOKENS];
   const isActive = ['IN_PROGRESS', 'RESUMED'].includes(task.status);
   const isPaused = task.status === 'PAUSED';
   const isCompleted = task.status === 'COMPLETED';
@@ -61,11 +61,11 @@ export const EnhancedTaskCard: FC<Props> = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.01, y: -2 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.15, ease: [0.4, 1, 0.6, 1] }}
     >
       <Card
-        className="group relative overflow-hidden rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all duration-250 cursor-pointer"
+        className="group relative overflow-hidden rounded-lg hover:shadow-raised transition-all duration-150 cursor-pointer"
         onClick={openTaskDetailsAction}
       >
         {/* Status indicator stripe */}
@@ -76,38 +76,20 @@ export const EnhancedTaskCard: FC<Props> = ({
           <div className="flex items-start justify-between gap-4">
             {/* title and project */}
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold truncate group-hover:text-text-brand transition-colors">
+              <h3 className="text-heading-small font-weight-bold truncate group-hover:text-text-brand transition-colors">
                 {task.title}
               </h3>
               {task.currentProject && <p className="text-sm text-text-subtle mt-1">{task.currentProject}</p>}
             </div>
 
-            {/* TODO: add edit, duplicate, delete actions */}
-            {/* {showActions && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="subtle" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {onEditAction && <DropdownMenuItem onClick={onEditAction}>Edit</DropdownMenuItem>}
-                  <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                  {onDeleteAction && (
-                    <DropdownMenuItem className="text-red-600" onClick={onDeleteAction}>
-                      Delete
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )} */}
+
           </div>
 
           {/* Meta info */}
           <div className="flex flex-wrap items-center gap-3 text-sm">
             {/* status */}
-            <Badge className={`${statusColor.badge} p-2`}>
-              {displayStatus.replace('_', ' ')}
+            <Badge variant="outline" className={`${statusColor.badge}`}>
+              {statusColor.label}
             </Badge>
 
             {/* duration */}
@@ -125,22 +107,7 @@ export const EnhancedTaskCard: FC<Props> = ({
             </div>
           </div>
 
-          {/* Progress bar for active tasks */}
-          {/* {isActive && (
-            <div className="relative h-1.5 bg-surface-container rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: '100%' }}
-                transition={{
-                  duration: 1.5,
-                  ease: 'easeOut',
-                  repeat: Infinity,
-                  repeatType: 'reverse',
-                }}
-                className="absolute left-0 top-0 bottom-0 bg-brand-bold"
-              />
-            </div>
-          )} */}
+
 
           {/* Quick actions */}
           {!isCompleted && (
