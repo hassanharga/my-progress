@@ -14,17 +14,17 @@ type Props = {
 };
 
 export const EmptyState: FC<Props> = ({ icon, title, description, action }) => (
-  <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+  <div className="flex flex-col items-center justify-center py-400 px-4 text-center">
     {icon && (
-      <div className="mb-4 rounded-xl bg-brand-bold/5 p-4 text-text-brand/60" aria-hidden>
+      <div className="mb-150 text-icon-subtle" aria-hidden>
         {icon}
       </div>
     )}
-    <h3 className="font-display text-lg font-semibold mb-2">{title}</h3>
-    <p className="text-sm text-text-subtle mb-6 max-w-sm">{description}</p>
+    <h3 className="text-heading-medium font-weight-bold text-text mb-050">{title}</h3>
+    <p className="text-body text-text-subtle mb-200 max-w-sm">{description}</p>
     {action && (
-      <Button size="sm" variant="default" className="cursor-pointer" onClick={action.onClick}>
-        <Plus className="w-4 h-4 mx-1" />
+      <Button variant="primary" size="sm" className="cursor-pointer" onClick={action.onClick}>
+        <Plus className="w-3.5 h-3.5" />
         {action.label}
       </Button>
     )}
