@@ -13,7 +13,7 @@ import {
 } from 'react';
 import { useAction } from 'next-safe-action/hooks';
 
-import { TaskStatus } from '@/types/task';
+import { TaskStatus, type TaskListItem } from '@/types/task';
 import { createTask, getTaskById, getTasksList, updateTask, updateTaskDetails } from '@/actions/task';
 
 export type CreateTaskInput = Parameters<typeof createTask>[0];
@@ -23,14 +23,7 @@ export type EditTaskInput = Parameters<typeof updateTaskDetails>[0];
 interface TaskContextType {
   limit: number;
   page: number;
-  tasks?: {
-    currentCompany: string;
-    currentProject: string;
-    duration: string;
-    id: string;
-    title: string;
-    status: TaskStatus;
-  }[];
+  tasks?: TaskListItem[];
   totalTasks: number;
   openDrawer: boolean;
   taskData?: {

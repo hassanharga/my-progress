@@ -1,17 +1,26 @@
-import { useEffect, useRef, type FC } from 'react';
-import { ClipboardList } from 'lucide-react';
+import { useEffect, useRef, type FC, type MouseEvent } from 'react';
+import { ChevronLeft, ChevronRight, ClipboardList } from 'lucide-react';
 
 import { useTaskContext } from '@/contexts/task.context';
+import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/shared/EmptyState';
 
-import Status from '../shared/Status';
-import TableData from '../shared/Table';
+import TaskCardRow from './TaskCardRow';
 
 const List: FC = () => {
-  const { executeGetTaskById, setPage, tasks, totalTasks, limit, page, fetchTasks } = useTaskContext();
+  const {
+    executeGetTaskById,
+    updateTask,
+    setPage,
+    tasks,
+    totalTasks,
+    limit,
+    page,
+    fetchTasks,
+    isExecutingUpdateTask,
+  } = useTaskContext();
   const isFirstRender = useRef(true);
 
-  // fetch tasks list on page or limit change (skip first render — data from server)
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
@@ -26,38 +35,76 @@ const List: FC = () => {
   if (!tasks?.length) {
     return (
       <EmptyState
-        icon={<ClipboardList className="w-16 h-16" />}
+        icon={<ClipboardList className="w-10 h-10" />}
         title="No tasks found"
         description="You don't have any tasks yet. Create your first task to get started."
       />
     );
   }
 
+  const totalPages = Math.ceil(totalTasks / limit);
+
+  const handlePlay = (taskId: string) => (e: MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (isExecutingUpdateTask) return;
+    updateTask({ status: 'RESUMED', id: taskId });
+  };
+
+  const handlePause = (taskId: string) => (e: MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (isExecutingUpdateTask) return;
+    updateTask({ status: 'PAUSED', id: taskId });
+  };
+
+  const handleComplete = (taskId: string) => (e: MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (isExecutingUpdateTask) return;
+    updateTask({ status: 'COMPLETED', id: taskId });
+  };
+
   return (
-    <>
-      <TableData
-        captionLabel="list of your tasks."
-        headers={['Title', 'Status', 'Duration', 'Project', 'Company']}
-        rows={tasks?.map((task, idx) => ({
-          data: task,
-          values: [
-            task.title,
-            <Status key={idx} status={task.status || ''} />,
-            task.duration,
-            task.currentProject || '-',
-            task.currentCompany || '-',
-          ],
-        }))}
-        currentPage={page}
-        totalPages={Math.ceil(totalTasks / limit)}
-        onChangePage={(newPage) => {
-          setPage(newPage);
-        }}
-        onRowClick={(task) => {
-          executeGetTaskById({ taskId: task?.id });
-        }}
-      />
-    </>
+    <div className="space-y-050">
+      {tasks.map((task, idx) => (
+        <TaskCardRow
+          key={task.id}
+          task={task}
+          index={idx}
+          isLoading={isExecutingUpdateTask}
+          onPlay={handlePlay(task.id)}
+          onPause={handlePause(task.id)}
+          onComplete={handleComplete(task.id)}
+          onClick={() => executeGetTaskById({ taskId: task.id })}
+        />
+      ))}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-200">
+          <span className="text-body-small text-text-subtle">
+            Page {page} of {totalPages}
+          </span>
+          <div className="flex gap-050">
+            <Button
+              variant="default"
+              size="icon-sm"
+              disabled={page <= 1}
+              onClick={() => setPage(page - 1)}
+              className="cursor-pointer disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="default"
+              size="icon-sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage(page + 1)}
+              className="cursor-pointer disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

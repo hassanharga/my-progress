@@ -201,6 +201,7 @@ export const getTasksListData = async (limit: number = 10, skip: number = 0) => 
         currentCompany: true,
         currentProject: true,
         totalSeconds: true,
+        createdAt: true,
         loggedTime: {
           select: { from: true, to: true },
           orderBy: { from: 'desc' },
@@ -213,7 +214,7 @@ export const getTasksListData = async (limit: number = 10, skip: number = 0) => 
 
   return {
     total,
-    tasks: tasks.map(({ loggedTime, currentCompany, currentProject, ...task }) => {
+    tasks: tasks.map(({ loggedTime, currentCompany, currentProject, totalSeconds, createdAt, ...task }) => {
       const isActive = ['IN_PROGRESS', 'RESUMED'].includes(task.status);
       const openSession = loggedTime?.find((s) => !s.to);
       const activeFrom = isActive && openSession ? openSession.from : null;
@@ -222,7 +223,9 @@ export const getTasksListData = async (limit: number = 10, skip: number = 0) => 
         ...task,
         currentCompany: currentCompany || '-',
         currentProject: currentProject || '-',
-        duration: formatTaskDuration(task.totalSeconds, activeFrom),
+        totalSeconds,
+        createdAt,
+        duration: formatTaskDuration(totalSeconds, activeFrom),
       };
     }),
   };

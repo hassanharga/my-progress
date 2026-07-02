@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 
 import type { TaskWithLoggedTime } from '@/types/task';
 import { useTaskContext } from '@/contexts/task.context';
+import { Button } from '@/components/ui/button';
 import { FadeIn, SlideIn } from '@/components/shared/animations';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { EnhancedTaskCard } from '@/components/task/EnhancedCard';
@@ -103,7 +104,7 @@ const TaskPage: FC<Props> = ({ task, stats, lastTaskTodo }) => {
       <FadeIn delay={0} className="w-full sm:w-1/2">
         {task ? (
           <div className="space-y-4">
-            <h2 className="text-xl font-bold">Current Task</h2>
+            <h2 className="text-heading-small font-weight-bold text-text">Current task</h2>
             <EnhancedTaskCard
               task={task}
               onPlayAction={handlePlay}
@@ -119,7 +120,7 @@ const TaskPage: FC<Props> = ({ task, stats, lastTaskTodo }) => {
             title="No active task"
             description="Start a new task to begin tracking your work."
             action={{
-              label: 'Create Task',
+              label: 'Create task',
               onClick: () => setOpenCreateTaskDrawer(true),
             }}
           />
@@ -128,12 +129,14 @@ const TaskPage: FC<Props> = ({ task, stats, lastTaskTodo }) => {
 
       {/* List of user tasks */}
       <SlideIn direction="up" delay={0.2} className="w-full">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Tasks</h2>
-          <Plus
-            className="w-5 h-5 cursor-pointer text-text-subtle hover:text-text-brand transition-colors"
-            onClick={() => setOpenCreateTaskDrawer(true)}
-          />
+        <div className="sticky top-0 z-10 flex items-center justify-between bg-surface/80 backdrop-blur py-200 -mx-2 px-2 mb-200">
+          <div className="flex items-center gap-075">
+            <h2 className="text-heading-small font-weight-bold text-text">Tasks</h2>
+          </div>
+          <Button variant="subtle" size="sm" className="cursor-pointer" onClick={() => setOpenCreateTaskDrawer(true)}>
+            <Plus className="w-3.5 h-3.5" />
+            Add
+          </Button>
         </div>
         <TasksList />
       </SlideIn>
