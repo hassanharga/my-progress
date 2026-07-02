@@ -30,10 +30,10 @@ export const StaggerItem = ({ children, className }: { children: ReactNode; clas
   <motion.div
     className={className}
     variants={{
-      hidden: { opacity: 0, y: 20 },
+      hidden: { opacity: 0, y: 8 },
       visible: { opacity: 1, y: 0 },
     }}
-    transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+    transition={{ duration: 0.15, ease: [0.4, 1, 0.6, 1] }}
   >
     {children}
   </motion.div>

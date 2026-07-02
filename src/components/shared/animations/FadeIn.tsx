@@ -9,11 +9,11 @@ type Props = HTMLMotionProps<'div'> & {
   duration?: number;
 };
 
-export const FadeIn = ({ children, delay = 0, duration = 0.25, ...props }: Props) => (
+export const FadeIn = ({ children, delay = 0, duration = 0.15, ...props }: Props) => (
   <motion.div
-    initial={{ opacity: 0, y: 20 }}
+    initial={{ opacity: 0, y: 12 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ delay, duration }}
+    transition={{ delay, duration, ease: [0.4, 1, 0.6, 1] }}
     {...props}
   >
     {children}

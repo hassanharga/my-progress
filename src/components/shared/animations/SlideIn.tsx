@@ -12,17 +12,17 @@ type Props = HTMLMotionProps<'div'> & {
 };
 
 const directionVariants = {
-  left: { x: -100 },
-  right: { x: 100 },
-  up: { y: -100 },
-  down: { y: 100 },
+  left: { x: -40 },
+  right: { x: 40 },
+  up: { y: -40 },
+  down: { y: 40 },
 };
 
 export const SlideIn = ({ children, direction = 'up', delay = 0, ...props }: Props) => (
   <motion.div
     initial={{ opacity: 0, ...directionVariants[direction] }}
     animate={{ opacity: 1, x: 0, y: 0 }}
-    transition={{ delay, type: 'spring', stiffness: 300, damping: 30 }}
+    transition={{ delay, duration: 0.2, ease: [0.4, 1, 0.6, 1] }}
     {...props}
   >
     {children}
