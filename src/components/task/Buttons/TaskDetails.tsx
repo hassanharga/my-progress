@@ -170,7 +170,14 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[60vw] max-h-[80vh] overflow-y-auto" aria-describedby="Task details">
           <DialogHeader>
-            <DialogTitle className="pr-10">{task.title}</DialogTitle>
+            <div className="flex items-center justify-between gap-2">
+              <DialogTitle className="pr-10">{task.title}</DialogTitle>
+              {!isCompleted && !isCancelled && (
+                <Button variant="ghost" size="icon" onClick={handleEdit} disabled={isLoading} className="cursor-pointer shrink-0">
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
             <Badge className={`${statusColor.badge} w-fit`}>{displayStatus.replace('_', ' ')}</Badge>
           </DialogHeader>
 
@@ -257,10 +264,6 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
                   Complete
                 </Button>
               )}
-              <Button variant="outline" onClick={handleEdit} disabled={isLoading} className="cursor-pointer ml-auto">
-                <Pencil className="w-3.5 h-3.5" />
-                Edit
-              </Button>
             </div>
           </DialogFooter>
         </DialogContent>
