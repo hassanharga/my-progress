@@ -17,18 +17,18 @@ export default function AuthShell({ children }: AuthShellProps) {
   return (
     <div className="flex min-h-screen w-full">
       {/* Branding panel — hidden on mobile */}
-      <div className="relative hidden w-1/2 flex-col justify-between bg-gradient-to-br from-primary to-accent p-12 lg:flex">
+      <div className="relative hidden w-1/2 flex-col justify-between bg-gradient-to-br from-brand-bold to-information-bold p-12 lg:flex">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 font-display text-lg font-bold text-text-inverse">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 font-sans text-heading-medium text-text-inverse">
             M
           </div>
-          <span className="font-display text-xl font-semibold text-text-inverse">My Progress</span>
+          <span className="font-sans text-heading-small font-weight-semibold text-text-inverse">My Progress</span>
         </div>
 
         {/* Tagline */}
         <div className="max-w-sm">
-          <p className="font-display text-2xl font-medium leading-snug text-text-inverse">
+          <p className="font-sans text-heading-large font-weight-medium leading-snug text-text-inverse">
             &ldquo;Track tasks, log time, and see how far you&apos;ve come.&rdquo;
           </p>
         </div>
@@ -50,10 +50,10 @@ export default function AuthShell({ children }: AuthShellProps) {
       <div className="flex w-full flex-col items-center justify-center p-6 lg:w-1/2">
         {/* Mobile logo */}
         <div className="mb-8 flex items-center gap-2 lg:hidden">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-bold font-display text-lg font-bold text-text-inverse">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-bold font-sans text-heading-medium text-text-inverse">
             M
           </div>
-          <span className="font-display text-xl font-semibold">My Progress</span>
+          <span className="font-sans text-heading-small font-weight-semibold">My Progress</span>
         </div>
         {children}
       </div>
