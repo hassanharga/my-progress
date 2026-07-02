@@ -1,6 +1,6 @@
 import { type JSX, type ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
-import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
+import localFont from 'next/font/local';
 import { Analytics } from '@vercel/analytics/next';
 
 import './globals.css';
@@ -10,15 +10,18 @@ import ThemeProvider from '@/contexts/theme-provider';
 import UserProvider from '@/contexts/user.context';
 import { Toaster } from '@/components/ui/sonner';
 
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-sans',
+const atlassianSans = localFont({
+  src: [
+    { path: '../../public/fonts/atlassian-sans.ttf', weight: '100 900', style: 'normal' },
+    { path: '../../public/fonts/atlassian-sans-italic.ttf', weight: '100 900', style: 'italic' },
+  ],
+  variable: '--font-atlassian-sans',
   display: 'swap',
 });
 
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-display',
+const atlassianMono = localFont({
+  src: [{ path: '../../public/fonts/atlassian-mono.ttf', weight: '100 900', style: 'normal' }],
+  variable: '--font-atlassian-mono',
   display: 'swap',
 });
 
@@ -93,7 +96,7 @@ export default function RootLayout({
 }>): JSX.Element {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${jakarta.variable} font-sans antialiased`}>
+      <body className={`${atlassianSans.variable} ${atlassianMono.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <UserProvider>
             {children}
