@@ -41,7 +41,7 @@ export function FontFormatToolbarPlugin() {
   useUpdateToolbarHandler($updateToolbar);
 
   return (
-    <ToggleGroup type="multiple" value={activeFormats} onValueChange={setActiveFormats} variant="outline" size="sm">
+    <ToggleGroup type="multiple" value={activeFormats} onValueChange={setActiveFormats} variant="default" size="sm">
       {FORMATS.map(({ format, icon: Icon, label }) => (
         <ToggleGroupItem
           key={format}

@@ -20,15 +20,15 @@ export default function AuthShell({ children }: AuthShellProps) {
       <div className="relative hidden w-1/2 flex-col justify-between bg-gradient-to-br from-primary to-accent p-12 lg:flex">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 font-display text-lg font-bold text-white">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 font-display text-lg font-bold text-text-inverse">
             M
           </div>
-          <span className="font-display text-xl font-semibold text-primary-foreground">My Progress</span>
+          <span className="font-display text-xl font-semibold text-text-inverse">My Progress</span>
         </div>
 
         {/* Tagline */}
         <div className="max-w-sm">
-          <p className="font-display text-2xl font-medium leading-snug text-primary-foreground">
+          <p className="font-display text-2xl font-medium leading-snug text-text-inverse">
             &ldquo;Track tasks, log time, and see how far you&apos;ve come.&rdquo;
           </p>
         </div>
@@ -38,9 +38,9 @@ export default function AuthShell({ children }: AuthShellProps) {
           {features.map((feature) => (
             <div key={feature.text} className="flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15">
-                <feature.icon className="h-4 w-4 text-primary-foreground" />
+                <feature.icon className="h-4 w-4 text-text-inverse" />
               </div>
-              <span className="text-sm text-primary-foreground/90">{feature.text}</span>
+              <span className="text-sm text-text-inverse/90">{feature.text}</span>
             </div>
           ))}
         </div>
@@ -50,7 +50,7 @@ export default function AuthShell({ children }: AuthShellProps) {
       <div className="flex w-full flex-col items-center justify-center p-6 lg:w-1/2">
         {/* Mobile logo */}
         <div className="mb-8 flex items-center gap-2 lg:hidden">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary font-display text-lg font-bold text-primary-foreground">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-bold font-display text-lg font-bold text-text-inverse">
             M
           </div>
           <span className="font-display text-xl font-semibold">My Progress</span>

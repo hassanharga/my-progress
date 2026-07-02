@@ -22,7 +22,7 @@ export default function FAQ() {
               <AccordionTrigger className="text-left text-base font-medium">
                 {faq.question}
               </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
+              <AccordionContent className="text-text-subtle">
                 {faq.answer}
               </AccordionContent>
             </AccordionItem>

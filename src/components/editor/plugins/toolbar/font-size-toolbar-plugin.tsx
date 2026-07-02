@@ -49,7 +49,7 @@ export function FontSizeToolbarPlugin() {
   return (
     <ButtonGroup>
       <Button
-        variant="outline"
+        variant="default"
         size="icon-sm"
         className="!size-8"
         onClick={() => updateFontSize(fontSize - 1)}
@@ -65,7 +65,7 @@ export function FontSizeToolbarPlugin() {
         max={MAX_FONT_SIZE}
       />
       <Button
-        variant="outline"
+        variant="default"
         size="icon-sm"
         className="!size-8"
         onClick={() => updateFontSize(fontSize + 1)}

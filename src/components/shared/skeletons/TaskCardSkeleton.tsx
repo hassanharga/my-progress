@@ -1,9 +1,9 @@
 import { Skeleton } from '@/components/ui/skeleton';
 
 export const TaskCardSkeleton = () => (
-  <div className="relative overflow-hidden rounded-xl border bg-card shadow-sm">
+  <div className="relative overflow-hidden rounded-xl border bg-surface shadow-sm">
     {/* Status stripe */}
-    <div className="absolute left-0 top-0 bottom-0 w-1 bg-muted" />
+    <div className="absolute left-0 top-0 bottom-0 w-1 bg-surface-container" />
 
     <div className="space-y-4 p-6 pl-8">
       {/* Title */}

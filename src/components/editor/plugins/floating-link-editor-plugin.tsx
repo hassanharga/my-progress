@@ -221,7 +221,7 @@ function FloatingLinkEditor({
           />
           <Button
             size="icon"
-            variant="ghost"
+            variant="subtle"
             onClick={() => {
               setIsLinkEditMode(false);
               setIsLink(false);
@@ -247,7 +247,7 @@ function FloatingLinkEditor({
           <div className="flex">
             <Button
               size="icon"
-              variant="ghost"
+              variant="subtle"
               onClick={() => {
                 setEditedLinkUrl(linkUrl);
                 setIsLinkEditMode(true);
@@ -257,7 +257,7 @@ function FloatingLinkEditor({
             </Button>
             <Button
               size="icon"
-              variant="destructive"
+              variant="danger"
               onClick={() => {
                 editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
               }}

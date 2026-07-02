@@ -29,7 +29,7 @@ const TableData = <T extends object>({
         <Table>
           <TableCaption className="caption-top py-2">{captionLabel}</TableCaption>
           <TableHeader>
-            <TableRow className="bg-muted/50 border-b hover:bg-muted/50">
+            <TableRow className="bg-surface-container/50 border-b hover:bg-surface-container/50">
               {headers?.map((header) => (
                 <TableHead key={header} className="font-medium text-sm px-4 py-3">
                   {header}
@@ -43,7 +43,7 @@ const TableData = <T extends object>({
               rows?.map((row, rowIdx) => (
                 <TableRow
                   key={rowIdx}
-                  className="cursor-pointer hover:bg-primary/5 transition-colors border-b last:border-b-0"
+                  className="cursor-pointer hover:bg-brand-bold/5 transition-colors border-b last:border-b-0"
                   onClick={() => {
                     onRowClick(row.data);
                   }}

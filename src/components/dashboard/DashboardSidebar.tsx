@@ -74,7 +74,7 @@ export default function DashboardSidebar({
         className={`flex h-16 items-center border-b ${collapsed ? 'justify-center px-2' : 'px-4'}`}
       >
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary font-display text-sm font-bold text-primary-foreground">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-bold font-display text-sm font-bold text-text-inverse">
             M
           </div>
           {!collapsed && <span className="font-display text-base font-semibold">My Progress</span>}
@@ -93,8 +93,8 @@ export default function DashboardSidebar({
                 collapsed ? 'justify-center' : ''
               } ${
                 isActive
-                  ? 'border-l-[3px] border-primary bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  ? 'border-l-[3px] border-border-selected bg-brand-bold/10 text-text-brand'
+                  : 'text-text-subtle hover:bg-surface-container hover:text-text'
               }`}
               title={collapsed ? item.label : undefined}
             >
@@ -109,7 +109,7 @@ export default function DashboardSidebar({
       <div className="hidden border-t p-3 md:block">
         <button
           onClick={toggleCollapsed}
-          className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-text-subtle hover:bg-surface-container hover:text-text"
         >
           {collapsed ? (
             <ChevronRight className="h-5 w-5" />
@@ -126,22 +126,22 @@ export default function DashboardSidebar({
       <div className={`border-t p-3 ${collapsed ? 'flex justify-center' : ''}`}>
         <div className={`flex items-center gap-3 ${collapsed ? '' : 'w-full'}`}>
           <Avatar className="h-8 w-8 shrink-0">
-            <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
+            <AvatarFallback className="bg-brand-bold/10 text-xs font-medium text-text-brand">
               {userInitials}
             </AvatarFallback>
           </Avatar>
           {!collapsed && (
             <div className="flex-1 min-w-0">
               <p className="truncate text-sm font-medium">{user?.name}</p>
-              <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+              <p className="truncate text-xs text-text-subtle">{user?.email}</p>
             </div>
           )}
           {!collapsed && (
             <Button
-              variant="ghost"
+              variant="subtle"
               size="icon"
               onClick={logout}
-              className="h-8 w-8 shrink-0 cursor-pointer text-muted-foreground hover:text-destructive"
+              className="h-8 w-8 shrink-0 cursor-pointer text-text-subtle hover:text-text-danger"
               title="Log out"
             >
               <LogOut className="h-4 w-4" />
@@ -168,7 +168,7 @@ export default function DashboardSidebar({
     <>
       {/* Desktop sidebar */}
       <aside
-        className={`hidden shrink-0 border-r bg-background transition-all duration-300 md:block ${
+        className={`hidden shrink-0 border-r bg-surface transition-all duration-300 md:block ${
           collapsed ? 'w-16' : 'w-60'
         }`}
       >

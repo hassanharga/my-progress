@@ -39,27 +39,27 @@ const Login: FC<Props> = ({ onSwitchToRegister }) => {
     <div className="w-full max-w-sm space-y-6">
       <div className="space-y-2 text-center">
         <h1 className="font-display text-2xl font-bold">Welcome back</h1>
-        <p className="text-sm text-muted-foreground">Log in to your account</p>
+        <p className="text-sm text-text-subtle">Log in to your account</p>
       </div>
 
       {!action?.isExecuting ? <DisplayServerActionResponse result={action.result} /> : null}
 
       <form className="space-y-4" onSubmit={handleSubmitWithAction}>
         {form.formState.errors.root ? (
-          <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
+          <p className="text-sm text-text-danger">{form.formState.errors.root.message}</p>
         ) : null}
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" placeholder="you@example.com" {...form.register('email')} />
           {form.formState.errors.email ? (
-            <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>
+            <p className="text-sm text-text-danger">{form.formState.errors.email.message}</p>
           ) : null}
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
           <Input type="password" id="password" placeholder="••••••••" {...form.register('password')} />
           {form.formState.errors.password ? (
-            <p className="text-sm text-destructive">{form.formState.errors.password.message}</p>
+            <p className="text-sm text-text-danger">{form.formState.errors.password.message}</p>
           ) : null}
         </div>
         <Button className="w-full" type="submit" disabled={action.isExecuting}>
@@ -69,9 +69,9 @@ const Login: FC<Props> = ({ onSwitchToRegister }) => {
         </Button>
       </form>
 
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-sm text-text-subtle">
         Don&apos;t have an account?{' '}
-        <button onClick={onSwitchToRegister} className="font-medium text-primary underline-offset-4 hover:underline">
+        <button onClick={onSwitchToRegister} className="font-medium text-text-brand underline-offset-4 hover:underline">
           Sign up
         </button>
       </p>

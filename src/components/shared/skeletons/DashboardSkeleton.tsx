@@ -5,7 +5,7 @@ import { TaskCardSkeleton } from './TaskCardSkeleton';
 export const DashboardSkeleton = () => (
   <div className="flex h-screen overflow-hidden w-full">
     {/* Sidebar */}
-    <div className="hidden w-60 shrink-0 border-r bg-background md:block">
+    <div className="hidden w-60 shrink-0 border-r bg-surface md:block">
       {/* Logo */}
       <div className="flex h-16 items-center border-b px-4">
         <Skeleton className="h-8 w-8 rounded-lg" />

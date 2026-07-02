@@ -14,7 +14,7 @@ export default function CTA() {
         <p className="mx-auto mt-4 max-w-md text-primary-foreground/80">
           Join others who are staying on top of their work, one task at a time.
         </p>
-        <Button size="lg" variant="secondary" className="mt-8" asChild>
+        <Button size="lg" variant="default" className="mt-8" asChild>
           <Link href={paths.auth}>
             Get Started Free
             <ArrowRight className="ml-2 h-4 w-4" />

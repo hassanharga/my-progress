@@ -64,7 +64,7 @@ export const Settings: FC<Props> = ({ currentProject, currentCompany, weekStartD
     <Dialog open={open} onOpenChange={setOpen}>
       {/* <DialogTrigger asChild>
         <Button
-          variant="outline"
+          variant="default"
           onClick={() => {
             setOpen(true);
           }}

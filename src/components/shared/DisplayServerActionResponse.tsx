@@ -14,7 +14,7 @@ export type DisplayServerActionResponseProps = {
 
 const AlertDestructive: FC<{ message?: string }> = ({ message }) => {
   return (
-    <Alert variant="destructive">
+    <Alert variant="danger">
       <TriangleAlert className="h-4 w-4" />
       <AlertTitle>Error</AlertTitle>
       <AlertDescription>{message || 'Something went wrong'}</AlertDescription>

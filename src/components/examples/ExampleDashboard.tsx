@@ -171,30 +171,30 @@ export default function ExampleDashboard({
       )}
 
       {/* Toast Examples */}
-      <div className="mt-8 p-6 border rounded-lg bg-muted/50">
+      <div className="mt-8 p-6 border rounded-lg bg-surface-container/50">
         <h3 className="text-lg font-semibold mb-4">Toast Notification Examples</h3>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => toast.success('Success!', { description: 'This is a success message' })}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            className="px-4 py-2 bg-green-600 text-text-inverse rounded-md hover:bg-green-700"
           >
             Success Toast
           </button>
           <button
             onClick={() => toast.error('Error!', { description: 'This is an error message' })}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            className="px-4 py-2 bg-red-600 text-text-inverse rounded-md hover:bg-red-700"
           >
             Error Toast
           </button>
           <button
             onClick={() => toast.info('Info', { description: 'This is an info message' })}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-text-inverse rounded-md hover:bg-blue-700"
           >
             Info Toast
           </button>
           <button
             onClick={() => toast.warning('Warning!', { description: 'This is a warning message' })}
-            className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700"
+            className="px-4 py-2 bg-yellow-600 text-text-inverse rounded-md hover:bg-yellow-700"
           >
             Warning Toast
           </button>

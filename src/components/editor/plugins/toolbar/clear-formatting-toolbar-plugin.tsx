@@ -74,7 +74,7 @@ export function ClearFormattingToolbarPlugin() {
     <Button
       className="!size-8"
       aria-label="Clear formatting"
-      variant={'outline'}
+      variant={'default'}
       size={'icon-sm'}
       onClick={clearFormatting}
     >

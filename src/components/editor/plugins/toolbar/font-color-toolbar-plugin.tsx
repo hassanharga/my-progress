@@ -67,7 +67,7 @@ export function FontColorToolbarPlugin() {
       }}
     >
       <ColorPickerTrigger asChild>
-        <Button variant="outline" size="icon-sm">
+        <Button variant="default" size="icon-sm">
           <BaselineIcon className="size-4" />
         </Button>
       </ColorPickerTrigger>

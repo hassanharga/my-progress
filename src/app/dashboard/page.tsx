@@ -43,7 +43,7 @@ export default async function Dashboard() {
             <h1 className="font-display text-2xl font-bold">
               {greeting}, {user.name} 👋
             </h1>
-            <p className="text-sm text-muted-foreground">Here&apos;s your progress at a glance.</p>
+            <p className="text-sm text-text-subtle">Here&apos;s your progress at a glance.</p>
           </div>
           <TaskPage task={task} stats={stats} lastTaskTodo={task?.todo || ''} />
         </main>

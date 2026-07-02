@@ -34,7 +34,7 @@ export function Editor({
   disabled?: boolean;
 }) {
   return (
-    <div className="bg-background overflow-hidden rounded-lg border shadow flex-1">
+    <div className="bg-surface overflow-hidden rounded-lg border shadow flex-1">
       <LexicalComposer
         initialConfig={{
           ...editorConfig,

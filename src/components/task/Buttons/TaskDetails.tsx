@@ -113,7 +113,7 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-2 min-w-0">
                 <Label htmlFor="edit-project" className="flex items-center gap-2">
-                  <FolderOpen className="w-4 h-4 text-muted-foreground" />
+                  <FolderOpen className="w-4 h-4 text-text-subtle" />
                   Project
                 </Label>
                 <Input
@@ -126,7 +126,7 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
 
               <div className="flex flex-col gap-2 min-w-0">
                 <Label htmlFor="edit-company" className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-muted-foreground" />
+                  <Building2 className="w-4 h-4 text-text-subtle" />
                   Company
                 </Label>
                 <Input
@@ -152,7 +152,7 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
+            <Button variant="default" onClick={handleCancel} disabled={isLoading}>
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={isLoading || !title.trim()}>
@@ -173,7 +173,7 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
             <div className="flex items-center justify-between gap-2">
               <DialogTitle className="pr-10">{task.title}</DialogTitle>
               {!isCompleted && !isCancelled && (
-                <Button variant="ghost" size="icon" onClick={handleEdit} disabled={isLoading} className="cursor-pointer shrink-0">
+                <Button variant="subtle" size="icon" onClick={handleEdit} disabled={isLoading} className="cursor-pointer shrink-0">
                   <Pencil className="w-4 h-4" />
                 </Button>
               )}
@@ -187,34 +187,34 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
           <FadeIn delay={0.1}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="flex items-center gap-3 text-sm">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <Calendar className="w-4 h-4 text-text-subtle" />
                 <div>
-                  <p className="text-muted-foreground">Started</p>
+                  <p className="text-text-subtle">Started</p>
                   <p className="font-medium">{format(task.createdAt, 'MMM dd, yyyy')}</p>
-                  <p className="text-xs text-muted-foreground">{format(task.createdAt, 'hh:mm aa')}</p>
+                  <p className="text-xs text-text-subtle">{format(task.createdAt, 'hh:mm aa')}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 text-sm">
-                <Clock className="w-4 h-4 text-muted-foreground" />
+                <Clock className="w-4 h-4 text-text-subtle" />
                 <div>
-                  <p className="text-muted-foreground">Total Time</p>
+                  <p className="text-text-subtle">Total Time</p>
                   <p className="font-medium">{task.duration}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 text-sm">
-                <FolderOpen className="w-4 h-4 text-muted-foreground" />
+                <FolderOpen className="w-4 h-4 text-text-subtle" />
                 <div>
-                  <p className="text-muted-foreground">Project</p>
+                  <p className="text-text-subtle">Project</p>
                   <p className="font-medium">{task.currentProject || '-'}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 text-sm">
-                <Building2 className="w-4 h-4 text-muted-foreground" />
+                <Building2 className="w-4 h-4 text-text-subtle" />
                 <div>
-                  <p className="text-muted-foreground">Company</p>
+                  <p className="text-text-subtle">Company</p>
                   <p className="font-medium">{task.currentCompany || '-'}</p>
                 </div>
               </div>
@@ -235,7 +235,7 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
           <DialogFooter>
             <div className="flex gap-2 w-full">
               {!isCompleted && !isCancelled && (
-                <Button variant="outline" onClick={handlePlayPause} disabled={isLoading} className="cursor-pointer">
+                <Button variant="default" onClick={handlePlayPause} disabled={isLoading} className="cursor-pointer">
                   {isExecutingUpdateTask ? (
                     <Spinner />
                   ) : isActive ? (

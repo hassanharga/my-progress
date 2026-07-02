@@ -27,7 +27,7 @@ export const StatCard: FC<StatCardProps> = ({ title, value, icon, description, t
     >
       <Card className="group transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
         <CardContent className="flex flex-col items-start gap-2 p-3 sm:p-5 sm:gap-3">
-          <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+          <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-brand-bold/10 text-text-brand transition-colors group-hover:bg-brand-bold/20">
             {icon}
           </div>
           <div>
@@ -35,19 +35,19 @@ export const StatCard: FC<StatCardProps> = ({ title, value, icon, description, t
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: delay + 0.2 }}
-              className="text-xl sm:text-2xl font-bold tabular-nums text-primary"
+              className="text-xl sm:text-2xl font-bold tabular-nums text-text-brand"
             >
               {value}
             </motion.p>
-            <p className="text-sm text-muted-foreground">{title}</p>
-            {description && <p className="text-xs text-muted-foreground/70 mt-0.5">{description}</p>}
+            <p className="text-sm text-text-subtle">{title}</p>
+            {description && <p className="text-xs text-text-subtle/70 mt-0.5">{description}</p>}
             {trend && (
               <div className="flex items-center gap-1 mt-2">
                 <TrendingUp
                   className={`w-3 h-3 ${trend.isPositive ? 'text-emerald-600' : 'text-red-600'} ${!trend.isPositive && 'rotate-180'}`}
                 />
                 <span className={`text-xs ${trend.isPositive ? 'text-emerald-600' : 'text-red-600'}`}>{trend.value}</span>
-                <span className="text-xs text-muted-foreground">vs last week</span>
+                <span className="text-xs text-text-subtle">vs last week</span>
               </div>
             )}
           </div>

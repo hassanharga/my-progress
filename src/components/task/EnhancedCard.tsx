@@ -76,17 +76,17 @@ export const EnhancedTaskCard: FC<Props> = ({
           <div className="flex items-start justify-between gap-4">
             {/* title and project */}
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold truncate group-hover:text-primary transition-colors">
+              <h3 className="text-lg font-semibold truncate group-hover:text-text-brand transition-colors">
                 {task.title}
               </h3>
-              {task.currentProject && <p className="text-sm text-muted-foreground mt-1">{task.currentProject}</p>}
+              {task.currentProject && <p className="text-sm text-text-subtle mt-1">{task.currentProject}</p>}
             </div>
 
             {/* TODO: add edit, duplicate, delete actions */}
             {/* {showActions && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button variant="subtle" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
                     <MoreVertical className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -112,14 +112,14 @@ export const EnhancedTaskCard: FC<Props> = ({
 
             {/* duration */}
             {task.duration && (
-              <div className="flex items-center gap-1.5 text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-text-subtle">
                 <Clock className="w-3.5 h-3.5" />
-                <span className="tabular-nums font-medium text-primary">{task.duration}</span>
+                <span className="tabular-nums font-medium text-text-brand">{task.duration}</span>
               </div>
             )}
 
             {/* date */}
-            <div className="flex items-center gap-1.5 text-muted-foreground">
+            <div className="flex items-center gap-1.5 text-text-subtle">
               <Calendar className="w-3.5 h-3.5" />
               <span>{format(task.createdAt, 'MMM dd, yyyy')}</span>
             </div>
@@ -127,7 +127,7 @@ export const EnhancedTaskCard: FC<Props> = ({
 
           {/* Progress bar for active tasks */}
           {/* {isActive && (
-            <div className="relative h-1.5 bg-secondary rounded-full overflow-hidden">
+            <div className="relative h-1.5 bg-surface-container rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: '100%' }}
@@ -137,7 +137,7 @@ export const EnhancedTaskCard: FC<Props> = ({
                   repeat: Infinity,
                   repeatType: 'reverse',
                 }}
-                className="absolute left-0 top-0 bottom-0 bg-primary"
+                className="absolute left-0 top-0 bottom-0 bg-brand-bold"
               />
             </div>
           )} */}
@@ -148,7 +148,7 @@ export const EnhancedTaskCard: FC<Props> = ({
               {(isPaused || isCancelled) && onPlayAction && (
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="default"
                   className={`${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                   disabled={isLoading}
                   onClick={onPlayAction}
@@ -160,7 +160,7 @@ export const EnhancedTaskCard: FC<Props> = ({
               {isActive && onPauseAction && (
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="default"
                   className={`${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                   disabled={isLoading}
                   onClick={onPauseAction}

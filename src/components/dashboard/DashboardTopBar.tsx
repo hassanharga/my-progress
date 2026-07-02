@@ -15,9 +15,9 @@ export default function DashboardTopBar({ onMenuClick }: { onMenuClick: () => vo
   const { setTheme } = useTheme();
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur">
+    <header className="flex h-14 shrink-0 items-center gap-4 border-b bg-surface/80 px-4 backdrop-blur">
       {/* Mobile menu */}
-      <Button variant="ghost" size="icon" className="md:hidden" onClick={onMenuClick}>
+      <Button variant="subtle" size="icon" className="md:hidden" onClick={onMenuClick}>
         <Menu className="h-5 w-5" />
       </Button>
 
@@ -25,7 +25,7 @@ export default function DashboardTopBar({ onMenuClick }: { onMenuClick: () => vo
       <div className="ml-auto flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="subtle" size="icon">
               <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">Toggle theme</span>

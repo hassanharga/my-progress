@@ -31,14 +31,14 @@ export default function Navbar() {
       transition={{ duration: 0.5, ease: 'easeOut' }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-background/80 backdrop-blur-md border-b'
+          ? 'bg-surface/80 backdrop-blur-md border-b'
           : 'bg-transparent'
       }`}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href={paths.home} className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-display font-bold">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-bold text-text-inverse font-display font-bold">
             M
           </div>
           <span className="font-display text-lg font-semibold">
@@ -52,7 +52,7 @@ export default function Navbar() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="text-sm font-medium text-text-subtle transition-colors hover:text-text"
             >
               {link.label}
             </a>
@@ -61,7 +61,7 @@ export default function Navbar() {
 
         {/* Desktop auth buttons */}
         <div className="hidden items-center gap-3 md:flex">
-          <Button variant="ghost" asChild>
+          <Button variant="subtle" asChild>
             <Link href={paths.auth}>Login</Link>
           </Button>
           <Button asChild>
@@ -73,7 +73,7 @@ export default function Navbar() {
         <div className="md:hidden">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="subtle" size="icon">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -83,7 +83,7 @@ export default function Navbar() {
                   <SheetClose asChild key={link.href}>
                     <a
                       href={link.href}
-                      className="text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
+                      className="text-base font-medium text-text-subtle transition-colors hover:text-text"
                     >
                       {link.label}
                     </a>
@@ -91,7 +91,7 @@ export default function Navbar() {
                 ))}
                 <div className="mt-4 flex flex-col gap-2">
                   <SheetClose asChild>
-                    <Button variant="outline" asChild>
+                    <Button variant="default" asChild>
                       <Link href={paths.auth}>Login</Link>
                     </Button>
                   </SheetClose>

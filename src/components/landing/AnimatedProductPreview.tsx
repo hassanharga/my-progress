@@ -23,33 +23,33 @@ export default function AnimatedProductPreview() {
   return (
     <div className="relative">
       {/* Ambient glow */}
-      <div className="absolute inset-0 -z-10 rounded-3xl bg-primary/20 blur-3xl" />
+      <div className="absolute inset-0 -z-10 rounded-3xl bg-brand-bold/20 blur-3xl" />
 
       {/* Card */}
       <motion.div
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="relative overflow-hidden rounded-xl border bg-card shadow-xl"
+        className="relative overflow-hidden rounded-xl border bg-surface shadow-xl"
       >
         {/* Status stripe */}
-        <div className="absolute left-0 top-0 h-full w-1 bg-primary" />
+        <div className="absolute left-0 top-0 h-full w-1 bg-brand-bold" />
 
         {/* Card header */}
         <div className="flex items-center justify-between p-5 pl-7">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-              <Play className="h-4 w-4 fill-primary text-primary" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-bold/10">
+              <Play className="h-4 w-4 fill-primary text-text-brand" />
             </div>
             <div>
               <p className="font-medium">Design Homepage</p>
-              <span className="inline-flex items-center rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+              <span className="inline-flex items-center rounded-md border border-border-selected/20 bg-brand-bold/10 px-2 py-0.5 text-xs font-medium text-text-brand">
                 In Progress
               </span>
             </div>
           </div>
           <div className="text-right">
-            <p className="font-mono text-2xl font-bold tabular-nums text-primary">
+            <p className="font-mono text-2xl font-bold tabular-nums text-text-brand">
               {timer}
             </p>
           </div>
@@ -57,16 +57,16 @@ export default function AnimatedProductPreview() {
 
         {/* Progress bar */}
         <div className="px-5 pb-4 pl-7">
-          <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
+          <div className="mb-1.5 flex items-center justify-between text-xs text-text-subtle">
             <span>Progress</span>
             <span>68%</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
+          <div className="h-2 overflow-hidden rounded-full bg-surface-container">
             <motion.div
               initial={{ width: '0%' }}
               animate={{ width: '68%' }}
               transition={{ duration: 2, delay: 0.8, ease: 'easeOut' }}
-              className="h-full rounded-full bg-primary"
+              className="h-full rounded-full bg-brand-bold"
             />
           </div>
         </div>
@@ -132,13 +132,13 @@ function StatItem({
   }, [count, target, delay]);
 
   return (
-    <div className="flex flex-col items-center gap-1 bg-card p-3">
-      <div className="text-muted-foreground">{icon}</div>
-      <span className="text-lg font-bold tabular-nums text-primary">
+    <div className="flex flex-col items-center gap-1 bg-surface p-3">
+      <div className="text-text-subtle">{icon}</div>
+      <span className="text-lg font-bold tabular-nums text-text-brand">
         {display}
         {suffix}
       </span>
-      <span className="text-[10px] text-muted-foreground">{label}</span>
+      <span className="text-[10px] text-text-subtle">{label}</span>
     </div>
   );
 }

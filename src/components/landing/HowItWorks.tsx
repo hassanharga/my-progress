@@ -25,7 +25,7 @@ export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="bg-muted/30 px-4 py-20 sm:px-6 lg:px-8"
+      className="bg-surface-container/30 px-4 py-20 sm:px-6 lg:px-8"
     >
       <div className="mx-auto max-w-7xl">
         <h2 className="mb-12 text-center font-display text-3xl font-bold sm:text-4xl">
@@ -42,20 +42,20 @@ export default function HowItWorks() {
                 transition={{ duration: 0.5, delay: i * 0.15 }}
                 className="flex-1"
               >
-                <div className="rounded-xl border bg-card p-6 text-center md:w-64">
-                  <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary font-display text-sm font-bold text-primary-foreground">
+                <div className="rounded-xl border bg-surface p-6 text-center md:w-64">
+                  <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-brand-bold font-display text-sm font-bold text-text-inverse">
                     {step.number}
                   </div>
                   <h3 className="mb-2 font-display text-lg font-semibold">
                     {step.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-text-subtle">
                     {step.description}
                   </p>
                 </div>
               </motion.div>
               {i < steps.length - 1 && (
-                <ArrowRight className="hidden h-6 w-6 shrink-0 text-muted-foreground md:block" />
+                <ArrowRight className="hidden h-6 w-6 shrink-0 text-text-subtle md:block" />
               )}
             </div>
           ))}

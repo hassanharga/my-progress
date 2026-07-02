@@ -31,7 +31,7 @@ export default function Features() {
     <section id="features" className="px-4 py-20 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-12 text-center">
-          <span className="text-xs font-semibold uppercase tracking-widest text-primary">
+          <span className="text-xs font-semibold uppercase tracking-widest text-text-brand">
             Everything You Need
           </span>
           <h2 className="mt-2 font-display text-3xl font-bold sm:text-4xl">
@@ -47,15 +47,15 @@ export default function Features() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="group rounded-xl border bg-card p-6 transition-all hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg"
+              className="group rounded-xl border bg-surface p-6 transition-all hover:-translate-y-1 hover:border-border-selected/30 hover:shadow-lg"
             >
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary/20">
-                <feature.icon className="h-6 w-6 text-primary" />
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-bold/10 transition-colors group-hover:bg-brand-bold/20">
+                <feature.icon className="h-6 w-6 text-text-brand" />
               </div>
               <h3 className="mb-2 font-display text-lg font-semibold">
                 {feature.title}
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-text-subtle">
                 {feature.description}
               </p>
             </motion.div>
