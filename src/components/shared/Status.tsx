@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 
-import { STATUS_STYLES, Statuses } from '@/constants/status';
+import { STATUS_TOKENS } from '@/constants/status';
 
 import { TaskStatus } from '../../../generated/prisma/enums';
 
@@ -10,13 +10,15 @@ type Props = {
 
 const Status: FC<Props> = ({ status }) => {
   const displayStatus = status === 'RESUMED' ? 'IN_PROGRESS' : status;
-  const style = STATUS_STYLES[displayStatus as keyof typeof STATUS_STYLES];
+  const tokens = STATUS_TOKENS[displayStatus as keyof typeof STATUS_TOKENS];
+
+  if (!tokens) return null;
 
   return (
     <span
-      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-center text-sm font-medium ${style.badge}`}
+      className={`inline-flex items-center rounded-xs border px-050 text-body-small font-weight-medium ${tokens.badge}`}
     >
-      {Statuses[displayStatus]}
+      {tokens.label}
     </span>
   );
 };
