@@ -172,9 +172,6 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
           <DialogHeader>
             <div className="flex items-center justify-between gap-2">
               <DialogTitle className="pr-10">{task.title}</DialogTitle>
-              <Button variant="default" size="icon" onClick={handleEdit} disabled={isLoading} className="cursor-pointer shrink-0">
-                <Pencil className="w-4 h-4" />
-              </Button>
             </div>
             <Badge className={`${statusColor.badge} w-fit`}>{statusColor.label}</Badge>
           </DialogHeader>
@@ -231,7 +228,11 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
 
           {/* Action buttons */}
           <DialogFooter>
-            <div className="flex gap-2 w-full">
+            <div className="flex gap-2 w-full items-center">
+              <Button variant="default" onClick={handleEdit} disabled={isLoading} className="cursor-pointer mr-auto">
+                <Pencil className="w-3.5 h-3.5" />
+                Edit
+              </Button>
               {!isCompleted && !isCancelled && (
                 <Button variant="default" onClick={handlePlayPause} disabled={isLoading} className="cursor-pointer">
                   {isExecutingUpdateTask ? (
