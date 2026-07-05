@@ -101,9 +101,9 @@ const TaskPage: FC<Props> = ({ task, stats, lastTaskTodo }) => {
       </FadeIn>
 
       {/* Current task */}
-      <FadeIn delay={0} className="w-full sm:w-1/2">
+      <FadeIn delay={0} className="w-full">
         {task ? (
-          <div className="space-y-4">
+          <div className="space-y-4 max-w-2xl">
             <h2 className="text-heading-small font-weight-bold text-text">Current task</h2>
             <EnhancedTaskCard
               task={task}

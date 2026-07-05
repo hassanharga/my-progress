@@ -184,37 +184,39 @@ export const findUserLastTask = async () => {
   return mapTask(task);
 };
 
-export const getTasksListData = async (limit: number = 10, skip: number = 0) => {
+export const getTasksListData = async (limit: number = 10, cursor?: string | null) => {
   const user = await validateUserToken();
 
-  const [total, tasks] = await Promise.all([
-    prisma.task.count({ where: { userId: user.id } }),
-    prisma.task.findMany({
-      where: { userId: user.id },
-      orderBy: { updatedAt: 'desc' },
-      skip,
-      take: limit,
-      select: {
-        id: true,
-        title: true,
-        status: true,
-        currentCompany: true,
-        currentProject: true,
-        totalSeconds: true,
-        createdAt: true,
-        loggedTime: {
-          select: { from: true, to: true },
-          orderBy: { from: 'desc' },
-          take: 1,
-          where: { to: null },
-        },
+  const tasks = await prisma.task.findMany({
+    where: { userId: user.id },
+    orderBy: { updatedAt: 'desc' },
+    take: limit + 1,
+    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      currentCompany: true,
+      currentProject: true,
+      totalSeconds: true,
+      createdAt: true,
+      loggedTime: {
+        select: { from: true, to: true },
+        orderBy: { from: 'desc' },
+        take: 1,
+        where: { to: null },
       },
-    }),
-  ]);
+    },
+  });
+
+  const hasNextPage = tasks.length > limit;
+  const items = hasNextPage ? tasks.slice(0, limit) : tasks;
+  const nextCursor = hasNextPage ? items[items.length - 1].id : null;
 
   return {
-    total,
-    tasks: tasks.map(({ loggedTime, currentCompany, currentProject, totalSeconds, createdAt, ...task }) => {
+    hasNextPage,
+    nextCursor,
+    tasks: items.map(({ loggedTime, currentCompany, currentProject, totalSeconds, createdAt, ...task }) => {
       const isActive = ['IN_PROGRESS', 'RESUMED'].includes(task.status);
       const openSession = loggedTime?.find((s) => !s.to);
       const activeFrom = isActive && openSession ? openSession.from : null;
@@ -235,11 +237,11 @@ export const getTasksList = actionClient
   .inputSchema(
     z.object({
       limit: z.number().default(10),
-      skip: z.number().default(0),
+      cursor: z.string().nullable().optional(),
     })
   )
-  .action(async ({ parsedInput: { limit, skip } }) => {
-    return getTasksListData(limit, skip);
+  .action(async ({ parsedInput: { limit, cursor } }) => {
+    return getTasksListData(limit, cursor ?? null);
   });
 
 export const getTaskById = actionClient.inputSchema(z.object({ taskId: z.uuid() })).action(async ({ parsedInput }) => {

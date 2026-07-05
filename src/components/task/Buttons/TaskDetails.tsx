@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type FC } from 'react';
-import { STATUS_STYLES } from '@/constants/status';
+import { STATUS_TOKENS } from '@/constants/status';
 import { format } from 'date-fns';
 import { Building2, Calendar, Check, Clock, FolderOpen, Pause, Pencil, Play } from 'lucide-react';
 import { toast } from 'sonner';
@@ -40,7 +40,7 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
   if (!task) return null;
 
   const displayStatus = task.status === 'RESUMED' ? 'IN_PROGRESS' : task.status;
-  const statusColor = STATUS_STYLES[displayStatus as keyof typeof STATUS_STYLES];
+  const statusColor = STATUS_TOKENS[displayStatus as keyof typeof STATUS_TOKENS];
   const isActive = ['IN_PROGRESS', 'RESUMED'].includes(task.status);
   const isCompleted = task.status === 'COMPLETED';
   const isCancelled = task.status === 'CANCELLED';
@@ -96,7 +96,7 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
         <DialogContent className="sm:max-w-[60vw] max-h-[90vh] overflow-y-auto" aria-describedby="Edit task">
           <DialogHeader>
             <DialogTitle>Edit Task</DialogTitle>
-            <Badge className={`${statusColor.badge} w-fit`}>{displayStatus.replace('_', ' ')}</Badge>
+            <Badge className={`${statusColor.badge} w-fit`}>{statusColor.label}</Badge>
           </DialogHeader>
 
           <div className="flex flex-col gap-4 ">
@@ -173,12 +173,12 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
             <div className="flex items-center justify-between gap-2">
               <DialogTitle className="pr-10">{task.title}</DialogTitle>
               {!isCompleted && !isCancelled && (
-                <Button variant="subtle" size="icon" onClick={handleEdit} disabled={isLoading} className="cursor-pointer shrink-0">
+                <Button variant="default" size="icon" onClick={handleEdit} disabled={isLoading} className="cursor-pointer shrink-0">
                   <Pencil className="w-4 h-4" />
                 </Button>
               )}
             </div>
-            <Badge className={`${statusColor.badge} w-fit`}>{displayStatus.replace('_', ' ')}</Badge>
+            <Badge className={`${statusColor.badge} w-fit`}>{statusColor.label}</Badge>
           </DialogHeader>
 
           <Separator className="my-6" />

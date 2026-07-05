@@ -6,10 +6,8 @@ import {
   useEffect,
   useMemo,
   useState,
-  type Dispatch,
   type JSX,
   type ReactNode,
-  type SetStateAction,
 } from 'react';
 import { useAction } from 'next-safe-action/hooks';
 
@@ -22,9 +20,11 @@ export type EditTaskInput = Parameters<typeof updateTaskDetails>[0];
 
 interface TaskContextType {
   limit: number;
-  page: number;
   tasks?: TaskListItem[];
-  totalTasks: number;
+  hasNextPage: boolean;
+  nextCursor: string | null;
+  hasPrevPage: boolean;
+  isLoadingPage: boolean;
   openDrawer: boolean;
   taskData?: {
     duration: string;
@@ -44,7 +44,8 @@ interface TaskContextType {
   isExecutingUpdateTask: boolean;
   isExecutingEditTask: boolean;
   editTask: (data: EditTaskInput) => Promise<boolean>;
-  setPage: Dispatch<SetStateAction<number>>;
+  fetchNextPage: () => Promise<void>;
+  fetchPrevPage: () => Promise<void>;
   executeGetTaskById: (input: { taskId: string }) => void;
   createTask: (data: CreateTaskInput) => Promise<void>;
   updateTask: (data: UpdateTaskInput) => Promise<void>;
@@ -54,15 +55,18 @@ interface TaskContextType {
 
 const TaskContext = createContext<TaskContextType>({
   limit: 4,
-  page: 1,
   tasks: [],
-  totalTasks: 0,
+  hasNextPage: false,
+  nextCursor: null,
+  hasPrevPage: false,
+  isLoadingPage: false,
   openDrawer: false,
   isExecutingCreateTask: false,
   isExecutingUpdateTask: false,
   isExecutingEditTask: false,
   editTask: async () => false,
-  setPage: () => {},
+  fetchNextPage: async () => {},
+  fetchPrevPage: async () => {},
   executeGetTaskById: () => {},
   createTask: async () => {},
   updateTask: async () => {},
@@ -73,25 +77,31 @@ const TaskContext = createContext<TaskContextType>({
 const TaskProvider = ({
   children,
   initialTasks,
-  initialTotal,
+  initialHasNextPage,
+  initialNextCursor,
 }: {
   children: ReactNode;
   initialTasks?: TaskContextType['tasks'];
-  initialTotal?: number;
+  initialHasNextPage?: boolean;
+  initialNextCursor?: string | null;
 }): JSX.Element => {
   const limit = useMemo(() => 4, []);
-  const [page, setPage] = useState(1);
-  const [openDrawer, setOpenDrawer] = useState(false);
   const [tasks, setTasks] = useState(initialTasks);
-  const [totalTasks, setTotalTasks] = useState(initialTotal ?? 0);
+  const [hasNextPage, setHasNextPage] = useState(initialHasNextPage ?? false);
+  const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor ?? null);
+  const [cursorStack, setCursorStack] = useState<(string | null)[]>([null]);
+  const [cursorIndex, setCursorIndex] = useState(0);
+  const [isLoadingPage, setIsLoadingPage] = useState(false);
+  const [openDrawer, setOpenDrawer] = useState(false);
 
   // ACTIONS
   // task list
-  const { execute } = useAction(getTasksList, {
+  const { execute: executeList } = useAction(getTasksList, {
     onSuccess: ({ data }) => {
-      if (data?.tasks) {
+      if (data) {
         setTasks(data.tasks);
-        setTotalTasks(data.total);
+        setHasNextPage(data.hasNextPage);
+        setNextCursor(data.nextCursor);
       }
     },
   });
@@ -119,29 +129,51 @@ const TaskProvider = ({
 
   // HANDLERS
 
-  // fetch tasks list
+  // fetch tasks list (first page)
   const fetchTasks = async (): Promise<void> => {
-    execute({ limit, skip: (page - 1) * limit });
+    executeList({ limit, cursor: null });
   };
+
+  // fetch next page using cursor
+  const fetchNextPage = async (): Promise<void> => {
+    if (!nextCursor) return;
+    setIsLoadingPage(true);
+    const newStack = [...cursorStack.slice(0, cursorIndex + 1), nextCursor];
+    setCursorStack(newStack);
+    setCursorIndex(cursorIndex + 1);
+    executeList({ limit, cursor: nextCursor });
+    setIsLoadingPage(false);
+  };
+
+  // fetch previous page using cursor stack
+  const fetchPrevPage = async (): Promise<void> => {
+    if (cursorIndex === 0) return;
+    setIsLoadingPage(true);
+    const newIndex = cursorIndex - 1;
+    setCursorIndex(newIndex);
+    executeList({ limit, cursor: cursorStack[newIndex] });
+    setIsLoadingPage(false);
+  };
+
   // create task handler
   const onStartTask = async ({ title, progress, project }: CreateTaskInput): Promise<void> => {
     if (!title?.trim()) return;
     await executeCreateTask({ title, progress, project });
-    if (page === 1) fetchTasks();
+    if (cursorIndex === 0) fetchTasks();
   };
 
   // update task handler
   const updateTaskHandler = async (data: UpdateTaskInput) => {
     if (!data?.id) return undefined;
     await executeUpdateTask(data);
-    if (page == 1) fetchTasks();
+    if (cursorIndex === 0) fetchTasks();
   };
 
   // edit task details handler
   const editTaskHandler = async (data: EditTaskInput): Promise<boolean> => {
     const result = await executeEditTask(data);
     if (!result || result.serverError) return false;
-    if (page === 1) fetchTasks();
+    if (cursorIndex === 0) fetchTasks();
     executeGetTaskById({ taskId: data.id });
     return true;
   };
@@ -164,17 +196,20 @@ const TaskProvider = ({
     <TaskContext.Provider
       value={{
         limit,
-        page,
         openDrawer,
-        totalTasks,
         tasks,
+        hasNextPage,
+        nextCursor,
+        hasPrevPage: cursorIndex > 0,
+        isLoadingPage,
         taskData,
         isExecutingCreateTask: isExecuting,
         isExecutingUpdateTask,
         isExecutingEditTask,
         editTask: editTaskHandler,
         closeDrawer,
-        setPage,
+        fetchNextPage,
+        fetchPrevPage,
         executeGetTaskById,
         createTask: onStartTask,
         updateTask: updateTaskHandler,

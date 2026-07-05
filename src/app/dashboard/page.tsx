@@ -27,7 +27,7 @@ export default async function Dashboard() {
   const [task, stats, initialTasksData] = await Promise.all([
     findUserLastWorkingTask(),
     getTaskStats(),
-    getTasksListData(4, 0),
+    getTasksListData(4, null),
   ]);
 
   const greeting = getGreeting();
@@ -36,7 +36,8 @@ export default async function Dashboard() {
     <>
       <TaskProvider
         initialTasks={initialTasksData.tasks}
-        initialTotal={initialTasksData.total}
+        initialHasNextPage={initialTasksData.hasNextPage}
+        initialNextCursor={initialTasksData.nextCursor}
       >
         <main className="w-full max-w-7xl space-y-6 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, type FC, type MouseEvent } from 'react';
+import { type FC, type MouseEvent } from 'react';
 import { ChevronLeft, ChevronRight, ClipboardList } from 'lucide-react';
 
 import { useTaskContext } from '@/contexts/task.context';
@@ -11,24 +11,14 @@ const List: FC = () => {
   const {
     executeGetTaskById,
     updateTask,
-    setPage,
     tasks,
-    totalTasks,
-    limit,
-    page,
-    fetchTasks,
+    hasNextPage,
+    hasPrevPage,
+    isLoadingPage,
+    fetchNextPage,
+    fetchPrevPage,
     isExecutingUpdateTask,
   } = useTaskContext();
-  const isFirstRender = useRef(true);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    fetchTasks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [limit, page]);
 
   if (!tasks) return null;
 
@@ -41,8 +31,6 @@ const List: FC = () => {
       />
     );
   }
-
-  const totalPages = Math.ceil(totalTasks / limit);
 
   const handlePlay = (taskId: string) => (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
@@ -77,31 +65,26 @@ const List: FC = () => {
         />
       ))}
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-200">
-          <span className="text-body-small text-text-subtle">
-            Page {page} of {totalPages}
-          </span>
-          <div className="flex gap-050">
-            <Button
-              variant="default"
-              size="icon-sm"
-              disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
-              className="cursor-pointer disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="default"
-              size="icon-sm"
-              disabled={page >= totalPages}
-              onClick={() => setPage(page + 1)}
-              className="cursor-pointer disabled:cursor-not-allowed"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+      {(hasNextPage || hasPrevPage) && (
+        <div className="flex items-center justify-end gap-050 pt-200">
+          <Button
+            variant="default"
+            size="icon-sm"
+            disabled={!hasPrevPage || isLoadingPage}
+            onClick={() => fetchPrevPage()}
+            className="cursor-pointer disabled:cursor-not-allowed"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="default"
+            size="icon-sm"
+            disabled={!hasNextPage || isLoadingPage}
+            onClick={() => fetchNextPage()}
+            className="cursor-pointer disabled:cursor-not-allowed"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       )}
     </div>
