@@ -28,7 +28,7 @@ export default function HowItWorks() {
       className="bg-surface-container/30 px-4 py-20 sm:px-6 lg:px-8"
     >
       <div className="mx-auto max-w-7xl">
-        <h2 className="mb-12 text-center font-display text-3xl font-bold sm:text-4xl">
+        <h2 className="mb-12 text-center font-sans text-3xl font-bold sm:text-4xl">
           How it works
         </h2>
 
@@ -43,10 +43,10 @@ export default function HowItWorks() {
                 className="flex-1"
               >
                 <div className="rounded-xl border bg-surface p-6 text-center md:w-64">
-                  <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-brand-bold font-display text-sm font-bold text-text-inverse">
+                  <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-brand-bold font-sans text-sm font-bold text-text-inverse">
                     {step.number}
                   </div>
-                  <h3 className="mb-2 font-display text-lg font-semibold">
+                  <h3 className="mb-2 font-sans text-lg font-semibold">
                     {step.title}
                   </h3>
                   <p className="text-sm text-text-subtle">

@@ -17,10 +17,10 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-bold text-text-inverse font-display font-bold">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-bold text-text-inverse font-sans font-bold">
                 M
               </div>
-              <span className="font-display text-lg font-semibold">
+              <span className="font-sans text-lg font-semibold">
                 My Progress
               </span>
             </div>

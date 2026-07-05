@@ -38,10 +38,10 @@ export default function Navbar() {
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href={paths.home} className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-bold text-text-inverse font-display font-bold">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-bold text-text-inverse font-sans font-bold">
             M
           </div>
-          <span className="font-display text-lg font-semibold">
+          <span className="font-sans text-lg font-semibold">
             My Progress
           </span>
         </Link>

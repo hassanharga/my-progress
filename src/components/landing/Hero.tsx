@@ -27,7 +27,7 @@ export default function Hero() {
           <span className="text-xs font-semibold uppercase tracking-widest text-text-brand">
             Your Productivity Companion
           </span>
-          <h1 className="font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="font-sans text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
             Your tasks,
             <br />
             your time,

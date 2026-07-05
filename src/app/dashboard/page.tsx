@@ -40,7 +40,7 @@ export default async function Dashboard() {
       >
         <main className="w-full max-w-7xl space-y-6 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div>
-            <h1 className="font-display text-2xl font-bold">
+            <h1 className="text-heading-large text-text">
               {greeting}, {user.name} 👋
             </h1>
             <p className="text-sm text-text-subtle">Here&apos;s your progress at a glance.</p>

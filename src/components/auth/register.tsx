@@ -38,7 +38,7 @@ const Register: FC<Props> = ({ onSwitchToLogin }) => {
   return (
     <div className="w-full max-w-sm space-y-6">
       <div className="space-y-2 text-center">
-        <h1 className="font-display text-2xl font-bold">Create your account</h1>
+        <h1 className="font-sans text-2xl font-bold">Create your account</h1>
         <p className="text-sm text-text-subtle">Start tracking your progress today</p>
       </div>
 

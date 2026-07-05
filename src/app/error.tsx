@@ -27,7 +27,7 @@ export default function ErrorPage({ error, reset }: Props) {
         <AlertCircle className="h-10 w-10 text-text-danger" />
       </div>
       <div className="space-y-2">
-        <h1 className="font-display text-2xl font-bold">Something went wrong</h1>
+        <h1 className="font-sans text-2xl font-bold">Something went wrong</h1>
         <p className="text-text-subtle max-w-md">
           {error.message || 'An unexpected error occurred. Please try again.'}
         </p>
