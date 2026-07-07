@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import {
-  Building2,
   Check,
   ChevronDown,
   ChevronRight,
