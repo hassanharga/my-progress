@@ -3,7 +3,7 @@
 import { useState, type FC } from 'react';
 import { STATUS_TOKENS } from '@/constants/status';
 import { format } from 'date-fns';
-import { Building2, Calendar, Check, Clock, FolderOpen, Pause, Pencil, Play } from 'lucide-react';
+import { Calendar, Check, Clock, Pause, Pencil, Play } from 'lucide-react';
 import { toast } from 'sonner';
 
 import type { TaskWithLoggedTime } from '@/types/task';
@@ -32,8 +32,6 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [title, setTitle] = useState('');
-  const [currentProject, setCurrentProject] = useState('');
-  const [currentCompany, setCurrentCompany] = useState('');
   const [progress, setProgress] = useState('');
   const [todo, setTodo] = useState('');
 
@@ -48,8 +46,6 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
 
   const handleEdit = () => {
     setTitle(task.title);
-    setCurrentProject(task.currentProject || '');
-    setCurrentCompany(task.currentCompany || '');
     setProgress(task.progress || '');
     setTodo(task.todo || '');
     setIsEditing(true);
@@ -63,8 +59,6 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
     const success = await editTask({
       id: task.id,
       title,
-      currentProject,
-      currentCompany,
       progress,
       todo,
     });
@@ -108,34 +102,6 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Task title"
               />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2 min-w-0">
-                <Label htmlFor="edit-project" className="flex items-center gap-2">
-                  <FolderOpen className="w-4 h-4 text-text-subtle" />
-                  Project
-                </Label>
-                <Input
-                  id="edit-project"
-                  value={currentProject}
-                  onChange={(e) => setCurrentProject(e.target.value)}
-                  placeholder="Project name"
-                />
-              </div>
-
-              <div className="flex flex-col gap-2 min-w-0">
-                <Label htmlFor="edit-company" className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-text-subtle" />
-                  Company
-                </Label>
-                <Input
-                  id="edit-company"
-                  value={currentCompany}
-                  onChange={(e) => setCurrentCompany(e.target.value)}
-                  placeholder="Company name"
-                />
-              </div>
             </div>
           </div>
 
@@ -200,22 +166,6 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
                 <div>
                   <p className="text-text-subtle">Total Time</p>
                   <p className="font-medium">{task.duration}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 text-sm">
-                <FolderOpen className="w-4 h-4 text-text-subtle" />
-                <div>
-                  <p className="text-text-subtle">Project</p>
-                  <p className="font-medium">{task.currentProject || '-'}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 text-sm">
-                <Building2 className="w-4 h-4 text-text-subtle" />
-                <div>
-                  <p className="text-text-subtle">Company</p>
-                  <p className="font-medium">{task.currentCompany || '-'}</p>
                 </div>
               </div>
             </div>

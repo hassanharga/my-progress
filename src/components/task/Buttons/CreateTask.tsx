@@ -1,7 +1,6 @@
 import { useState, type FC } from 'react';
 import dynamic from 'next/dynamic';
 
-import { useUserContext } from '@/contexts/user.context';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -10,7 +9,7 @@ import { Label } from '@/components/ui/label';
 const Editor = dynamic(() => import('../../shared/Editor'), { ssr: false });
 
 type Props = {
-  createTask: ({ progress, title }: { progress: string; title: string; project: string }) => void;
+  createTask: ({ progress, title }: { progress: string; title: string }) => void;
   isLoading: boolean;
   lastTaskTodo: string;
   setOpen: (open: boolean) => void;
@@ -18,10 +17,7 @@ type Props = {
 };
 
 export const CreateTask: FC<Props> = ({ createTask, isLoading, lastTaskTodo, open, setOpen }) => {
-  const { user } = useUserContext();
-
   const [title, setTitle] = useState('');
-  const [project, setProject] = useState(user?.currentProject || '');
   const [progress, setProgress] = useState(lastTaskTodo);
 
   return (
@@ -46,19 +42,6 @@ export const CreateTask: FC<Props> = ({ createTask, isLoading, lastTaskTodo, ope
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="currentCompany" className="text-start">
-              Project
-            </Label>
-            <Input
-              id="project"
-              name="project"
-              value={project}
-              onChange={(e) => {
-                setProject(e.target.value);
-              }}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="currentCompany" className="text-start">
               What are you going to do in this task?
             </Label>
             <Editor
@@ -73,7 +56,7 @@ export const CreateTask: FC<Props> = ({ createTask, isLoading, lastTaskTodo, ope
           <Button
             className={`self-end ${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             onClick={async () => {
-              createTask({ title, progress, project });
+              createTask({ title, progress });
             }}
             disabled={isLoading || !title}
           >

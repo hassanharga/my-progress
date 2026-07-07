@@ -79,7 +79,6 @@ export const EnhancedTaskCard: FC<Props> = ({
               <h3 className="text-heading-small font-weight-bold truncate group-hover:text-text-brand transition-colors">
                 {task.title}
               </h3>
-              {task.currentProject && <p className="text-sm text-text-subtle mt-1">{task.currentProject}</p>}
             </div>
 
 

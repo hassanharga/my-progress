@@ -49,7 +49,7 @@ const TaskPage: FC<Props> = ({ task, stats, lastTaskTodo }) => {
     closeDrawer,
   } = useTaskContext();
 
-  const handleCreateTask = async (data: { progress: string; title: string; project: string }) => {
+  const handleCreateTask = async (data: { progress: string; title: string }) => {
     await createTask(data);
     setOpenCreateTaskDrawer(false);
     toast.success('Task created!', {

@@ -69,12 +69,6 @@ const TaskCardRow: FC<Props> = ({
                   <span className="tabular-nums">{task.duration}</span>
                 </span>
               )}
-              {task.currentProject && (
-                <>
-                  <span>·</span>
-                  <span className="truncate max-w-32">{task.currentProject}</span>
-                </>
-              )}
             </div>
           </div>
 
