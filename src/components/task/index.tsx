@@ -17,6 +17,7 @@ type Props = {
   stats: {
     totalTime: string;
     completedTasks: number;
+    activeTasks: number;
     thisWeekTime: string;
     thisMonthTime: string;
   };
@@ -55,6 +56,7 @@ const TaskPage: FC<Props> = ({ stats, lastTaskTodo }) => {
         <StatsGrid
           totalTime={stats.totalTime}
           completedTasks={stats.completedTasks}
+          activeTasks={stats.activeTasks}
           thisWeekTime={stats.thisWeekTime}
           thisMonthTime={stats.thisMonthTime}
         />

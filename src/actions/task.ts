@@ -305,6 +305,7 @@ export const getTaskStats = async () => {
   const zeroes = {
     totalTime: formatDuration(0),
     completedTasks: 0,
+    activeTasks: 0,
     thisWeekTime: formatDuration(0),
     thisMonthTime: formatDuration(0),
   };
@@ -340,10 +341,14 @@ export const getTaskStats = async () => {
   const totalSeconds = totalSecondsRow[0]?.total ?? 0;
   const row = periodStats[0] ?? { week_seconds: 0, month_seconds: 0 };
   const completedCount = statusGroups.find((g) => g.status === 'COMPLETED')?._count.status ?? 0;
+  const activeCount = statusGroups
+    .filter((g) => ['IN_PROGRESS', 'RESUMED', 'PAUSED'].includes(g.status))
+    .reduce((sum, g) => sum + g._count.status, 0);
 
   return {
     totalTime: formatDuration(totalSeconds),
     completedTasks: completedCount,
+    activeTasks: activeCount,
     thisWeekTime: formatDuration(row.week_seconds),
     thisMonthTime: formatDuration(row.month_seconds),
   };

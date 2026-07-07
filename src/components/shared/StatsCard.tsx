@@ -2,7 +2,7 @@
 
 import type { FC, ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { CalendarDays, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
+import { Activity, CalendarDays, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
 
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -60,19 +60,27 @@ export const StatCard: FC<StatCardProps> = ({ title, value, icon, description, t
 type StatsGridProps = {
   totalTime: string;
   completedTasks: number;
+  activeTasks: number;
   thisWeekTime: string;
   thisMonthTime: string;
 };
 
-export const StatsGrid: FC<StatsGridProps> = ({ totalTime, completedTasks, thisWeekTime, thisMonthTime }) => {
+export const StatsGrid: FC<StatsGridProps> = ({ totalTime, completedTasks, activeTasks, thisWeekTime, thisMonthTime }) => {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+      <StatCard
+        title="Active"
+        value={activeTasks}
+        icon={<Activity className="h-5 w-5" />}
+        description="In progress"
+        delay={0}
+      />
       <StatCard
         title="Total Time"
         value={totalTime}
         icon={<Clock className="h-5 w-5" />}
         description="All time"
-        delay={0}
+        delay={0.05}
       />
       <StatCard
         title="Completed"
@@ -86,14 +94,14 @@ export const StatsGrid: FC<StatsGridProps> = ({ totalTime, completedTasks, thisW
         value={thisWeekTime}
         icon={<Clock className="h-5 w-5" />}
         description="Time this week"
-        delay={0.2}
+        delay={0.15}
       />
       <StatCard
         title="This Month"
         value={thisMonthTime}
         icon={<CalendarDays className="h-5 w-5" />}
         description="Time this month"
-        delay={0.3}
+        delay={0.2}
       />
     </div>
   );
