@@ -14,16 +14,34 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  email          String   @unique
-  password       String
-  name           String
-  currentProject String?
-  currentCompany String?
-  weekStartDay   WeekStartDay @default(MONDAY)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id               String       @id @default(uuid())
+  email            String       @unique
+  password         String
+  name             String
+  currentProjectId String?
+  currentProject   Project?     @relation("UserActiveProject", fields: [currentProjectId], references: [id])
+  weekStartDay     WeekStartDay @default(MONDAY)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  tasks            Task[]
+  projects         Project[]    @relation("ProjectOwner")
+}
+
+model Project {
+  id         String    @id @default(uuid())
+  name       String
+  archived   Boolean   @default(false)
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  owner          User   @relation("ProjectOwner", fields: [ownerId], references: [id])
+  ownerId        String
+  activeForUsers User[] @relation("UserActiveProject")
   tasks          Task[]
+
+  @@index([ownerId])
+  @@index([ownerId, archived])
 }
 
 enum TaskStatus {
@@ -41,24 +59,26 @@ enum WeekStartDay {
 }
 
 model Task {
-  id             String     @id @default(uuid())
-  title          String
-  status         TaskStatus @default(IN_PROGRESS)
-  progress       String?
-  todo           String?
-  currentProject String?
-  currentCompany String?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  id        String     @id @default(uuid())
+  title     String
+  status    TaskStatus @default(IN_PROGRESS)
+  progress  String?
+  todo      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   User         User       @relation(fields: [userId], references: [id])
   userId       String
+  Project      Project    @relation(fields: [projectId], references: [id])
+  projectId    String
   loggedTime   TaskTime[]
   totalSeconds Float      @default(0)
 
   @@index([userId])
   @@index([userId, updatedAt])
   @@index([userId, status])
+  @@index([userId, projectId])
+  @@index([projectId])
 }
 
 model TaskTime {
