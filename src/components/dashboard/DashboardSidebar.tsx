@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import {
   Building2,
+  Check,
   ChevronDown,
   ChevronRight,
   ClipboardList,
@@ -11,7 +12,9 @@ import {
   Settings as SettingsIcon,
   PanelLeftClose,
 } from 'lucide-react';
+import { useAction } from 'next-safe-action/hooks';
 
+import { getProjects, switchProject, type ProjectListItem } from '@/actions/project';
 import { useUserContext } from '@/contexts/user.context';
 import {
   DropdownMenu,
@@ -35,6 +38,79 @@ const navItems: NavItem[] = [
   { icon: ClipboardList, label: 'Tasks', href: '/dashboard' },
   { icon: SettingsIcon, label: 'Settings', action: 'settings' },
 ];
+
+function ProjectSwitcher({ onManageProjects }: { onManageProjects: () => void }) {
+  const { user, refetchUser } = useUserContext();
+  const [projects, setProjects] = useState<ProjectListItem[]>([]);
+
+  const { execute: loadProjects } = useAction(getProjects, {
+    onSuccess: ({ data }) => {
+      if (data) setProjects(data.filter((p) => !p.archived));
+    },
+  });
+
+  useEffect(() => {
+    loadProjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const { execute: executeSwitch } = useAction(switchProject, {
+    onSuccess: () => refetchUser(),
+  });
+
+  const activeId = user?.currentProjectId;
+  const activeName = user?.currentProject?.name;
+  const activeProjects = projects.filter((p) => !p.archived);
+
+  const triggerLabel = activeName ?? (activeProjects.length === 0 ? 'Create a project' : 'Select project');
+
+  // No projects at all -> open settings directly when the trigger is clicked
+  const handleTriggerClick = () => {
+    if (activeProjects.length === 0) {
+      onManageProjects();
+    }
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          className="flex w-full cursor-pointer items-center gap-075 rounded-md px-075 py-050 text-left hover:bg-neutral-subtle-hovered transition-colors"
+          onClick={handleTriggerClick}
+        >
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-surface-container">
+            <FolderOpen className="h-3.5 w-3.5 text-icon-subtle" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={`truncate text-body font-weight-medium ${activeName ? 'text-text' : 'text-text-subtle'}`}>
+              {triggerLabel}
+            </p>
+          </div>
+          {activeProjects.length > 0 && <ChevronDown className="h-4 w-4 shrink-0 text-icon-subtle" />}
+        </button>
+      </DropdownMenuTrigger>
+      {activeProjects.length > 0 && (
+        <DropdownMenuContent side="bottom" align="start" className="w-56">
+          {activeProjects.map((p) => (
+            <DropdownMenuItem
+              key={p.id}
+              onClick={() => executeSwitch({ id: p.id })}
+              className={`cursor-pointer ${p.id === activeId ? 'bg-selected text-text-selected' : ''}`}
+            >
+              <span className="flex-1 truncate">{p.name}</span>
+              {p.id === activeId && <Check className="h-3.5 w-3.5" />}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={onManageProjects} className="cursor-pointer">
+            <SettingsIcon className="mr-2 h-4 w-4" />
+            Manage projects
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      )}
+    </DropdownMenu>
+  );
+}
 
 export default function DashboardSidebar({
   mobileOpen,
@@ -76,57 +152,10 @@ export default function DashboardSidebar({
         </div>
       </div>
 
-      {/* Project/Company switcher (hidden when collapsed) */}
+      {/* Project switcher (hidden when collapsed) */}
       {!collapsed && (
         <div className="px-3 pt-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex w-full cursor-pointer items-center gap-075 rounded-md px-075 py-050 text-left hover:bg-neutral-subtle-hovered transition-colors">
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-surface-container">
-                  <FolderOpen className="h-3.5 w-3.5 text-icon-subtle" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="truncate text-body font-weight-medium text-text">
-                    {user?.currentProject || 'No project'}
-                  </p>
-                  {(user?.currentCompany || user?.currentProject) && (
-                    <p className="truncate text-body-small text-text-subtlest">
-                      {user?.currentCompany || 'No company'}
-                    </p>
-                  )}
-                </div>
-                <ChevronDown className="h-4 w-4 shrink-0 text-icon-subtle" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="bottom" align="start" className="w-56">
-              <div className="px-2 py-1.5">
-                <div className="flex items-center gap-075">
-                  <FolderOpen className="h-3.5 w-3.5 text-icon-subtle" />
-                  <span className="text-body-small text-text-subtlest">Project</span>
-                </div>
-                <p className="truncate text-body font-weight-medium text-text pl-6">
-                  {user?.currentProject || 'Not set'}
-                </p>
-              </div>
-              <div className="px-2 py-1.5">
-                <div className="flex items-center gap-075">
-                  <Building2 className="h-3.5 w-3.5 text-icon-subtle" />
-                  <span className="text-body-small text-text-subtlest">Company</span>
-                </div>
-                <p className="truncate text-body font-weight-medium text-text pl-6">
-                  {user?.currentCompany || 'Not set'}
-                </p>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => { setSettingsOpen(true); onMobileClose(); }}
-                className="cursor-pointer"
-              >
-                <SettingsIcon className="mr-2 h-4 w-4" />
-                Edit project settings
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ProjectSwitcher onManageProjects={() => { setSettingsOpen(true); onMobileClose(); }} />
         </div>
       )}
 
