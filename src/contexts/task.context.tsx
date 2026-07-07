@@ -30,6 +30,7 @@ interface TaskContextType {
     duration: string;
     userId: string;
     id: string;
+    projectId: string;
     createdAt: Date;
     updatedAt: Date;
     title: string;
