@@ -78,8 +78,8 @@ export const me = actionClient.action(async () => {
       id: true,
       name: true,
       email: true,
-      currentCompany: true,
-      currentProject: true,
+      currentProjectId: true,
+      currentProject: { select: { id: true, name: true } },
       weekStartDay: true,
     });
 
@@ -100,13 +100,11 @@ export const updateSettings = actionClient.inputSchema(settingsSchema).action(as
       id: true,
       name: true,
       email: true,
-      currentCompany: true,
-      currentProject: true,
+      currentProjectId: true,
+      currentProject: { select: { id: true, name: true } },
       weekStartDay: true,
     },
     data: {
-      currentCompany: parsedInput.currentCompany,
-      currentProject: parsedInput.currentProject,
       weekStartDay: parsedInput.weekStartDay,
     },
   });
