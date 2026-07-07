@@ -2,8 +2,11 @@ import type { Metadata } from 'next';
 
 import { findUserLastWorkingTask, getTaskStats, getTasksListData } from '@/actions/task';
 import { validateUserToken } from '@/helpers/validate-user';
+import db from '@/lib/db';
 import TaskPage from '@/components/task';
 import TaskProvider from '@/contexts/task.context';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { FolderOpen } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -23,6 +26,26 @@ function getGreeting() {
 
 export default async function Dashboard() {
   const user = await validateUserToken();
+
+  const userData = await db.user.findUnique({
+    where: { id: user.id },
+    select: { currentProjectId: true },
+  });
+
+  // No active project -> empty state prompting project creation via the sidebar switcher.
+  if (!userData?.currentProjectId) {
+    return (
+      <main className="w-full max-w-7xl overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <div className="mt-200">
+          <EmptyState
+            icon={<FolderOpen className="w-16 h-16" />}
+            title="No project selected"
+            description="Create or select a project from the sidebar switcher to start tracking tasks."
+          />
+        </div>
+      </main>
+    );
+  }
 
   const [task, stats, initialTasksData] = await Promise.all([
     findUserLastWorkingTask(),
