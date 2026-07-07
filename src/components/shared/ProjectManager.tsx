@@ -122,10 +122,10 @@ const ProjectManager: FC = () => {
                   autoFocus
                   className="h-7 flex-1"
                 />
-                <Button variant="subtle" size="icon-sm" onClick={commitEdit} className="cursor-pointer shrink-0">
+                <Button variant="subtle" size="icon-sm" onClick={commitEdit} className="cursor-pointer shrink-0" aria-label="Save name">
                   <Check className="w-3.5 h-3.5" />
                 </Button>
-                <Button variant="subtle" size="icon-sm" onClick={cancelEdit} className="cursor-pointer shrink-0">
+                <Button variant="subtle" size="icon-sm" onClick={cancelEdit} className="cursor-pointer shrink-0" aria-label="Cancel edit">
                   <X className="w-3.5 h-3.5" />
                 </Button>
               </>

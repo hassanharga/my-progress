@@ -52,7 +52,7 @@ export const Settings: FC<Props> = ({ weekStartDay, refetch, open, setOpen }) =>
       <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
-          <DialogDescription>Manage your projects and preferences. Click save when you are done.</DialogDescription>
+          <DialogDescription>Manage your projects below. Use Save at the bottom for preferences.</DialogDescription>
         </DialogHeader>
         {!isExecuting ? <DisplayServerActionResponse result={result} /> : null}
 

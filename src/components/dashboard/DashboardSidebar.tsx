@@ -12,6 +12,7 @@ import {
   PanelLeftClose,
 } from 'lucide-react';
 import { useAction } from 'next-safe-action/hooks';
+import { toast } from 'sonner';
 
 import { getProjects, switchProject, type ProjectListItem } from '@/actions/project';
 import { useUserContext } from '@/contexts/user.context';
@@ -44,8 +45,9 @@ function ProjectSwitcher({ onManageProjects }: { onManageProjects: () => void })
 
   const { execute: loadProjects } = useAction(getProjects, {
     onSuccess: ({ data }) => {
-      if (data) setProjects(data.filter((p) => !p.archived));
+      if (data) setProjects(data);
     },
+    onError: ({ error }) => toast.error(error.serverError ?? 'Failed to load projects'),
   });
 
   useEffect(() => {
@@ -55,6 +57,7 @@ function ProjectSwitcher({ onManageProjects }: { onManageProjects: () => void })
 
   const { execute: executeSwitch } = useAction(switchProject, {
     onSuccess: () => refetchUser(),
+    onError: ({ error }) => toast.error(error.serverError ?? 'Failed to switch project'),
   });
 
   const activeId = user?.currentProjectId;
