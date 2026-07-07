@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Check,
   ChevronDown,
@@ -41,6 +41,7 @@ const navItems: NavItem[] = [
 
 function ProjectSwitcher({ onManageProjects }: { onManageProjects: () => void }) {
   const { user, refetchUser } = useUserContext();
+  const router = useRouter();
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
 
   const { execute: loadProjects } = useAction(getProjects, {
@@ -56,7 +57,10 @@ function ProjectSwitcher({ onManageProjects }: { onManageProjects: () => void })
   }, []);
 
   const { execute: executeSwitch } = useAction(switchProject, {
-    onSuccess: () => refetchUser(),
+    onSuccess: () => {
+      refetchUser();
+      router.refresh();
+    },
     onError: ({ error }) => toast.error(error.serverError ?? 'Failed to switch project'),
   });
 
@@ -74,7 +78,7 @@ function ProjectSwitcher({ onManageProjects }: { onManageProjects: () => void })
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={(open) => { if (open) loadProjects(); }}>
       <DropdownMenuTrigger asChild>
         <button
           className="flex w-full cursor-pointer items-center gap-075 rounded-md px-075 py-050 text-left hover:bg-neutral-subtle-hovered transition-colors"

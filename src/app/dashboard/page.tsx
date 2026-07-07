@@ -57,6 +57,7 @@ export default async function Dashboard() {
   return (
     <>
       <TaskProvider
+        key={userData.currentProjectId}
         initialTasks={initialTasksData.tasks}
         initialHasNextPage={initialTasksData.hasNextPage}
         initialNextCursor={initialTasksData.nextCursor}
