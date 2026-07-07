@@ -7,25 +7,21 @@ import { useHookFormAction } from '@next-safe-action/adapter-react-hook-form/hoo
 import { updateSettings } from '@/actions/user';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { WeekStartDay } from '@/utils/time-stats';
 
 import DisplayServerActionResponse from './DisplayServerActionResponse';
+import ProjectManager from './ProjectManager';
 
 type Props = {
-  currentProject: string;
-  currentCompany: string;
   weekStartDay: WeekStartDay;
   refetch: () => void;
   open: boolean;
   setOpen: (open: boolean) => void;
 };
 
-export const Settings: FC<Props> = ({ currentProject, currentCompany, weekStartDay, refetch, open, setOpen }) => {
-  // const [open, setOpen] = useState(false);
-
+export const Settings: FC<Props> = ({ weekStartDay, refetch, open, setOpen }) => {
   const {
     form,
     action: { isExecuting, result },
@@ -35,95 +31,64 @@ export const Settings: FC<Props> = ({ currentProject, currentCompany, weekStartD
     formProps: {
       mode: 'onChange',
       defaultValues: {
-        currentProject,
-        currentCompany,
         weekStartDay,
       },
     },
     actionProps: {
       onSuccess: () => {
-        // console.log('data[onSuccess] ====>', data);
-        // refetch user data
         refetch();
-        // close dialog
         setOpen(false);
       },
     },
   });
 
   useEffect(() => {
-    if (currentCompany || currentProject) {
-      form.setValue('currentProject', currentProject);
-      form.setValue('currentCompany', currentCompany);
-    }
     form.setValue('weekStartDay', weekStartDay);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentProject, currentCompany, weekStartDay]);
+  }, [weekStartDay]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {/* <DialogTrigger asChild>
-        <Button
-          variant="default"
-          onClick={() => {
-            setOpen(true);
-          }}
-        >
-          Settings
-        </Button>
-      </DialogTrigger> */}
       <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
-          <DialogDescription>Make changes to your settings here. Click save when you are done.</DialogDescription>
+          <DialogDescription>Manage your projects and preferences. Click save when you are done.</DialogDescription>
         </DialogHeader>
         {!isExecuting ? <DisplayServerActionResponse result={result} /> : null}
-        <form onSubmit={handleSubmitWithAction}>
-          <div className="flex flex-col gap-4 py-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="currentProject" className="text-start w-30">
-                Current Project
-              </Label>
-              <Input id="currentProject" {...form.register('currentProject')} />
-              {form.formState.errors.currentProject ? (
-                <p className="text-rose-700 text-sm">{form.formState.errors.currentProject.message}</p>
-              ) : null}
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="currentCompany" className="text-start w-30">
-                Current Company
-              </Label>
-              <Input id="currentCompany" {...form.register('currentCompany')} />
-              {form.formState.errors.currentCompany ? (
-                <p className="text-rose-700 text-sm">{form.formState.errors.currentCompany.message}</p>
-              ) : null}
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="weekStartDay" className="text-start w-30">
-                Week starts on
-              </Label>
-              <Controller
-                control={form.control}
-                name="weekStartDay"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="weekStartDay">
-                      <SelectValue placeholder="Select a day" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SUNDAY">Sunday</SelectItem>
-                      <SelectItem value="MONDAY">Monday</SelectItem>
-                      <SelectItem value="SATURDAY">Saturday</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
-            <Button type="submit" className="self-end" disabled={isExecuting}>
-              Save changes
-            </Button>
+
+        <div className="flex flex-col gap-4 py-2">
+          <div className="flex flex-col gap-2">
+            <Label>Projects</Label>
+            <ProjectManager />
           </div>
-        </form>
+
+          <form onSubmit={handleSubmitWithAction}>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="weekStartDay">Week starts on</Label>
+                <Controller
+                  control={form.control}
+                  name="weekStartDay"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id="weekStartDay">
+                        <SelectValue placeholder="Select a day" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="SUNDAY">Sunday</SelectItem>
+                        <SelectItem value="MONDAY">Monday</SelectItem>
+                        <SelectItem value="SATURDAY">Saturday</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+              <Button type="submit" className="self-end" disabled={isExecuting}>
+                Save changes
+              </Button>
+            </div>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
