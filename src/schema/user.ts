@@ -23,7 +23,5 @@ export const registerSchema = z
   });
 
 export const settingsSchema = z.object({
-  currentProject: z.string().trim().optional(),
-  currentCompany: z.string().trim().optional(),
   weekStartDay: z.enum(['SUNDAY', 'MONDAY', 'SATURDAY']).default('MONDAY'),
 });

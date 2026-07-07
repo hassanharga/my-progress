@@ -10,8 +10,6 @@ export type TaskListItem = {
   id: string;
   title: string;
   status: TaskStatus;
-  currentCompany: string;
-  currentProject: string;
   duration: string;
   totalSeconds: number;
   createdAt: Date;
