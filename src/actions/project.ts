@@ -1,7 +1,6 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
 
 import { validateUserToken } from '@/helpers/validate-user';
 import { paths } from '@/paths';

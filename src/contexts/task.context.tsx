@@ -154,9 +154,9 @@ const TaskProvider = ({
   };
 
   // create task handler
-  const onStartTask = async ({ title, progress, project }: CreateTaskInput): Promise<void> => {
+  const onStartTask = async ({ title, progress }: CreateTaskInput): Promise<void> => {
     if (!title?.trim()) return;
-    await executeCreateTask({ title, progress, project });
+    await executeCreateTask({ title, progress });
     if (cursorIndex === 0) fetchTasks();
   };
 
