@@ -14,22 +14,25 @@ import { actionClient } from '@/lib/action-client';
 import prisma from '@/lib/db';
 
 export const createTask = actionClient
-  .inputSchema(z.object({ title: z.string(), project: z.string().optional(), progress: z.string().optional() }))
-  .action(async ({ parsedInput: { title, progress, project } }) => {
+  .inputSchema(z.object({ title: z.string(), progress: z.string().optional() }))
+  .action(async ({ parsedInput: { title, progress } }) => {
     const user = await validateUserToken();
 
-    const useData = await prisma.user.findUnique({
+    const userData = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { currentCompany: true, currentProject: true },
+      select: { currentProjectId: true },
     });
+
+    if (!userData?.currentProjectId) {
+      throw new Error('No active project. Create or select a project first.');
+    }
 
     await prisma.task.create({
       data: {
         title,
         progress,
         userId: user.id!,
-        currentCompany: useData?.currentCompany,
-        currentProject: project || useData?.currentProject,
+        projectId: userData.currentProjectId,
         loggedTime: {
           create: {
             from: new Date(),
@@ -110,8 +113,6 @@ export const updateTaskDetails = actionClient
     z.object({
       id: z.uuid(),
       title: z.string().min(1).optional(),
-      currentProject: z.string().optional(),
-      currentCompany: z.string().optional(),
       progress: z.string().optional(),
       todo: z.string().optional(),
     })
@@ -153,8 +154,18 @@ const mapTask = (
 export const findUserLastWorkingTask = async () => {
   const user = await validateUserToken();
 
+  const userData = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { currentProjectId: true },
+  });
+  if (!userData?.currentProjectId) return null;
+
   const task = await prisma.task.findFirst({
-    where: { status: { in: ['IN_PROGRESS', 'RESUMED', 'PAUSED'] }, userId: user.id },
+    where: {
+      status: { in: ['IN_PROGRESS', 'RESUMED', 'PAUSED'] },
+      userId: user.id,
+      projectId: userData.currentProjectId,
+    },
     orderBy: { updatedAt: 'desc' },
     include: {
       loggedTime: {
@@ -174,8 +185,18 @@ export const findUserLastWorkingTask = async () => {
 export const findUserLastTask = async () => {
   const user = await validateUserToken();
 
+  const userData = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { currentProjectId: true },
+  });
+  if (!userData?.currentProjectId) return null;
+
   const task = await prisma.task.findFirst({
-    where: { status: { notIn: ['IN_PROGRESS', 'RESUMED', 'PAUSED'] }, userId: user.id },
+    where: {
+      status: { notIn: ['IN_PROGRESS', 'RESUMED', 'PAUSED'] },
+      userId: user.id,
+      projectId: userData.currentProjectId,
+    },
     orderBy: { updatedAt: 'desc' },
   });
 
@@ -187,8 +208,16 @@ export const findUserLastTask = async () => {
 export const getTasksListData = async (limit: number = 10, cursor?: string | null) => {
   const user = await validateUserToken();
 
+  const userData = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { currentProjectId: true },
+  });
+  if (!userData?.currentProjectId) {
+    return { hasNextPage: false, nextCursor: null, tasks: [] };
+  }
+
   const tasks = await prisma.task.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, projectId: userData.currentProjectId },
     orderBy: { updatedAt: 'desc' },
     take: limit + 1,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
@@ -196,8 +225,6 @@ export const getTasksListData = async (limit: number = 10, cursor?: string | nul
       id: true,
       title: true,
       status: true,
-      currentCompany: true,
-      currentProject: true,
       totalSeconds: true,
       createdAt: true,
       loggedTime: {
@@ -216,15 +243,13 @@ export const getTasksListData = async (limit: number = 10, cursor?: string | nul
   return {
     hasNextPage,
     nextCursor,
-    tasks: items.map(({ loggedTime, currentCompany, currentProject, totalSeconds, createdAt, ...task }) => {
+    tasks: items.map(({ loggedTime, totalSeconds, createdAt, ...task }) => {
       const isActive = ['IN_PROGRESS', 'RESUMED'].includes(task.status);
       const openSession = loggedTime?.find((s) => !s.to);
       const activeFrom = isActive && openSession ? openSession.from : null;
 
       return {
         ...task,
-        currentCompany: currentCompany || '-',
-        currentProject: currentProject || '-',
         totalSeconds,
         createdAt,
         duration: formatTaskDuration(totalSeconds, activeFrom),
@@ -272,22 +297,29 @@ export const getTaskStats = async () => {
 
   const userPrefs = await prisma.user.findUnique({
     where: { id: user.id! },
-    select: { weekStartDay: true },
+    select: { weekStartDay: true, currentProjectId: true },
   });
   const weekStartDay: WeekStartDay = userPrefs?.weekStartDay ?? 'MONDAY';
+  const projectId = userPrefs?.currentProjectId;
+
+  const zeroes = {
+    totalTime: formatDuration(0),
+    completedTasks: 0,
+    thisWeekTime: formatDuration(0),
+    thisMonthTime: formatDuration(0),
+  };
+  if (!projectId) return zeroes;
 
   const now = new Date();
   const weekStart = startOfWeek(now, { weekStartsOn: WEEK_STARTS_ON[weekStartDay] });
   const monthStart = startOfMonth(now);
 
   const [totalSecondsRow, periodStats, statusGroups] = await Promise.all([
-    // Total time from cached column (fast — scans Task only)
     prisma.$queryRaw<{ total: number }[]>`
       SELECT COALESCE(SUM("totalSeconds"), 0)::float AS total
       FROM "Task"
-      WHERE "userId" = ${user.id}
+      WHERE "userId" = ${user.id} AND "projectId" = ${projectId}
     `,
-    // Weekly/monthly from TaskTime bounded to current month (fast — fewer rows)
     prisma.$queryRaw<StatsRow[]>`
       SELECT
         COALESCE(SUM(GREATEST(0, EXTRACT(EPOCH FROM
@@ -296,11 +328,11 @@ export const getTaskStats = async () => {
           (LEAST(COALESCE("to", ${now}), ${now}) - GREATEST("from", ${monthStart}))))), 0)::float AS month_seconds
       FROM "TaskTime" tt
       JOIN "Task" t ON t.id = tt."taskId"
-      WHERE t."userId" = ${user.id} AND (tt."to" IS NULL OR tt."to" >= ${monthStart})
+      WHERE t."userId" = ${user.id} AND t."projectId" = ${projectId} AND (tt."to" IS NULL OR tt."to" >= ${monthStart})
     `,
     prisma.task.groupBy({
       by: ['status'],
-      where: { userId: user.id },
+      where: { userId: user.id, projectId },
       _count: { status: true },
     }),
   ]);
