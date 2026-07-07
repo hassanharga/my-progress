@@ -92,8 +92,9 @@ const TaskCardRow: FC<Props> = ({
                     disabled={isLoading}
                     onClick={(e) => { e.stopPropagation(); onPause(e); }}
                     className="cursor-pointer"
+                    title="Pause"
                   >
-                    <Pause className="h-3.5 w-3.5" />
+                    <Pause className="h-4 w-4" />
                   </Button>
                 )}
                 {!isActive && onPlay && (
@@ -103,8 +104,9 @@ const TaskCardRow: FC<Props> = ({
                     disabled={isLoading}
                     onClick={(e) => { e.stopPropagation(); onPlay(e); }}
                     className="cursor-pointer"
+                    title="Resume"
                   >
-                    <Play className="h-3.5 w-3.5" />
+                    <Play className="h-4 w-4" />
                   </Button>
                 )}
                 {onComplete && (
@@ -114,8 +116,9 @@ const TaskCardRow: FC<Props> = ({
                     disabled={isLoading}
                     onClick={(e) => { e.stopPropagation(); onComplete(e); }}
                     className="cursor-pointer"
+                    title="Complete"
                   >
-                    <Check className="h-3.5 w-3.5" />
+                    <Check className="h-4 w-4" />
                   </Button>
                 )}
                 {onEdit && (
@@ -126,8 +129,9 @@ const TaskCardRow: FC<Props> = ({
                         size="icon-sm"
                         onClick={(e) => e.stopPropagation()}
                         className="cursor-pointer"
+                        title="More actions"
                       >
-                        <MoreHorizontal className="h-3.5 w-3.5" />
+                        <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">

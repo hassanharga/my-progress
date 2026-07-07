@@ -48,6 +48,16 @@ export const archiveProject = actionClient.inputSchema(projectIdSchema).action(a
   });
   if (!project) throw new Error('Project not found');
 
+  // Block archiving if there are in-progress tasks
+  const inProgressCount = await prisma.task.count({
+    where: { projectId: id, status: { in: ['IN_PROGRESS', 'RESUMED'] } },
+  });
+  if (inProgressCount > 0) {
+    throw new Error(
+      `Cannot archive: project has ${inProgressCount} in-progress task${inProgressCount > 1 ? 's' : ''}. Complete or pause them first.`
+    );
+  }
+
   // Archive it
   await prisma.project.update({
     where: { id },

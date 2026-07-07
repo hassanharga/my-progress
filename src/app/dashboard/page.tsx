@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import { findUserLastWorkingTask, getTaskStats, getTasksListData } from '@/actions/task';
+import { getTaskStats, getTasksListData } from '@/actions/task';
 import { validateUserToken } from '@/helpers/validate-user';
 import db from '@/lib/db';
 import TaskPage from '@/components/task';
@@ -47,8 +47,7 @@ export default async function Dashboard() {
     );
   }
 
-  const [task, stats, initialTasksData] = await Promise.all([
-    findUserLastWorkingTask(),
+  const [stats, initialTasksData] = await Promise.all([
     getTaskStats(),
     getTasksListData(4, null),
   ]);
@@ -69,7 +68,7 @@ export default async function Dashboard() {
             </h1>
             <p className="text-sm text-text-subtle">Here&apos;s your progress at a glance.</p>
           </div>
-          <TaskPage task={task} stats={stats} lastTaskTodo={task?.todo || ''} />
+          <TaskPage stats={stats} />
         </main>
       </TaskProvider>
     </>

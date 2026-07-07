@@ -38,10 +38,12 @@ export default function DashboardTopBar({ onMenuClick }: { onMenuClick: () => vo
       <h1 className="text-heading-xsmall font-weight-bold text-text">Tasks</h1>
 
       <div className="ml-auto flex items-center gap-100">
-        <Button variant="primary" size="sm" className="cursor-pointer" onClick={handleCreateTask}>
-          <Plus className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Create task</span>
-        </Button>
+        {user?.currentProjectId && (
+          <Button variant="primary" size="sm" className="cursor-pointer" onClick={handleCreateTask}>
+            <Plus className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Create task</span>
+          </Button>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
