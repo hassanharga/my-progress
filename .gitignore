@@ -47,3 +47,4 @@ next-env.d.ts
 /generated/prisma
 
 /docs/superpowers
+learnings.md
