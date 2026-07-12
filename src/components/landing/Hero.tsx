@@ -24,17 +24,17 @@ export default function Hero() {
           transition={{ duration: 0.6, ease: 'easeOut' }}
           className="flex flex-col gap-6"
         >
-          <span className="text-xs font-semibold uppercase tracking-widest text-text-brand">
+          <span className="text-body-small font-weight-semibold uppercase tracking-widest text-text-brand">
             Your Productivity Companion
           </span>
-          <h1 className="font-sans text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="text-display-small font-weight-bold leading-tight tracking-tight sm:text-display lg:text-display-large">
             Your tasks,
             <br />
             your time,
             <br />
             <span className="text-text-brand">your progress.</span>
           </h1>
-          <p className="max-w-md text-lg text-text-subtle">
+          <p className="max-w-md text-body-xl text-text-subtle">
             Track tasks, log time, and see how far you&apos;ve come — all in one
             place. Built for anyone who wants to stay on top of their work.
           </p>

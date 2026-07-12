@@ -17,14 +17,14 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-bold text-text-inverse font-sans font-bold">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-bold text-text-inverse font-weight-bold">
                 M
               </div>
-              <span className="font-sans text-lg font-semibold">
+              <span className="text-body-xl font-weight-semibold">
                 My Progress
               </span>
             </div>
-            <p className="mt-3 text-sm text-text-subtle">
+            <p className="mt-3 text-body text-text-subtle">
               Track tasks, log time, and see your progress.
             </p>
           </div>
@@ -32,13 +32,13 @@ export default function Footer() {
           {/* Link columns */}
           {columns.map((col) => (
             <div key={col.title}>
-              <h4 className="text-sm font-semibold">{col.title}</h4>
+              <h4 className="text-body font-weight-semibold">{col.title}</h4>
               <ul className="mt-3 space-y-2">
                 {col.links.map((link) => (
                   <li key={link.label}>
                     <a
                       href={link.href}
-                      className="text-sm text-text-subtle transition-colors hover:text-text"
+                      className="text-body text-text-subtle transition-colors hover:text-text"
                     >
                       {link.label}
                     </a>
@@ -50,7 +50,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 border-t pt-6">
-          <p className="text-center text-sm text-text-subtle">
+          <p className="text-center text-body text-text-subtle">
             © {new Date().getFullYear()} My Progress. All rights reserved.
           </p>
         </div>

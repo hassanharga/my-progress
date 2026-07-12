@@ -38,10 +38,10 @@ export default function Navbar() {
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href={paths.home} className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-bold text-text-inverse font-sans font-bold">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-bold text-text-inverse font-weight-bold">
             M
           </div>
-          <span className="font-sans text-lg font-semibold">
+          <span className="text-body-xl font-weight-semibold">
             My Progress
           </span>
         </Link>
@@ -52,7 +52,7 @@ export default function Navbar() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-text-subtle transition-colors hover:text-text"
+              className="text-body font-weight-medium text-text-subtle transition-colors hover:text-text"
             >
               {link.label}
             </a>
@@ -83,7 +83,7 @@ export default function Navbar() {
                   <SheetClose asChild key={link.href}>
                     <a
                       href={link.href}
-                      className="text-base font-medium text-text-subtle transition-colors hover:text-text"
+                      className="text-body-large font-weight-medium text-text-subtle transition-colors hover:text-text"
                     >
                       {link.label}
                     </a>

@@ -31,10 +31,10 @@ export default function Features() {
     <section id="features" className="px-4 py-20 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-12 text-center">
-          <span className="text-xs font-semibold uppercase tracking-widest text-text-brand">
+          <span className="text-body-small font-weight-semibold uppercase tracking-widest text-text-brand">
             Everything You Need
           </span>
-          <h2 className="mt-2 font-sans text-3xl font-bold sm:text-4xl">
+          <h2 className="mt-2 text-heading-xxlarge font-weight-bold sm:text-display-small">
             Track tasks, log time, and see your progress
           </h2>
         </div>
@@ -52,10 +52,10 @@ export default function Features() {
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-bold/10 transition-colors group-hover:bg-brand-bold/20">
                 <feature.icon className="h-6 w-6 text-text-brand" />
               </div>
-              <h3 className="mb-2 font-sans text-lg font-semibold">
+              <h3 className="mb-2 text-body-xl font-weight-semibold">
                 {feature.title}
               </h3>
-              <p className="text-sm text-text-subtle">
+              <p className="text-body text-text-subtle">
                 {feature.description}
               </p>
             </motion.div>

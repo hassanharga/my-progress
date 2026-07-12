@@ -34,7 +34,7 @@ export default function Showcase() {
   return (
     <section className="px-4 py-20 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl">
-        <h2 className="mb-12 text-center font-sans text-3xl font-bold sm:text-4xl">
+        <h2 className="mb-12 text-center text-heading-xxlarge font-weight-bold sm:text-display-small">
           Your progress, visualized
         </h2>
 
@@ -48,7 +48,7 @@ export default function Showcase() {
           {/* Mock dashboard header */}
           <div className="flex items-center justify-between border-b px-6 py-4">
             <div>
-              <p className="text-sm text-text-subtle">
+              <p className="text-body text-text-subtle">
                 Good afternoon 👋
               </p>
             </div>
@@ -66,10 +66,10 @@ export default function Showcase() {
             ].map((stat) => (
               <div key={stat.label} className="bg-surface p-4">
                 <stat.icon className="mb-2 h-5 w-5 text-text-brand" />
-                <p className="text-2xl font-bold text-text-brand">
+                <p className="text-heading-large font-weight-bold text-text-brand">
                   <CountUp target={stat.target} suffix={stat.suffix} />
                 </p>
-                <p className="text-xs text-text-subtle">{stat.label}</p>
+                <p className="text-body-small text-text-subtle">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -79,12 +79,12 @@ export default function Showcase() {
             <div className="flex items-center justify-between rounded-lg border bg-surface p-4">
               <div className="flex items-center gap-3">
                 <div className="h-2 w-2 rounded-full bg-brand-bold" />
-                <span className="font-medium">Build landing page</span>
-                <span className="rounded-md border border-border-selected/20 bg-brand-bold/10 px-2 py-0.5 text-xs text-text-brand">
+                <span className="font-weight-medium">Build landing page</span>
+                <span className="rounded-md border border-border-selected/20 bg-brand-bold/10 px-2 py-0.5 text-body-small text-text-brand">
                   In Progress
                 </span>
               </div>
-              <span className="font-mono text-sm tabular-nums text-text-subtle">
+              <span className="font-mono text-body tabular-nums text-text-subtle">
                 02:15:30
               </span>
             </div>

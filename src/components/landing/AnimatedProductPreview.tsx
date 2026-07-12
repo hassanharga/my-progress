@@ -39,17 +39,17 @@ export default function AnimatedProductPreview() {
         <div className="flex items-center justify-between p-5 pl-7">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-bold/10">
-              <Play className="h-4 w-4 fill-primary text-text-brand" />
+              <Play className="h-4 w-4 fill-brand-bold text-text-brand" />
             </div>
             <div>
-              <p className="font-medium">Design Homepage</p>
-              <span className="inline-flex items-center rounded-md border border-border-selected/20 bg-brand-bold/10 px-2 py-0.5 text-xs font-medium text-text-brand">
+              <p className="font-weight-medium">Design Homepage</p>
+              <span className="inline-flex items-center rounded-md border border-border-selected/20 bg-brand-bold/10 px-2 py-0.5 text-body-small font-weight-medium text-text-brand">
                 In Progress
               </span>
             </div>
           </div>
           <div className="text-right">
-            <p className="font-mono text-2xl font-bold tabular-nums text-text-brand">
+            <p className="font-mono text-heading-large font-weight-bold tabular-nums text-text-brand">
               {timer}
             </p>
           </div>
@@ -57,7 +57,7 @@ export default function AnimatedProductPreview() {
 
         {/* Progress bar */}
         <div className="px-5 pb-4 pl-7">
-          <div className="mb-1.5 flex items-center justify-between text-xs text-text-subtle">
+          <div className="mb-1.5 flex items-center justify-between text-body-small text-text-subtle">
             <span>Progress</span>
             <span>68%</span>
           </div>
@@ -134,11 +134,11 @@ function StatItem({
   return (
     <div className="flex flex-col items-center gap-1 bg-surface p-3">
       <div className="text-text-subtle">{icon}</div>
-      <span className="text-lg font-bold tabular-nums text-text-brand">
+      <span className="text-body-xl font-weight-bold tabular-nums text-text-brand">
         {display}
         {suffix}
       </span>
-      <span className="text-[10px] text-text-subtle">{label}</span>
+      <span className="text-body-small text-text-subtle">{label}</span>
     </div>
   );
 }
