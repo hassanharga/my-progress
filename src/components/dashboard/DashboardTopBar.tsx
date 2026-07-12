@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
-import { Laptop, LogOut, Menu, Moon, Plus, Sun } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Laptop, LogOut, Moon, Plus, Settings as SettingsIcon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 import { useUserContext } from '@/contexts/user.context';
@@ -15,10 +15,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Settings } from '@/components/shared/Settings';
 
-export default function DashboardTopBar({ onMenuClick }: { onMenuClick: () => void }) {
+import ProjectSwitcher from './ProjectSwitcher';
+
+export default function DashboardTopBar() {
   const { setTheme } = useTheme();
-  const { user, logout } = useUserContext();
+  const { user, logout, refetchUser } = useUserContext();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const userInitials = useMemo(() => {
     if (!user?.name) return 'U';
@@ -31,12 +35,15 @@ export default function DashboardTopBar({ onMenuClick }: { onMenuClick: () => vo
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-4 border-b bg-surface/80 px-4 backdrop-blur">
-      <Button variant="subtle" size="icon" className="md:hidden" onClick={onMenuClick}>
-        <Menu className="h-5 w-5" />
-      </Button>
+      {/* Logo */}
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-bold text-sm font-weight-bold text-text-inverse">
+        M
+      </div>
 
-      <h1 className="text-heading-xsmall font-weight-bold text-text">Tasks</h1>
+      {/* Project switcher */}
+      <ProjectSwitcher onManageProjects={() => setSettingsOpen(true)} />
 
+      {/* Right cluster */}
       <div className="ml-auto flex items-center gap-100">
         {user?.currentProjectId && (
           <Button variant="primary" size="sm" className="cursor-pointer" onClick={handleCreateTask}>
@@ -82,12 +89,26 @@ export default function DashboardTopBar({ onMenuClick }: { onMenuClick: () => vo
               <p className="text-body-small text-text-subtle truncate">{user?.email}</p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setSettingsOpen(true)} className="cursor-pointer">
+              <SettingsIcon className="mr-2 h-4 w-4" /> Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout} className="cursor-pointer text-text-danger">
               <LogOut className="mr-2 h-4 w-4" /> Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Settings Dialog */}
+      {settingsOpen && (
+        <Settings
+          weekStartDay={user?.weekStartDay ?? 'MONDAY'}
+          refetch={refetchUser}
+          open={settingsOpen}
+          setOpen={setSettingsOpen}
+        />
+      )}
     </header>
   );
 }
