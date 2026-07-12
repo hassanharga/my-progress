@@ -12,13 +12,13 @@ import { Toaster } from '@/components/ui/sonner';
 
 const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-atlassian-sans',
+  variable: '--font-inter',
   display: 'swap',
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
-  variable: '--font-atlassian-mono',
+  variable: '--font-jetbrains-mono',
   display: 'swap',
 });
 

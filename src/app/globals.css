@@ -5,8 +5,8 @@
 
 @theme inline {
   /* Fonts */
-  --font-sans: var(--font-atlassian-sans), system-ui, sans-serif;
-  --font-mono: var(--font-atlassian-mono), monospace;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
 
   /* Neutrals — text */
   --color-text: var(--text);
@@ -157,6 +157,10 @@
 
 @layer utilities {
   /* Type scale */
+  /* Display tier */
+  .text-display-large  { font-size: 3.75rem; font-weight: 653; line-height: 4rem; }
+  .text-display        { font-size: 3rem; font-weight: 653; line-height: 3.25rem; }
+  .text-display-small  { font-size: 2.25rem; font-weight: 653; line-height: 2.5rem; }
   .text-heading-xxlarge { font-size: 2rem; font-weight: 653; line-height: 2.25rem; }
   .text-heading-xlarge { font-size: 1.75rem; font-weight: 653; line-height: 2rem; }
   .text-heading-large { font-size: 1.5rem; font-weight: 653; line-height: 1.75rem; }
@@ -164,6 +168,7 @@
   .text-heading-small { font-size: 1rem; font-weight: 653; line-height: 1.25rem; }
   .text-heading-xsmall { font-size: 0.875rem; font-weight: 653; line-height: 1.25rem; }
   .text-body-large { font-size: 1rem; font-weight: 400; line-height: 1.5rem; }
+  .text-body-xl { font-size: 1.125rem; font-weight: 400; line-height: 1.75rem; }
   .text-body { font-size: 0.875rem; font-weight: 400; line-height: 1.25rem; }
   .text-body-small { font-size: 0.75rem; font-weight: 400; line-height: 1rem; }
 
@@ -344,7 +349,7 @@
   --text-subtle: #B6B9C0;
   --text-subtlest: #8A8D94;
   --text-disabled: #FFFFFF29;
-  --text-inverse: #1E1F21;
+  --text-inverse: #FFFFFF;
   --text-selected: #357DE8;
   --text-brand: #357DE8;
 
@@ -359,7 +364,7 @@
   --icon-subtle: #B6B9C0;
   --icon-subtlest: #8A8D94;
   --icon-disabled: #FFFFFF29;
-  --icon-inverse: #1E1F21;
+  --icon-inverse: #FFFFFF;
   --icon-selected: #357DE8;
   --icon-brand: #357DE8;
 
@@ -404,9 +409,9 @@
   --background-brand-subtlest: #0F2D5C;
   --background-brand-subtlest-hovered: #0D2447;
   --background-brand-subtlest-pressed: #0A1B35;
-  --background-brand-bold: #1868DB;
-  --background-brand-bold-hovered: #1558BC;
-  --background-brand-bold-pressed: #144794;
+  --background-brand-bold: #357DE8;
+  --background-brand-bold-hovered: #1868DB;
+  --background-brand-bold-pressed: #1558BC;
 
   /* Success */
   --background-success: #1D3E0D;
@@ -500,6 +505,6 @@
   }
   body {
     @apply bg-surface text-text h-screen flex;
-    font-family: var(--font-atlassian-sans), system-ui, sans-serif;
+    font-family: var(--font-sans);
   }
 }
