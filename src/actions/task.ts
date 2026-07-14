@@ -5,8 +5,15 @@ import { validateUserToken } from '@/helpers/validate-user';
 import { formatTaskDuration } from '@/utils/calculate-elapsed-time';
 import { logger } from '@/utils/logger';
 import { formatDuration, WEEK_STARTS_ON, type WeekStartDay } from '@/utils/time-stats';
-import { startOfMonth, startOfWeek } from 'date-fns';
+import { endOfMonth, startOfMonth, startOfWeek, subMonths } from 'date-fns';
 import { z } from 'zod';
+import { exportOptionsSchema } from '@/schema/export';
+import {
+  buildExportWorkbook,
+  sanitizeFilename,
+  type ExportSessionRow,
+  type ExportTaskRow,
+} from '@/utils/export-tasks';
 
 import { Task, TaskUpdateInput } from '@/types/task';
 import { paths } from '@/paths';
@@ -343,3 +350,127 @@ export const getTaskStats = async () => {
     thisMonthTime: formatDuration(row.month_seconds),
   };
 };
+
+export const exportTasks = actionClient.inputSchema(exportOptionsSchema).action(async ({ parsedInput }) => {
+  const user = await validateUserToken();
+
+  const userData = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { currentProjectId: true, weekStartDay: true },
+  });
+
+  if (!userData?.currentProjectId) {
+    throw new Error('No active project. Create or select a project first.');
+  }
+
+  const projectId = userData.currentProjectId;
+  const weekStartDay: WeekStartDay = userData.weekStartDay ?? 'MONDAY';
+
+  const now = new Date();
+  let dateFrom: Date | null = null;
+  let dateTo: Date | null = null;
+
+  switch (parsedInput.preset) {
+    case 'this_week':
+      dateFrom = startOfWeek(now, { weekStartsOn: WEEK_STARTS_ON[weekStartDay] });
+      dateTo = now;
+      break;
+    case 'this_month':
+      dateFrom = startOfMonth(now);
+      dateTo = now;
+      break;
+    case 'last_month':
+      dateFrom = startOfMonth(subMonths(now, 1));
+      dateTo = endOfMonth(subMonths(now, 1));
+      break;
+    case 'custom':
+      dateFrom = parsedInput.dateFrom ? new Date(parsedInput.dateFrom) : null;
+      dateTo = parsedInput.dateTo ? new Date(parsedInput.dateTo) : null;
+      break;
+    case 'all_time':
+    default:
+      break;
+  }
+
+  const tasks = await prisma.task.findMany({
+    where: {
+      userId: user.id,
+      projectId,
+      ...(dateFrom || dateTo
+        ? {
+            createdAt: {
+              ...(dateFrom ? { gte: dateFrom } : {}),
+              ...(dateTo ? { lte: dateTo } : {}),
+            },
+          }
+        : {}),
+    },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      totalSeconds: true,
+      createdAt: true,
+      progress: true,
+      todo: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  const taskIds = tasks.map((t) => t.id);
+
+  const taskTimes = taskIds.length
+    ? await prisma.taskTime.findMany({
+        where: {
+          taskId: { in: taskIds },
+          ...(dateFrom || dateTo
+            ? {
+                from: {
+                  ...(dateFrom ? { gte: dateFrom } : {}),
+                  ...(dateTo ? { lte: dateTo } : {}),
+                },
+              }
+            : {}),
+        },
+        include: {
+          Task: { select: { title: true, status: true } },
+        },
+        orderBy: { from: 'desc' },
+      })
+    : [];
+
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { name: true },
+  });
+  const projectName = project?.name ?? 'project';
+
+  const exportTasksData: ExportTaskRow[] = tasks.map((t) => ({
+    id: t.id,
+    title: t.title,
+    status: t.status,
+    totalSeconds: t.totalSeconds,
+    createdAt: t.createdAt,
+    progress: t.progress,
+    todo: t.todo,
+  }));
+
+  const exportSessionsData: ExportSessionRow[] = taskTimes.map((tt) => ({
+    taskTitle: tt.Task.title,
+    taskStatus: tt.Task.status,
+    from: tt.from,
+    to: tt.to,
+  }));
+
+  const workbook = buildExportWorkbook({
+    tasks: exportTasksData,
+    sessions: exportSessionsData,
+    projectName,
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const base64 = Buffer.from(buffer).toString('base64');
+  const filename = `${sanitizeFilename(projectName)}-export-${now.toISOString().slice(0, 10)}.xlsx`;
+
+  return { base64, filename };
+});
