@@ -43,7 +43,8 @@ export default function ProjectSwitcher({ onManageProjects }: { onManageProjects
   });
 
   const activeId = user?.currentProjectId;
-  const activeName = user?.currentProject?.name;
+  const activeName = user?.currentProject?.name
+    ?? projects.find((p) => p.id === activeId)?.name;
   const activeProjects = projects.filter((p) => !p.archived);
 
   const triggerLabel = activeName ?? (activeProjects.length === 0 ? 'Create a project' : 'Select project');
@@ -54,7 +55,7 @@ export default function ProjectSwitcher({ onManageProjects }: { onManageProjects
     }
   };
 
-  if (user === null) {
+  if (user === null || (user?.currentProjectId && !activeName && projects.length === 0)) {
     return (
       <div className="flex items-center gap-075 px-075 py-050">
         <Skeleton className="h-6 w-6 rounded-sm" />
