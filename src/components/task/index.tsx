@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { StatsGrid } from '../ui-enhancements';
 import { CreateTask } from './Buttons/CreateTask';
 import { TaskDetails } from './Buttons/TaskDetails';
+import { ExportTasks } from './Buttons/ExportTasks';
 
 type Props = {
   stats: {
@@ -62,10 +63,13 @@ const TaskPage: FC<Props> = ({ stats, lastTaskTodo }) => {
           <div className="flex items-center gap-075">
             <h2 className="text-heading-small font-weight-bold text-text">Tasks</h2>
           </div>
-          <Button variant="subtle" size="sm" className="cursor-pointer" onClick={() => setOpenCreateTaskDrawer(true)}>
-            <Plus className="w-3.5 h-3.5" />
-            Add
-          </Button>
+          <div className="flex items-center gap-2">
+            <ExportTasks />
+            <Button variant="subtle" size="sm" className="cursor-pointer" onClick={() => setOpenCreateTaskDrawer(true)}>
+              <Plus className="w-3.5 h-3.5" />
+              Add
+            </Button>
+          </div>
         </div>
         <TasksList />
       </SlideIn>
