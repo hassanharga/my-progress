@@ -46,7 +46,9 @@ export const StatCard: FC<StatCardProps> = ({ title, value, icon, description, t
                 <TrendingUp
                   className={`w-3 h-3 ${trend.isPositive ? 'text-emerald-600' : 'text-red-600'} ${!trend.isPositive && 'rotate-180'}`}
                 />
-                <span className={`text-xs ${trend.isPositive ? 'text-emerald-600' : 'text-red-600'}`}>{trend.value}</span>
+                <span className={`text-xs ${trend.isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+                  {trend.value}
+                </span>
                 <span className="text-xs text-text-subtle">vs last week</span>
               </div>
             )}
@@ -65,7 +67,13 @@ type StatsGridProps = {
   thisMonthTime: string;
 };
 
-export const StatsGrid: FC<StatsGridProps> = ({ totalTime, completedTasks, activeTasks, thisWeekTime, thisMonthTime }) => {
+export const StatsGrid: FC<StatsGridProps> = ({
+  totalTime,
+  completedTasks,
+  activeTasks,
+  thisWeekTime,
+  thisMonthTime,
+}) => {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
       <StatCard

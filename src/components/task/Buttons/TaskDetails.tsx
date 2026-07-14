@@ -141,7 +141,13 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
             </div>
             <div className="flex items-center gap-2">
               <Badge className={`${statusColor.badge} w-fit`}>{statusColor.label}</Badge>
-              <Button variant="default" size="icon-sm" onClick={handleEdit} disabled={isLoading} className="cursor-pointer shrink-0">
+              <Button
+                variant="default"
+                size="icon-sm"
+                onClick={handleEdit}
+                disabled={isLoading}
+                className="cursor-pointer shrink-0"
+              >
                 <Pencil className="w-3.5 h-3.5" />
               </Button>
             </div>

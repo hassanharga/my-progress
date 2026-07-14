@@ -1,12 +1,8 @@
 'use client';
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import { FAQ_CONTENT } from '@/constants/faq';
+
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 export default function FAQ() {
   return (
@@ -22,9 +18,7 @@ export default function FAQ() {
               <AccordionTrigger className="text-left text-body-large font-weight-medium">
                 {faq.question}
               </AccordionTrigger>
-              <AccordionContent className="text-text-subtle">
-                {faq.answer}
-              </AccordionContent>
+              <AccordionContent className="text-text-subtle">{faq.answer}</AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>

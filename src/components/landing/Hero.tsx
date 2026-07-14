@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, Play } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
-import AnimatedProductPreview from './AnimatedProductPreview';
 import { paths } from '@/paths';
+import { Button } from '@/components/ui/button';
+
+import AnimatedProductPreview from './AnimatedProductPreview';
 
 export default function Hero() {
   return (
@@ -35,8 +36,8 @@ export default function Hero() {
             <span className="text-text-brand">your progress.</span>
           </h1>
           <p className="max-w-md text-body-xl text-text-subtle">
-            Track tasks, log time, and see how far you&apos;ve come — all in one
-            place. Built for anyone who wants to stay on top of their work.
+            Track tasks, log time, and see how far you&apos;ve come — all in one place. Built for anyone who wants to
+            stay on top of their work.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button size="lg" asChild>

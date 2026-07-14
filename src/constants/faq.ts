@@ -9,7 +9,8 @@ export const FAQ_CONTENT = [
   },
   {
     question: 'Is my data secure?',
-    answer: 'Your data is stored securely and is only accessible by you. We use encrypted authentication and never share your information.',
+    answer:
+      'Your data is stored securely and is only accessible by you. We use encrypted authentication and never share your information.',
   },
   {
     question: 'Can I use it on mobile?',

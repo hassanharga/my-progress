@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FC } from 'react';
+import type { WeekStartDay } from '@/utils/time-stats';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
@@ -8,7 +9,6 @@ import { updateSettings } from '@/actions/user';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { WeekStartDay } from '@/utils/time-stats';
 
 import ProjectManager from './ProjectManager';
 

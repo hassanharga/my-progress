@@ -2,8 +2,8 @@ import { type FC, type MouseEvent } from 'react';
 import { ChevronLeft, ChevronRight, ClipboardList } from 'lucide-react';
 
 import { useTaskContext } from '@/contexts/task.context';
-import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { Button } from '@/components/ui/button';
 
 import TaskCardRow from './TaskCardRow';
 

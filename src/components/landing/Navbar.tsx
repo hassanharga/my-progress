@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Menu } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { paths } from '@/paths';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetClose, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -30,9 +30,7 @@ export default function Navbar() {
       animate={{ y: 0 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? 'bg-surface/80 backdrop-blur-md border-b'
-          : 'bg-transparent'
+        scrolled ? 'bg-surface/80 backdrop-blur-md border-b' : 'bg-transparent'
       }`}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -41,9 +39,7 @@ export default function Navbar() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-bold text-text-inverse font-weight-bold">
             M
           </div>
-          <span className="text-body-xl font-weight-semibold">
-            My Progress
-          </span>
+          <span className="text-body-xl font-weight-semibold">My Progress</span>
         </Link>
 
         {/* Desktop nav links */}

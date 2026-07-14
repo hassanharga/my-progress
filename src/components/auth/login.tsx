@@ -2,10 +2,10 @@
 
 import type { FC } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight } from 'lucide-react';
 import { loginSchema } from '@/schema/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useHookFormAction } from '@next-safe-action/adapter-react-hook-form/hooks';
+import { ArrowRight } from 'lucide-react';
 
 import { paths } from '@/paths';
 import { loginUser } from '@/actions/user';
@@ -71,7 +71,10 @@ const Login: FC<Props> = ({ onSwitchToRegister }) => {
 
       <p className="text-center text-body text-text-subtle">
         Don&apos;t have an account?{' '}
-        <button onClick={onSwitchToRegister} className="font-weight-medium text-text-brand underline-offset-4 hover:underline">
+        <button
+          onClick={onSwitchToRegister}
+          className="font-weight-medium text-text-brand underline-offset-4 hover:underline"
+        >
           Sign up
         </button>
       </p>

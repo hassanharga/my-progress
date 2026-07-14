@@ -5,6 +5,7 @@ import { Laptop, LogOut, Moon, Plus, Settings as SettingsIcon, Sun } from 'lucid
 import { useTheme } from 'next-themes';
 
 import { useUserContext } from '@/contexts/user.context';
+import { Settings } from '@/components/shared/Settings';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,7 +16,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Settings } from '@/components/shared/Settings';
 
 import ProjectSwitcher from './ProjectSwitcher';
 
@@ -26,7 +26,12 @@ export default function DashboardTopBar() {
 
   const userInitials = useMemo(() => {
     if (!user?.name) return 'U';
-    return user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+    return user.name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   }, [user]);
 
   const handleCreateTask = () => {
@@ -36,9 +41,9 @@ export default function DashboardTopBar() {
   return (
     <header className="flex h-14 shrink-0 items-center gap-4 border-b bg-surface/80 px-4 backdrop-blur">
       {/* Logo */}
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-bold text-sm font-weight-bold text-text-inverse">
+      {/* <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-bold text-sm font-weight-bold text-text-inverse">
         M
-      </div>
+      </div> */}
 
       {/* Project switcher */}
       <ProjectSwitcher onManageProjects={() => setSettingsOpen(true)} />

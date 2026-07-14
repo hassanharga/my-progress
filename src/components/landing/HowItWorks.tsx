@@ -7,7 +7,7 @@ const steps = [
   {
     number: '01',
     title: 'Create a task',
-    description: 'Add what you\'re working on in seconds.',
+    description: "Add what you're working on in seconds.",
   },
   {
     number: '02',
@@ -23,14 +23,9 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section
-      id="how-it-works"
-      className="bg-surface-container/30 px-4 py-20 sm:px-6 lg:px-8"
-    >
+    <section id="how-it-works" className="bg-surface-container/30 px-4 py-20 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <h2 className="mb-12 text-center text-heading-xxlarge font-weight-bold sm:text-display-small">
-          How it works
-        </h2>
+        <h2 className="mb-12 text-center text-heading-xxlarge font-weight-bold sm:text-display-small">How it works</h2>
 
         <div className="flex flex-col items-stretch gap-8 md:flex-row md:justify-center">
           {steps.map((step, i) => (
@@ -46,17 +41,11 @@ export default function HowItWorks() {
                   <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-brand-bold text-body font-weight-bold text-text-inverse">
                     {step.number}
                   </div>
-                  <h3 className="mb-2 text-body-xl font-weight-semibold">
-                    {step.title}
-                  </h3>
-                  <p className="text-body text-text-subtle">
-                    {step.description}
-                  </p>
+                  <h3 className="mb-2 text-body-xl font-weight-semibold">{step.title}</h3>
+                  <p className="text-body text-text-subtle">{step.description}</p>
                 </div>
               </motion.div>
-              {i < steps.length - 1 && (
-                <ArrowRight className="hidden h-6 w-6 shrink-0 text-text-subtle md:block" />
-              )}
+              {i < steps.length - 1 && <ArrowRight className="hidden h-6 w-6 shrink-0 text-text-subtle md:block" />}
             </div>
           ))}
         </div>

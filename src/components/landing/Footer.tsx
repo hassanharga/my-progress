@@ -20,13 +20,9 @@ export default function Footer() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-bold text-text-inverse font-weight-bold">
                 M
               </div>
-              <span className="text-body-xl font-weight-semibold">
-                My Progress
-              </span>
+              <span className="text-body-xl font-weight-semibold">My Progress</span>
             </div>
-            <p className="mt-3 text-body text-text-subtle">
-              Track tasks, log time, and see your progress.
-            </p>
+            <p className="mt-3 text-body text-text-subtle">Track tasks, log time, and see your progress.</p>
           </div>
 
           {/* Link columns */}
@@ -36,10 +32,7 @@ export default function Footer() {
               <ul className="mt-3 space-y-2">
                 {col.links.map((link) => (
                   <li key={link.label}>
-                    <a
-                      href={link.href}
-                      className="text-body text-text-subtle transition-colors hover:text-text"
-                    >
+                    <a href={link.href} className="text-body text-text-subtle transition-colors hover:text-text">
                       {link.label}
                     </a>
                   </li>

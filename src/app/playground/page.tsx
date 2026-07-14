@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { config } from '@/config';
+
 import PlaygroundContent from './playground-content';
 
 export const metadata: Metadata = {

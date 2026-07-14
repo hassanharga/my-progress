@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Play, Check, BarChart3, Calendar } from 'lucide-react';
+import { BarChart3, Calendar, Check, Play } from 'lucide-react';
 
 function CountUp({ target, suffix = '' }: { target: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -48,9 +48,7 @@ export default function Showcase() {
           {/* Mock dashboard header */}
           <div className="flex items-center justify-between border-b px-6 py-4">
             <div>
-              <p className="text-body text-text-subtle">
-                Good afternoon 👋
-              </p>
+              <p className="text-body text-text-subtle">Good afternoon 👋</p>
             </div>
             <div className="h-8 w-8 rounded-full bg-brand-bold/20" />
           </div>
@@ -84,9 +82,7 @@ export default function Showcase() {
                   In Progress
                 </span>
               </div>
-              <span className="font-mono text-body tabular-nums text-text-subtle">
-                02:15:30
-              </span>
+              <span className="font-mono text-body tabular-nums text-text-subtle">02:15:30</span>
             </div>
           </div>
         </motion.div>

@@ -10,9 +10,7 @@ export default function NotFound() {
       </div>
       <div className="space-y-2">
         <h1 className="font-sans text-2xl font-bold">Page not found</h1>
-        <p className="text-text-subtle">
-          The page you&apos;re looking for doesn&apos;t exist or has been moved.
-        </p>
+        <p className="text-text-subtle">The page you&apos;re looking for doesn&apos;t exist or has been moved.</p>
       </div>
       <Button asChild>
         <Link href="/">Back to home</Link>

@@ -1,12 +1,12 @@
 'use client';
 
 import type { FC, MouseEvent } from 'react';
+import { STATUS_TOKENS } from '@/constants/status';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { Calendar, Check, Clock, MoreHorizontal, Pause, Play } from 'lucide-react';
 
 import type { TaskListItem } from '@/types/task';
-import { STATUS_TOKENS } from '@/constants/status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,16 +27,7 @@ type Props = {
   index?: number;
 };
 
-const TaskCardRow: FC<Props> = ({
-  task,
-  onPlay,
-  onPause,
-  onComplete,
-  onEdit,
-  onClick,
-  isLoading,
-  index = 0,
-}) => {
+const TaskCardRow: FC<Props> = ({ task, onPlay, onPause, onComplete, onEdit, onClick, isLoading, index = 0 }) => {
   const displayStatus = task.status === 'RESUMED' ? 'IN_PROGRESS' : task.status;
   const tokens = STATUS_TOKENS[displayStatus as keyof typeof STATUS_TOKENS];
   const isActive = ['IN_PROGRESS', 'RESUMED'].includes(task.status);
@@ -59,9 +50,7 @@ const TaskCardRow: FC<Props> = ({
 
         <div className="flex flex-1 flex-col gap-050 min-w-0">
           <div className="flex items-center justify-between gap-100">
-            <h3 className="truncate text-body font-weight-medium text-text">
-              {task.title}
-            </h3>
+            <h3 className="truncate text-body font-weight-medium text-text">{task.title}</h3>
             <div className="flex shrink-0 items-center gap-075 text-body-small text-text-subtle">
               {task.duration && (
                 <span className="flex items-center gap-025">
@@ -90,7 +79,10 @@ const TaskCardRow: FC<Props> = ({
                     variant="subtle"
                     size="icon-sm"
                     disabled={isLoading}
-                    onClick={(e) => { e.stopPropagation(); onPause(e); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPause(e);
+                    }}
                     className="cursor-pointer"
                     title="Pause"
                   >
@@ -102,7 +94,10 @@ const TaskCardRow: FC<Props> = ({
                     variant="subtle"
                     size="icon-sm"
                     disabled={isLoading}
-                    onClick={(e) => { e.stopPropagation(); onPlay(e); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPlay(e);
+                    }}
                     className="cursor-pointer"
                     title="Resume"
                   >
@@ -114,7 +109,10 @@ const TaskCardRow: FC<Props> = ({
                     variant="subtle"
                     size="icon-sm"
                     disabled={isLoading}
-                    onClick={(e) => { e.stopPropagation(); onComplete(e); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onComplete(e);
+                    }}
                     className="cursor-pointer"
                     title="Complete"
                   >
@@ -135,7 +133,12 @@ const TaskCardRow: FC<Props> = ({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(); }}>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit();
+                        }}
+                      >
                         Edit
                       </DropdownMenuItem>
                     </DropdownMenuContent>

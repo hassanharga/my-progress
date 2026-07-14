@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ClipboardList, Timer, BarChart3, PenLine } from 'lucide-react';
+import { BarChart3, ClipboardList, PenLine, Timer } from 'lucide-react';
 
 const features = [
   {
@@ -52,12 +52,8 @@ export default function Features() {
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-bold/10 transition-colors group-hover:bg-brand-bold/20">
                 <feature.icon className="h-6 w-6 text-text-brand" />
               </div>
-              <h3 className="mb-2 text-body-xl font-weight-semibold">
-                {feature.title}
-              </h3>
-              <p className="text-body text-text-subtle">
-                {feature.description}
-              </p>
+              <h3 className="mb-2 text-body-xl font-weight-semibold">{feature.title}</h3>
+              <p className="text-body text-text-subtle">{feature.description}</p>
             </motion.div>
           ))}
         </div>

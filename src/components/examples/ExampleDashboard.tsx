@@ -119,7 +119,13 @@ export default function ExampleDashboard({
       {/* Statistics Section */}
       <FadeIn delay={0}>
         <h2 className="text-2xl font-bold mb-4">Overview</h2>
-        <StatsGrid totalTime="24h 30m" completedTasks={12} activeTasks={3} thisWeekTime="8h 15m" thisMonthTime="32h 10m" />
+        <StatsGrid
+          totalTime="24h 30m"
+          completedTasks={12}
+          activeTasks={3}
+          thisWeekTime="8h 15m"
+          thisMonthTime="32h 10m"
+        />
       </FadeIn>
 
       {/* Current Task Section */}

@@ -1,47 +1,41 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { Toggle as TogglePrimitive } from "radix-ui"
+import * as React from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { Toggle as TogglePrimitive } from 'radix-ui';
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils';
 
 const toggleVariants = cva(
   "inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-[color,box-shadow] outline-none hover:bg-surface-container hover:text-text-subtle focus-visible:border-border-focused focus-visible:ring-[3px] focus-visible:ring-border-focused/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-border-danger aria-invalid:ring-border-danger/20 data-[state=on]:bg-surface-container data-[state=on]:text-text dark:aria-invalid:ring-border-danger/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-transparent",
-        outline:
-          "border border-border-input bg-transparent shadow-xs hover:bg-surface-container hover:text-text",
+        default: 'bg-transparent',
+        outline: 'border border-border-input bg-transparent shadow-xs hover:bg-surface-container hover:text-text',
       },
       size: {
-        default: "h-9 min-w-9 px-2",
-        sm: "h-8 min-w-8 px-1.5",
-        lg: "h-10 min-w-10 px-2.5",
+        default: 'h-9 min-w-9 px-2',
+        sm: 'h-8 min-w-8 px-1.5',
+        lg: 'h-10 min-w-10 px-2.5',
       },
     },
     defaultVariants: {
-      variant: "default",
-      size: "default",
+      variant: 'default',
+      size: 'default',
     },
   }
-)
+);
 
 function Toggle({
   className,
   variant,
   size,
   ...props
-}: React.ComponentProps<typeof TogglePrimitive.Root> &
-  VariantProps<typeof toggleVariants>) {
+}: React.ComponentProps<typeof TogglePrimitive.Root> & VariantProps<typeof toggleVariants>) {
   return (
-    <TogglePrimitive.Root
-      data-slot="toggle"
-      className={cn(toggleVariants({ variant, size, className }))}
-      {...props}
-    />
-  )
+    <TogglePrimitive.Root data-slot="toggle" className={cn(toggleVariants({ variant, size, className }))} {...props} />
+  );
 }
 
-export { Toggle, toggleVariants }
+export { Toggle, toggleVariants };

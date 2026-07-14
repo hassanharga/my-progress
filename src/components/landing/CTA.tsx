@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { paths } from '@/paths';
+import { Button } from '@/components/ui/button';
 
 export default function CTA() {
   return (

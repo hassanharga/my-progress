@@ -1,12 +1,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-
 import { validateUserToken } from '@/helpers/validate-user';
+import { projectCreateSchema, projectIdSchema, projectRenameSchema } from '@/schema/project';
+
 import { paths } from '@/paths';
 import { actionClient } from '@/lib/action-client';
 import prisma from '@/lib/db';
-import { projectCreateSchema, projectIdSchema, projectRenameSchema } from '@/schema/project';
 
 export const createProject = actionClient.inputSchema(projectCreateSchema).action(async ({ parsedInput: { name } }) => {
   const user = await validateUserToken();
@@ -25,18 +25,20 @@ export const createProject = actionClient.inputSchema(projectCreateSchema).actio
   return { id: project.id, name: project.name };
 });
 
-export const renameProject = actionClient.inputSchema(projectRenameSchema).action(async ({ parsedInput: { id, name } }) => {
-  const user = await validateUserToken();
+export const renameProject = actionClient
+  .inputSchema(projectRenameSchema)
+  .action(async ({ parsedInput: { id, name } }) => {
+    const user = await validateUserToken();
 
-  const { count } = await prisma.project.updateMany({
-    where: { id, ownerId: user.id },
-    data: { name },
+    const { count } = await prisma.project.updateMany({
+      where: { id, ownerId: user.id },
+      data: { name },
+    });
+
+    if (count === 0) throw new Error('Project not found');
+
+    revalidatePath(paths.dashboard);
   });
-
-  if (count === 0) throw new Error('Project not found');
-
-  revalidatePath(paths.dashboard);
-});
 
 export const archiveProject = actionClient.inputSchema(projectIdSchema).action(async ({ parsedInput: { id } }) => {
   const user = await validateUserToken();

@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
-
+import { logger } from '@/utils/logger';
 import { AlertCircle, RotateCcw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { logger } from '@/utils/logger';
 
 type Props = {
   error: Error & { digest?: string };

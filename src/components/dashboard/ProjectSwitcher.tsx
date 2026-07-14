@@ -64,7 +64,11 @@ export default function ProjectSwitcher({ onManageProjects }: { onManageProjects
   }
 
   return (
-    <DropdownMenu onOpenChange={(open) => { if (open) loadProjects(); }}>
+    <DropdownMenu
+      onOpenChange={(open) => {
+        if (open) loadProjects();
+      }}
+    >
       <DropdownMenuTrigger asChild>
         <button
           className="flex cursor-pointer items-center gap-075 rounded-md px-075 py-050 text-left hover:bg-neutral-subtle-hovered transition-colors"

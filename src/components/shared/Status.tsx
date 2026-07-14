@@ -1,5 +1,4 @@
 import type { FC } from 'react';
-
 import { STATUS_TOKENS } from '@/constants/status';
 
 import { TaskStatus } from '../../../generated/prisma/enums';

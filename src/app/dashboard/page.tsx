@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
-
-import { getTaskStats, getTasksListData } from '@/actions/task';
 import { validateUserToken } from '@/helpers/validate-user';
+import { FolderOpen } from 'lucide-react';
+
 import db from '@/lib/db';
-import TaskPage from '@/components/task';
+import { getTasksListData, getTaskStats } from '@/actions/task';
 import TaskProvider from '@/contexts/task.context';
 import { EmptyState } from '@/components/shared/EmptyState';
-import { FolderOpen } from 'lucide-react';
+import TaskPage from '@/components/task';
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -47,10 +47,7 @@ export default async function Dashboard() {
     );
   }
 
-  const [stats, initialTasksData] = await Promise.all([
-    getTaskStats(),
-    getTasksListData(4, null),
-  ]);
+  const [stats, initialTasksData] = await Promise.all([getTaskStats(), getTasksListData(4, null)]);
 
   const greeting = getGreeting();
 

@@ -1,11 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { startOfMonth, startOfWeek } from 'date-fns';
 import { validateUserToken } from '@/helpers/validate-user';
 import { formatTaskDuration } from '@/utils/calculate-elapsed-time';
-import { WEEK_STARTS_ON, formatDuration, type WeekStartDay } from '@/utils/time-stats';
 import { logger } from '@/utils/logger';
+import { formatDuration, WEEK_STARTS_ON, type WeekStartDay } from '@/utils/time-stats';
+import { startOfMonth, startOfWeek } from 'date-fns';
 import { z } from 'zod';
 
 import { Task, TaskUpdateInput } from '@/types/task';
@@ -72,15 +72,9 @@ export const updateTask = actionClient
 
     // When ending a session (PAUSED/CANCELLED/COMPLETED), calculate the
     // session duration and increment totalSeconds
-    if (
-      status &&
-      ['PAUSED', 'CANCELLED', 'COMPLETED'].includes(status as string) &&
-      !lastLoggedTime?.to
-    ) {
+    if (status && ['PAUSED', 'CANCELLED', 'COMPLETED'].includes(status as string) && !lastLoggedTime?.to) {
       const now = new Date();
-      const sessionSeconds = lastLoggedTime?.from
-        ? (now.getTime() - lastLoggedTime.from.getTime()) / 1000
-        : 0;
+      const sessionSeconds = lastLoggedTime?.from ? (now.getTime() - lastLoggedTime.from.getTime()) / 1000 : 0;
 
       data.loggedTime = {
         update: {
@@ -133,11 +127,7 @@ export const updateTaskDetails = actionClient
     revalidatePath(paths.dashboard);
   });
 
-const mapTask = (
-  task:
-    | (Task & { loggedTime?: { from: Date; to: Date | null }[] })
-    | null
-) => {
+const mapTask = (task: (Task & { loggedTime?: { from: Date; to: Date | null }[] }) | null) => {
   if (!task) return null;
 
   const { loggedTime, ...data } = task;

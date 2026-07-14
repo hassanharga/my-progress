@@ -2,8 +2,8 @@
 
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
-import { motion, useMotionValue, animate } from 'framer-motion';
-import { Play, Check, BarChart3, Calendar } from 'lucide-react';
+import { animate, motion, useMotionValue } from 'framer-motion';
+import { BarChart3, Calendar, Check, Play } from 'lucide-react';
 
 export default function AnimatedProductPreview() {
   const [seconds, setSeconds] = useState(5025); // 1h 23m 45s in seconds
@@ -49,9 +49,7 @@ export default function AnimatedProductPreview() {
             </div>
           </div>
           <div className="text-right">
-            <p className="font-mono text-heading-large font-weight-bold tabular-nums text-text-brand">
-              {timer}
-            </p>
+            <p className="font-mono text-heading-large font-weight-bold tabular-nums text-text-brand">{timer}</p>
           </div>
         </div>
 
@@ -73,32 +71,10 @@ export default function AnimatedProductPreview() {
 
         {/* Stats row */}
         <div className="grid grid-cols-4 gap-px border-t bg-border">
-          <StatItem
-            icon={<Play className="h-3.5 w-3.5" />}
-            label="Total"
-            target={4.5}
-            suffix="h"
-            delay={1.0}
-          />
-          <StatItem
-            icon={<Check className="h-3.5 w-3.5" />}
-            label="Done"
-            target={3}
-            delay={1.1}
-          />
-          <StatItem
-            icon={<BarChart3 className="h-3.5 w-3.5" />}
-            label="Active"
-            target={12}
-            delay={1.2}
-          />
-          <StatItem
-            icon={<Calendar className="h-3.5 w-3.5" />}
-            label="Week"
-            target={28}
-            suffix="h"
-            delay={1.3}
-          />
+          <StatItem icon={<Play className="h-3.5 w-3.5" />} label="Total" target={4.5} suffix="h" delay={1.0} />
+          <StatItem icon={<Check className="h-3.5 w-3.5" />} label="Done" target={3} delay={1.1} />
+          <StatItem icon={<BarChart3 className="h-3.5 w-3.5" />} label="Active" target={12} delay={1.2} />
+          <StatItem icon={<Calendar className="h-3.5 w-3.5" />} label="Week" target={28} suffix="h" delay={1.3} />
         </div>
       </motion.div>
     </div>

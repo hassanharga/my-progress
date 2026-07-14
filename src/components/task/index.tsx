@@ -5,9 +5,9 @@ import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useTaskContext } from '@/contexts/task.context';
-import { Button } from '@/components/ui/button';
 import { FadeIn, SlideIn } from '@/components/shared/animations';
 import TasksList from '@/components/task/List';
+import { Button } from '@/components/ui/button';
 
 import { StatsGrid } from '../ui-enhancements';
 import { CreateTask } from './Buttons/CreateTask';
@@ -33,13 +33,7 @@ const TaskPage: FC<Props> = ({ stats, lastTaskTodo }) => {
     return () => window.removeEventListener('create-task', handler);
   }, []);
 
-  const {
-    createTask,
-    isExecutingCreateTask,
-    taskData,
-    openDrawer,
-    closeDrawer,
-  } = useTaskContext();
+  const { createTask, isExecutingCreateTask, taskData, openDrawer, closeDrawer } = useTaskContext();
 
   const handleCreateTask = async (data: { progress: string; title: string }) => {
     await createTask(data);

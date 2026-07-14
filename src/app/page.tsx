@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import { redirect, RedirectType } from 'next/navigation';
 import { FAQ_CONTENT } from '@/constants/faq';
+import { getFromCookies } from '@/utils/cookie';
 
 import { config } from '@/config';
-import { generateFaqSchema, generateOrganizationSchema, generateWebPageSchema, JsonLd } from '@/lib/structured-data';
-import { getFromCookies } from '@/utils/cookie';
-import { verifyToken } from '@/lib/generate-token';
 import { paths } from '@/paths';
+import { verifyToken } from '@/lib/generate-token';
+import { generateFaqSchema, generateOrganizationSchema, generateWebPageSchema, JsonLd } from '@/lib/structured-data';
 import Cta from '@/components/landing/CTA';
 import Faq from '@/components/landing/FAQ';
 import Features from '@/components/landing/Features';

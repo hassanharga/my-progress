@@ -80,8 +80,6 @@ export const EnhancedTaskCard: FC<Props> = ({
                 {task.title}
               </h3>
             </div>
-
-
           </div>
 
           {/* Meta info */}
@@ -105,8 +103,6 @@ export const EnhancedTaskCard: FC<Props> = ({
               <span>{format(task.createdAt, 'MMM dd, yyyy')}</span>
             </div>
           </div>
-
-
 
           {/* Quick actions */}
           {!isCompleted && (
