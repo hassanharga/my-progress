@@ -40,7 +40,7 @@ export default async function Dashboard() {
           <EmptyState
             icon={<FolderOpen className="w-16 h-16" />}
             title="No project selected"
-            description="Create or select a project from the sidebar switcher to start tracking tasks."
+            description="Create or select a project from the project switcher in the top bar to start tracking tasks."
           />
         </div>
       </main>

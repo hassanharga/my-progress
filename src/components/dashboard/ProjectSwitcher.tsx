@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ProjectSwitcher({ onManageProjects }: { onManageProjects: () => void }) {
   const { user, refetchUser } = useUserContext();
@@ -52,6 +53,15 @@ export default function ProjectSwitcher({ onManageProjects }: { onManageProjects
       onManageProjects();
     }
   };
+
+  if (user === null) {
+    return (
+      <div className="flex items-center gap-075 px-075 py-050">
+        <Skeleton className="h-6 w-6 rounded-sm" />
+        <Skeleton className="h-4 w-24" />
+      </div>
+    );
+  }
 
   return (
     <DropdownMenu onOpenChange={(open) => { if (open) loadProjects(); }}>
