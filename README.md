@@ -50,6 +50,7 @@ Before running this project, make sure you have:
 - **pnpm** 10.26.1 or later
 - **Docker** and **Docker Compose** (for PostgreSQL)
 - **Git**
+- **[git-cliff](https://git-cliff.org)** (only needed to regenerate `CHANGELOG.md`)
 
 ## Installation
 
@@ -135,9 +136,28 @@ pnpm format:write
 # Check formatting
 pnpm format:check
 
+# Regenerate CHANGELOG.md from Conventional Commits (requires git-cliff)
+pnpm changelog
+
 # Open Prisma Studio (database GUI)
 pnpx prisma studio
 ```
+
+## Changelog
+
+This project maintains a [`CHANGELOG.md`](./CHANGELOG.md) at the repo root, auto-generated from [Conventional Commits](https://www.conventionalcommits.org/) via [`git-cliff`](https://git-cliff.org).
+
+### Regenerating
+
+After committing work using Conventional Commits (`feat:`, `fix:`, `chore:`, etc.):
+
+```bash
+pnpm changelog
+git add CHANGELOG.md
+git commit -m "docs: update changelog"
+```
+
+`CHANGELOG.md` is a tracked, committed file — do not edit it by hand. To change grouping, formatting, or header text, edit [`cliff.toml`](./cliff.toml) and re-run `pnpm changelog`.
 
 ## Database Management
 
