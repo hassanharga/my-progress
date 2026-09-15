@@ -7,15 +7,9 @@ import { getTasksListData, getTaskStats } from '@/actions/task';
 import TaskProvider from '@/contexts/task.context';
 import { EmptyState } from '@/components/shared/EmptyState';
 import TaskPage from '@/components/task';
+import { TODAY_PRESENTATION } from './today-presentation';
 
-export const metadata: Metadata = {
-  title: 'Dashboard',
-  description: 'View and manage your current tasks, track work progress, and analyze productivity statistics.',
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
+export const metadata: Metadata = TODAY_PRESENTATION;
 
 function getGreeting() {
   const hours = new Date().getHours();
@@ -35,7 +29,8 @@ export default async function Dashboard() {
   // No active project -> empty state prompting project creation via the sidebar switcher.
   if (!userData?.currentProjectId) {
     return (
-      <main className="w-full max-w-7xl overflow-y-auto p-4 sm:p-6 lg:p-8">
+      <section aria-labelledby="today-heading" className="mx-auto w-full max-w-7xl p-200 sm:p-300 lg:p-400">
+        <h1 id="today-heading" className="font-heading text-heading-large text-text">Today</h1>
         <div className="mt-200">
           <EmptyState
             icon={<FolderOpen className="w-16 h-16" />}
@@ -43,7 +38,7 @@ export default async function Dashboard() {
             description="Create or select a project from the project switcher in the top bar to start tracking tasks."
           />
         </div>
-      </main>
+      </section>
     );
   }
 
@@ -59,15 +54,14 @@ export default async function Dashboard() {
         initialHasNextPage={initialTasksData.hasNextPage}
         initialNextCursor={initialTasksData.nextCursor}
       >
-        <main className="w-full max-w-7xl space-y-6 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <section aria-labelledby="today-heading" className="mx-auto w-full max-w-7xl space-y-300 p-200 sm:p-300 lg:p-400">
           <div>
-            <h1 className="text-heading-large text-text">
-              {greeting}, {user.name} 👋
-            </h1>
-            <p className="text-sm text-text-subtle">Here&apos;s your progress at a glance.</p>
+            <p className="text-body-small font-weight-semibold uppercase tracking-[0.14em] text-text-subtlest">{greeting}, {user.name}</p>
+            <h1 id="today-heading" className="mt-050 font-heading text-heading-large text-text">Today</h1>
+            <p className="mt-050 text-body text-text-subtle">Here&apos;s your current project&apos;s progress.</p>
           </div>
           <TaskPage stats={stats} />
-        </main>
+        </section>
       </TaskProvider>
     </>
   );

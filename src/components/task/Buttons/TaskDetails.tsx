@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FC } from 'react';
+import { useRef, useState, type FC } from 'react';
 import { STATUS_TOKENS } from '@/constants/status';
 import { format } from 'date-fns';
 import { Calendar, Check, Clock, Pause, Pencil, Play } from 'lucide-react';
@@ -11,7 +11,7 @@ import { useTaskContext } from '@/contexts/task.context';
 import { FadeIn } from '@/components/shared/animations';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
@@ -27,22 +27,23 @@ type Props = {
 };
 
 export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
-  const { editTask, updateTask, isExecutingEditTask, isExecutingUpdateTask } = useTaskContext();
+  const { editTask, updateTask, isExecutingEditTask, isTaskPending } = useTaskContext();
 
   const [isEditing, setIsEditing] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [title, setTitle] = useState('');
   const [progress, setProgress] = useState('');
   const [todo, setTodo] = useState('');
+  const completeTriggerRef = useRef<HTMLButtonElement>(null);
 
   if (!task) return null;
 
-  const displayStatus = task.status === 'RESUMED' ? 'IN_PROGRESS' : task.status;
-  const statusColor = STATUS_TOKENS[displayStatus as keyof typeof STATUS_TOKENS];
-  const isActive = ['IN_PROGRESS', 'RESUMED'].includes(task.status);
+  const statusColor = STATUS_TOKENS[task.status];
+  const isActive = task.status === 'IN_PROGRESS';
+  const isReady = task.status === 'READY';
   const isCompleted = task.status === 'COMPLETED';
   const isCancelled = task.status === 'CANCELLED';
-  const isLoading = isExecutingEditTask || isExecutingUpdateTask;
+  const isLoading = isExecutingEditTask || isTaskPending(task.id);
 
   const handleEdit = () => {
     setTitle(task.title);
@@ -56,27 +57,32 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
   };
 
   const handleSave = async () => {
-    const success = await editTask({
+    const result = await editTask({
       id: task.id,
       title,
       progress,
       todo,
     });
-    if (!success) {
-      toast.error('Failed to update task');
+    if (!result.ok) {
+      toast.error(result.error ?? 'Task details were not saved');
       return;
     }
     setIsEditing(false);
     toast.success('Task updated!');
   };
 
-  const handlePlayPause = () => {
-    updateTask({ id: task.id, status: isActive ? 'PAUSED' : 'RESUMED' });
-    toast.success(isActive ? 'Task paused' : 'Task resumed');
+  const handlePlayPause = async () => {
+    const result = await updateTask({ event: isActive ? 'PAUSE' : 'START', taskId: task.id });
+    if (result.ok) toast.success(isActive ? 'Task paused' : isReady ? 'Task started' : 'Task resumed');
+    else toast.error(result.error ?? 'Task was not updated');
   };
 
-  const handleComplete = ({ progress: p, todo: t }: { progress: string; todo: string }) => {
-    updateTask({ id: task.id, status: 'COMPLETED', progress: p, todo: t });
+  const handleComplete = async ({ progress: p, todo: t }: { progress: string; todo: string }) => {
+    const result = await updateTask({ event: 'COMPLETE', nextStep: t, progressNote: p, taskId: task.id });
+    if (!result.ok) {
+      toast.error(result.error ?? 'Task was not completed');
+      return;
+    }
     setShowCompleteModal(false);
     setOpen(false);
     toast.success('Task completed! 🎉', {
@@ -84,12 +90,18 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
     });
   };
 
+  const handleCompleteOpenChange = (nextOpen: boolean) => {
+    setShowCompleteModal(nextOpen);
+    if (!nextOpen) requestAnimationFrame(() => completeTriggerRef.current?.focus());
+  };
+
   if (isEditing) {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[60vw] max-h-[90vh] overflow-y-auto" aria-describedby="Edit task">
+        <DialogContent className="sm:max-w-[60vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Task</DialogTitle>
+            <DialogDescription>Update the task title, progress, and next steps.</DialogDescription>
             <Badge className={`${statusColor.badge} w-fit`}>{statusColor.label}</Badge>
           </DialogHeader>
 
@@ -134,11 +146,12 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[60vw] max-h-[80vh] overflow-y-auto" aria-describedby="Task details">
+        <DialogContent className="sm:max-w-[60vw] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between gap-2">
               <DialogTitle className="pr-10">{task.title}</DialogTitle>
             </div>
+            <DialogDescription>Review this task, update its state, or edit its working notes.</DialogDescription>
             <div className="flex items-center gap-2">
               <Badge className={`${statusColor.badge} w-fit`}>{statusColor.label}</Badge>
               <Button
@@ -147,6 +160,7 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
                 onClick={handleEdit}
                 disabled={isLoading}
                 className="cursor-pointer shrink-0"
+                aria-label="Edit task"
               >
                 <Pencil className="w-3.5 h-3.5" />
               </Button>
@@ -192,7 +206,7 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
             <div className="flex gap-2 w-full items-center">
               {!isCompleted && !isCancelled && (
                 <Button variant="default" onClick={handlePlayPause} disabled={isLoading} className="cursor-pointer">
-                  {isExecutingUpdateTask ? (
+                  {isTaskPending(task.id) ? (
                     <Spinner />
                   ) : isActive ? (
                     <>
@@ -202,15 +216,15 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
                   ) : (
                     <>
                       <Play className="w-3.5 h-3.5" />
-                      Resume
+                      {isReady ? 'Start' : 'Resume'}
                     </>
                   )}
                 </Button>
               )}
-              {!isCompleted && (
+              {!isCompleted && !isCancelled && (
                 <Button
+                  ref={completeTriggerRef}
                   onClick={() => {
-                    (document.activeElement as HTMLElement)?.blur();
                     setShowCompleteModal(true);
                   }}
                   disabled={isLoading}
@@ -229,10 +243,10 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
       {showCompleteModal && (
         <CompleteTask
           completeTask={handleComplete}
-          isLoading={isExecutingUpdateTask}
+          isLoading={isTaskPending(task.id)}
           taskProgress={task.progress}
           open={showCompleteModal}
-          setOpen={setShowCompleteModal}
+          setOpen={handleCompleteOpenChange}
         />
       )}
     </>

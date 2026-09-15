@@ -3,10 +3,13 @@
 import { revalidatePath } from 'next/cache';
 import { validateUserToken } from '@/helpers/validate-user';
 import { projectCreateSchema, projectIdSchema, projectRenameSchema } from '@/schema/project';
+import { archiveOwnedProject } from '@/server/tasks/transition-task';
 
 import { paths } from '@/paths';
 import { actionClient } from '@/lib/action-client';
 import prisma from '@/lib/db';
+
+import type { PrismaClient } from '../../generated/prisma/client';
 
 export const createProject = actionClient.inputSchema(projectCreateSchema).action(async ({ parsedInput: { name } }) => {
   const user = await validateUserToken();
@@ -40,50 +43,45 @@ export const renameProject = actionClient
     revalidatePath(paths.dashboard);
   });
 
-export const archiveProject = actionClient.inputSchema(projectIdSchema).action(async ({ parsedInput: { id } }) => {
-  const user = await validateUserToken();
+export const archiveProjectForOwner = async ({
+  clock,
+  ownerId,
+  prisma: client,
+  projectId,
+}: {
+  clock?: () => Date;
+  ownerId: string;
+  prisma: PrismaClient;
+  projectId: string;
+}) => {
+  const result = await archiveOwnedProject({ clock, ownerId, prisma: client, projectId });
+  if (!result.ok) return result;
 
-  // Verify ownership
-  const project = await prisma.project.findFirst({
-    where: { id, ownerId: user.id },
-    select: { id: true },
-  });
-  if (!project) throw new Error('Project not found');
-
-  // Block archiving if there are in-progress tasks
-  const inProgressCount = await prisma.task.count({
-    where: { projectId: id, status: { in: ['IN_PROGRESS', 'RESUMED'] } },
-  });
-  if (inProgressCount > 0) {
-    throw new Error(
-      `Cannot archive: project has ${inProgressCount} in-progress task${inProgressCount > 1 ? 's' : ''}. Complete or pause them first.`
-    );
-  }
-
-  // Archive it
-  await prisma.project.update({
-    where: { id },
-    data: { archived: true, archivedAt: new Date() },
-  });
-
-  // If it was the active project, switch to the most recently created remaining active project
-  const userData = await prisma.user.findUnique({
-    where: { id: user.id! },
+  const userData = await client.user.findUnique({
+    where: { id: ownerId },
     select: { currentProjectId: true },
   });
-  if (userData?.currentProjectId === id) {
-    const next = await prisma.project.findFirst({
-      where: { ownerId: user.id!, archived: false, id: { not: id } },
+  if (userData?.currentProjectId === projectId) {
+    const next = await client.project.findFirst({
+      where: { ownerId, archived: false, id: { not: projectId } },
       orderBy: { createdAt: 'desc' },
       select: { id: true },
     });
-    await prisma.user.update({
-      where: { id: user.id! },
+    await client.user.update({
+      where: { id: ownerId },
       data: { currentProjectId: next?.id ?? null },
     });
   }
 
-  revalidatePath(paths.dashboard);
+  return result;
+};
+
+export const archiveProject = actionClient.inputSchema(projectIdSchema).action(async ({ parsedInput: { id } }) => {
+  const user = await validateUserToken();
+  const result = await archiveProjectForOwner({ ownerId: user.id!, prisma, projectId: id });
+
+  if (result.ok) revalidatePath(paths.dashboard);
+  return result;
 });
 
 export const unarchiveProject = actionClient.inputSchema(projectIdSchema).action(async ({ parsedInput: { id } }) => {

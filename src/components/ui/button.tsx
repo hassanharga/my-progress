@@ -5,15 +5,15 @@ import { Slot } from 'radix-ui';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-075 rounded-md text-body font-weight-medium whitespace-nowrap transition-all outline-none focus-visible:border-border-focused focus-visible:ring-[3px] focus-visible:ring-border-focused/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 items-center justify-center gap-075 rounded-md text-body font-weight-medium whitespace-nowrap transition-colors duration-standard outline-none focus-visible:border-border-focused focus-visible:ring-[3px] focus-visible:ring-border-focused/50 disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         primary: 'bg-brand-bold text-text-inverse hover:bg-brand-bold-hovered active:bg-brand-bold-pressed',
-        default: 'bg-neutral-subtle text-text-subtle border border-border hover:bg-neutral-subtle-hovered',
-        subtle: 'bg-neutral-subtle text-text-subtle hover:bg-neutral-subtle-hovered',
-        danger: 'bg-danger-bold text-text-inverse hover:bg-danger-bold-hovered focus-visible:ring-border-danger/20',
-        warning: 'bg-warning-bold text-text-warning-inverse hover:bg-warning-bold-hovered',
+        default: 'bg-neutral-subtle text-text-subtle border border-border hover:bg-neutral-subtle-hovered active:bg-neutral-hovered',
+        subtle: 'bg-neutral-subtle text-text-subtle hover:bg-neutral-subtle-hovered active:bg-neutral-hovered',
+        danger: 'bg-danger-bold text-text-inverse hover:bg-danger-bold-hovered active:bg-danger-hovered focus-visible:ring-border-danger/20',
+        warning: 'bg-warning-bold text-text-warning-inverse hover:bg-warning-bold-hovered active:bg-warning-hovered',
         link: 'text-link underline-offset-4 hover:underline',
       },
       size: {

@@ -1,18 +1,19 @@
 'use client';
 
-import { useEffect, useState, type FC } from 'react';
+import { useCallback, useEffect, useRef, useState, type FC } from 'react';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useTaskContext } from '@/contexts/task.context';
 import { FadeIn, SlideIn } from '@/components/shared/animations';
+import { restoreOverlayFocus } from '@/components/shared/overlay-focus';
 import TasksList from '@/components/task/List';
 import { Button } from '@/components/ui/button';
 
 import { StatsGrid } from '../ui-enhancements';
 import { CreateTask } from './Buttons/CreateTask';
-import { TaskDetails } from './Buttons/TaskDetails';
 import { ExportTasks } from './Buttons/ExportTasks';
+import { TaskDetails } from './Buttons/TaskDetails';
 
 type Props = {
   stats: {
@@ -27,20 +28,47 @@ type Props = {
 
 const TaskPage: FC<Props> = ({ stats, lastTaskTodo }) => {
   const [openCreateTaskDrawer, setOpenCreateTaskDrawer] = useState(false);
+  const createTaskOpenerRef = useRef<HTMLElement | null>(null);
+  const taskDetailsOpenerRef = useRef<HTMLElement | null>(null);
 
-  useEffect(() => {
-    const handler = () => setOpenCreateTaskDrawer(true);
-    window.addEventListener('create-task', handler);
-    return () => window.removeEventListener('create-task', handler);
+  const openCreateTask = useCallback(() => {
+    createTaskOpenerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setOpenCreateTaskDrawer(true);
   }, []);
 
-  const { createTask, isExecutingCreateTask, taskData, openDrawer, closeDrawer } = useTaskContext();
+  const handleCreateTaskOpenChange = (open: boolean) => {
+    setOpenCreateTaskDrawer(open);
+    if (!open) restoreOverlayFocus(createTaskOpenerRef.current);
+  };
+
+  useEffect(() => {
+    const handler = () => openCreateTask();
+    window.addEventListener('create-task', handler);
+    return () => window.removeEventListener('create-task', handler);
+  }, [openCreateTask]);
+
+  const { createTask, executeGetTaskById, isExecutingCreateTask, taskData, openDrawer, closeDrawer } = useTaskContext();
+
+  const openTaskDetails = (taskId: string, opener: HTMLElement) => {
+    taskDetailsOpenerRef.current = opener;
+    executeGetTaskById({ taskId });
+  };
+
+  const handleTaskDetailsOpenChange = (open: boolean) => {
+    if (open) return;
+    closeDrawer();
+    restoreOverlayFocus(taskDetailsOpenerRef.current);
+  };
 
   const handleCreateTask = async (data: { progress: string; title: string }) => {
-    await createTask(data);
-    setOpenCreateTaskDrawer(false);
+    const result = await createTask({ ...data, startNow: true });
+    if (!result.ok) {
+      toast.error(result.error ?? 'Task was not created');
+      return;
+    }
+    handleCreateTaskOpenChange(false);
     toast.success('Task created!', {
-      description: 'Your new task is ready to go.',
+      description: 'Your new task is running.',
     });
   };
 
@@ -65,20 +93,20 @@ const TaskPage: FC<Props> = ({ stats, lastTaskTodo }) => {
           </div>
           <div className="flex items-center gap-2">
             <ExportTasks />
-            <Button variant="subtle" size="sm" className="cursor-pointer" onClick={() => setOpenCreateTaskDrawer(true)}>
+            <Button variant="subtle" size="sm" className="cursor-pointer" onClick={openCreateTask}>
               <Plus className="w-3.5 h-3.5" />
               Add
             </Button>
           </div>
         </div>
-        <TasksList />
+        <TasksList onOpenTask={openTaskDetails} />
       </SlideIn>
 
       {/* create task modal */}
       {openCreateTaskDrawer ? (
         <CreateTask
           open={openCreateTaskDrawer}
-          setOpen={setOpenCreateTaskDrawer}
+          setOpen={handleCreateTaskOpenChange}
           createTask={handleCreateTask}
           isLoading={isExecutingCreateTask}
           lastTaskTodo={lastTaskTodo || ''}
@@ -86,7 +114,7 @@ const TaskPage: FC<Props> = ({ stats, lastTaskTodo }) => {
       ) : null}
 
       {/* task details modal */}
-      {openDrawer ? <TaskDetails task={taskData} open={openDrawer} setOpen={closeDrawer} /> : null}
+      {openDrawer ? <TaskDetails task={taskData} open={openDrawer} setOpen={handleTaskDetailsOpenChange} /> : null}
     </>
   );
 };

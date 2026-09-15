@@ -2,151 +2,171 @@
 
 import { revalidatePath } from 'next/cache';
 import { validateUserToken } from '@/helpers/validate-user';
-import { formatTaskDuration } from '@/utils/calculate-elapsed-time';
-import { logger } from '@/utils/logger';
-import { formatDuration, WEEK_STARTS_ON, type WeekStartDay } from '@/utils/time-stats';
-import { endOfMonth, startOfMonth, startOfWeek, subMonths } from 'date-fns';
-import { z } from 'zod';
 import { exportOptionsSchema } from '@/schema/export';
 import {
-  buildExportWorkbook,
-  sanitizeFilename,
-  type ExportSessionRow,
-  type ExportTaskRow,
-} from '@/utils/export-tasks';
+  createTaskInputSchema,
+  taskDetailsSchema,
+  taskTransitionSchema,
+  type CreateTaskInputSchema,
+  type TaskDetailsSchema,
+} from '@/schema/task';
+import { summarizeSessionIntervals, type SessionInterval } from '@/server/stats/session-intervals';
+import { normalizeExecutionState } from '@/server/tasks/task-queries';
+import type { TaskTransitionInput } from '@/server/tasks/task-transition-types';
+import { createTaskWithTransition, transitionTask } from '@/server/tasks/transition-task';
+import { formatTaskDuration } from '@/utils/calculate-elapsed-time';
+import { buildExportWorkbook, sanitizeFilename, type ExportSessionRow, type ExportTaskRow } from '@/utils/export-tasks';
+import { logger } from '@/utils/logger';
+import { formatDuration, getUserPeriodBoundaries, WEEK_STARTS_ON, type WeekStartDay } from '@/utils/time-stats';
+import { endOfMonth, startOfMonth, startOfWeek, subMonths } from 'date-fns';
+import { z } from 'zod';
 
-import { Task, TaskUpdateInput } from '@/types/task';
 import { paths } from '@/paths';
 import { actionClient } from '@/lib/action-client';
 import prisma from '@/lib/db';
 
-export const createTask = actionClient
-  .inputSchema(z.object({ title: z.string(), progress: z.string().optional() }))
-  .action(async ({ parsedInput: { title, progress } }) => {
-    const user = await validateUserToken();
+import type { Prisma, PrismaClient, Task as PrismaTask } from '../../generated/prisma/client';
 
-    const userData = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { currentProjectId: true },
-    });
+export const createTaskForOwner = async ({
+  clock,
+  input,
+  ownerId,
+  prisma: client,
+}: {
+  clock?: () => Date;
+  input: CreateTaskInputSchema;
+  ownerId: string;
+  prisma: PrismaClient;
+}) => createTaskWithTransition({ clock, input, ownerId, prisma: client });
 
-    if (!userData?.currentProjectId) {
-      throw new Error('No active project. Create or select a project first.');
-    }
+export const updateTaskForOwner = async ({
+  clock,
+  input,
+  ownerId,
+  prisma: client,
+}: {
+  clock?: () => Date;
+  input: TaskTransitionInput;
+  ownerId: string;
+  prisma: PrismaClient;
+}) => transitionTask({ clock, input, ownerId, prisma: client });
 
-    await prisma.task.create({
-      data: {
-        title,
-        progress,
-        userId: user.id!,
-        projectId: userData.currentProjectId,
-        loggedTime: {
-          create: {
-            from: new Date(),
-          },
-        },
-      },
-    });
+export const createTask = actionClient.inputSchema(createTaskInputSchema).action(async ({ parsedInput }) => {
+  const user = await validateUserToken();
+  const result = await createTaskForOwner({ input: parsedInput, ownerId: user.id!, prisma });
 
-    revalidatePath(paths.dashboard);
-  });
+  if (result.ok) revalidatePath(paths.dashboard);
+  return result;
+});
 
-export const updateTask = actionClient
-  .inputSchema(
-    z.object({
-      id: z.uuid(),
-      status: z.enum(['PAUSED', 'RESUMED', 'CANCELLED', 'COMPLETED']),
-      progress: z.string().optional(),
-      todo: z.string().optional(),
-    })
-  )
-  .action(async ({ parsedInput: { id, status, progress, todo } }) => {
-    await validateUserToken();
+export const updateTask = actionClient.inputSchema(taskTransitionSchema).action(async ({ parsedInput }) => {
+  const user = await validateUserToken();
+  const result = await updateTaskForOwner({ input: parsedInput, ownerId: user.id!, prisma });
 
-    // get last logged time by task id
-    const lastLoggedTime = await prisma.taskTime.findFirst({
-      where: { taskId: id },
-      orderBy: { from: 'desc' },
-    });
+  if (result.ok) revalidatePath(paths.dashboard);
+  return result;
+});
 
-    // prepare data based on status
-    // if status is 'PAUSED' then set status 'PAUSED and update last logged time
-    // if status is 'RESUMED' then set status 'RESUMED and create new logged time
-    // if status is 'CANCELLED' then set status 'CANCELLED update last logged time
-    // if status is 'COMPLETED' then set status 'COMPLETED and add todo and progress data and update last logged time
+type MappableTask = PrismaTask & {
+  loggedTime?: { endedAt: Date | null; startedAt: Date }[];
+  workLog?: { content: string }[];
+};
 
-    const data: TaskUpdateInput = { status };
-
-    // When ending a session (PAUSED/CANCELLED/COMPLETED), calculate the
-    // session duration and increment totalSeconds
-    if (status && ['PAUSED', 'CANCELLED', 'COMPLETED'].includes(status as string) && !lastLoggedTime?.to) {
-      const now = new Date();
-      const sessionSeconds = lastLoggedTime?.from ? (now.getTime() - lastLoggedTime.from.getTime()) / 1000 : 0;
-
-      data.loggedTime = {
-        update: {
-          data: { to: now },
-          where: { id: lastLoggedTime?.id },
-        },
-      };
-      data.totalSeconds = { increment: Math.max(0, sessionSeconds) };
-    }
-
-    if (status === 'RESUMED') {
-      data.loggedTime = { create: { from: new Date() } };
-    }
-
-    if (status === 'COMPLETED') {
-      if (progress) data.progress = progress as string | null;
-      if (todo) data.todo = todo as string | null;
-    }
-
-    await prisma.task.update({
-      where: { id },
-      data,
-    });
-
-    revalidatePath(paths.dashboard);
-  });
-
-export const updateTaskDetails = actionClient
-  .inputSchema(
-    z.object({
-      id: z.uuid(),
-      title: z.string().min(1).optional(),
-      progress: z.string().optional(),
-      todo: z.string().optional(),
-    })
-  )
-  .action(async ({ parsedInput }) => {
-    const user = await validateUserToken();
-    const { id, ...fields } = parsedInput;
-
-    const { count } = await prisma.task.updateMany({
-      where: { id, userId: user.id },
-      data: fields,
-    });
-
-    if (count === 0) {
-      throw new Error('Task not found');
-    }
-
-    revalidatePath(paths.dashboard);
-  });
-
-const mapTask = (task: (Task & { loggedTime?: { from: Date; to: Date | null }[] }) | null) => {
+const mapTask = (task: MappableTask | null) => {
   if (!task) return null;
 
-  const { loggedTime, ...data } = task;
-  const isActive = ['IN_PROGRESS', 'RESUMED'].includes(task.status);
-  const openSession = loggedTime?.find((s) => !s.to);
-  const activeFrom = isActive && openSession ? openSession.from : null;
+  const { loggedTime, workLog, ...data } = task;
+  const status = normalizeExecutionState(task.status);
+  const openSession = loggedTime?.find((session) => !session.endedAt);
+  const activeFrom = status === 'IN_PROGRESS' && openSession ? openSession.startedAt : null;
 
   return {
     ...data,
     duration: formatTaskDuration(task.totalSeconds, activeFrom),
+    progress: workLog?.[0]?.content ?? task.progress,
+    status,
+    todo: task.currentNextStep ?? task.todo,
   };
 };
+
+type TaskReadClient = PrismaClient | Prisma.TransactionClient;
+
+const readTaskByIdForOwner = async (client: TaskReadClient, ownerId: string, taskId: string) => {
+  const task = await client.task.findFirst({
+    where: { id: taskId, userId: ownerId },
+    include: {
+      loggedTime: {
+        select: { endedAt: true, startedAt: true },
+        orderBy: { startedAt: 'desc' },
+        take: 1,
+        where: { endedAt: null },
+      },
+      workLog: {
+        select: { content: true },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: 1,
+        where: { kind: 'PROGRESS' },
+      },
+    },
+  });
+
+  return mapTask(task);
+};
+
+export const updateTaskDetailsForOwner = async ({
+  input,
+  ownerId,
+  prisma: client,
+}: {
+  input: TaskDetailsSchema;
+  ownerId: string;
+  prisma: PrismaClient;
+}) =>
+  client.$transaction(async (tx) => {
+    const task = await tx.task.findFirst({
+      select: { id: true, projectId: true },
+      where: { id: input.id, userId: ownerId },
+    });
+    if (!task) {
+      return {
+        error: { code: 'NOT_FOUND' as const, message: 'Task not found', retryable: false },
+        ok: false as const,
+      };
+    }
+
+    await tx.task.update({
+      data: {
+        ...(input.progress !== undefined ? { progress: input.progress || null } : {}),
+        ...(input.title !== undefined ? { title: input.title } : {}),
+        ...(input.todo !== undefined ? { currentNextStep: input.todo || null, todo: input.todo || null } : {}),
+      },
+      where: { id: task.id },
+    });
+    if (input.progress !== undefined) {
+      await tx.workLogEntry.create({
+        data: {
+          content: input.progress,
+          kind: 'PROGRESS',
+          nextStepSnapshot: input.todo,
+          projectId: task.projectId,
+          taskId: task.id,
+          userId: ownerId,
+        },
+      });
+    }
+
+    const data = await readTaskByIdForOwner(tx, ownerId, task.id);
+    if (!data) throw new Error('Invariant violation: updated task is no longer readable');
+    return { data, ok: true as const };
+  });
+
+export const updateTaskDetails = actionClient.inputSchema(taskDetailsSchema).action(async ({ parsedInput }) => {
+  const user = await validateUserToken();
+  const result = await updateTaskDetailsForOwner({ input: parsedInput, ownerId: user.id!, prisma });
+
+  if (result.ok) revalidatePath(paths.dashboard);
+  return result;
+});
 
 export const findUserLastWorkingTask = async () => {
   const user = await validateUserToken();
@@ -159,17 +179,23 @@ export const findUserLastWorkingTask = async () => {
 
   const task = await prisma.task.findFirst({
     where: {
-      status: { in: ['IN_PROGRESS', 'RESUMED', 'PAUSED'] },
+      status: { in: ['IN_PROGRESS', 'PAUSED'] },
       userId: user.id,
       projectId: userData.currentProjectId,
     },
     orderBy: { updatedAt: 'desc' },
     include: {
       loggedTime: {
-        select: { from: true, to: true },
-        orderBy: { from: 'desc' },
+        select: { endedAt: true, startedAt: true },
+        orderBy: { startedAt: 'desc' },
         take: 1,
-        where: { to: null },
+        where: { endedAt: null },
+      },
+      workLog: {
+        select: { content: true },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: 1,
+        where: { kind: 'PROGRESS' },
       },
     },
   });
@@ -190,11 +216,19 @@ export const findUserLastTask = async () => {
 
   const task = await prisma.task.findFirst({
     where: {
-      status: { notIn: ['IN_PROGRESS', 'RESUMED', 'PAUSED'] },
+      status: { in: ['COMPLETED', 'CANCELLED'] },
       userId: user.id,
       projectId: userData.currentProjectId,
     },
     orderBy: { updatedAt: 'desc' },
+    include: {
+      workLog: {
+        select: { content: true },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: 1,
+        where: { kind: 'PROGRESS' },
+      },
+    },
   });
 
   logger.debug('[findUserLastTask]', task);
@@ -225,10 +259,10 @@ export const getTasksListData = async (limit: number = 10, cursor?: string | nul
       totalSeconds: true,
       createdAt: true,
       loggedTime: {
-        select: { from: true, to: true },
-        orderBy: { from: 'desc' },
+        select: { endedAt: true, startedAt: true },
+        orderBy: { startedAt: 'desc' },
         take: 1,
-        where: { to: null },
+        where: { endedAt: null },
       },
     },
   });
@@ -241,15 +275,16 @@ export const getTasksListData = async (limit: number = 10, cursor?: string | nul
     hasNextPage,
     nextCursor,
     tasks: items.map(({ loggedTime, totalSeconds, createdAt, ...task }) => {
-      const isActive = ['IN_PROGRESS', 'RESUMED'].includes(task.status);
-      const openSession = loggedTime?.find((s) => !s.to);
-      const activeFrom = isActive && openSession ? openSession.from : null;
+      const status = normalizeExecutionState(task.status);
+      const openSession = loggedTime?.find((session) => !session.endedAt);
+      const activeFrom = status === 'IN_PROGRESS' && openSession ? openSession.startedAt : null;
 
       return {
         ...task,
         totalSeconds,
         createdAt,
         duration: formatTaskDuration(totalSeconds, activeFrom),
+        status,
       };
     }),
   };
@@ -266,89 +301,122 @@ export const getTasksList = actionClient
     return getTasksListData(limit, cursor ?? null);
   });
 
-export const getTaskById = actionClient.inputSchema(z.object({ taskId: z.uuid() })).action(async ({ parsedInput }) => {
-  const { taskId } = parsedInput;
-  const user = await validateUserToken();
-
-  const task = await prisma.task.findFirst({
-    where: { id: taskId, userId: user.id },
-    include: {
-      loggedTime: {
-        select: { from: true, to: true },
-        orderBy: { from: 'desc' },
-        take: 1,
-        where: { to: null },
-      },
-    },
-  });
-
+export const getTaskByIdForOwner = async ({
+  ownerId,
+  prisma: client,
+  taskId,
+}: {
+  ownerId: string;
+  prisma: PrismaClient;
+  taskId: string;
+}) => {
+  const task = await readTaskByIdForOwner(client, ownerId, taskId);
   logger.debug('[getTaskById]', task);
+  return task;
+};
 
-  return mapTask(task);
+export const getTaskById = actionClient.inputSchema(z.object({ taskId: z.uuid() })).action(async ({ parsedInput }) => {
+  const user = await validateUserToken();
+  return getTaskByIdForOwner({ ownerId: user.id!, prisma, taskId: parsedInput.taskId });
 });
 
-type StatsRow = { week_seconds: number; month_seconds: number };
+type PeriodStats = ReturnType<typeof summarizeSessionIntervals>;
+
+type SessionPeriods = {
+  allTime: PeriodStats;
+  today: PeriodStats;
+  thisWeek: PeriodStats;
+  thisMonth: PeriodStats;
+};
+
+const summarizePeriods = (
+  sessions: SessionInterval[],
+  boundaries: ReturnType<typeof getUserPeriodBoundaries>,
+  now: Date
+): SessionPeriods => {
+  const firstStart = sessions.reduce(
+    (earliest, session) => Math.min(earliest, session.startedAt.getTime()),
+    now.getTime()
+  );
+  const summarize = ({ start, end }: { start: Date; end: Date }) =>
+    summarizeSessionIntervals(sessions, { end, now, start });
+
+  return {
+    allTime: summarize({ end: now, start: new Date(firstStart) }),
+    thisMonth: summarize(boundaries.month),
+    thisWeek: summarize(boundaries.week),
+    today: summarize(boundaries.day),
+  };
+};
+
+export const getTaskStatsForOwner = async ({
+  now,
+  ownerId,
+  prisma: client,
+}: {
+  now: Date;
+  ownerId: string;
+  prisma: PrismaClient;
+}) => {
+  const user = await client.user.findUnique({
+    select: { currentProjectId: true, timezone: true, weekStartDay: true },
+    where: { id: ownerId },
+  });
+  const timezone = user?.timezone ?? 'UTC';
+  const weekStartDay: WeekStartDay = user?.weekStartDay ?? 'MONDAY';
+  const boundaries = getUserPeriodBoundaries(now, timezone, weekStartDay);
+  const projectId = user?.currentProjectId ?? null;
+
+  const [sessions, statusGroups] = await Promise.all([
+    client.workSession.findMany({
+      select: { endedAt: true, projectId: true, startedAt: true },
+      where: { userId: ownerId },
+    }),
+    projectId
+      ? client.task.groupBy({
+          _count: { status: true },
+          by: ['status'],
+          where: { projectId, userId: ownerId },
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const account = summarizePeriods(sessions, boundaries, now);
+  const projectPeriods = summarizePeriods(
+    sessions.filter((session) => session.projectId === projectId),
+    boundaries,
+    now
+  );
+  const count = (status: 'READY' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED'): number =>
+    statusGroups.find((group) => group.status === status)?._count.status ?? 0;
+  const runningCount = count('IN_PROGRESS');
+  const pausedCount = count('PAUSED');
+  const completedCount = count('COMPLETED');
+  const project = projectId
+    ? {
+        ...projectPeriods,
+        completedCount,
+        id: projectId,
+        openWorkCount: count('READY') + runningCount + pausedCount,
+        pausedCount,
+        runningCount,
+      }
+    : null;
+
+  return {
+    account,
+    activeTasks: runningCount + pausedCount,
+    completedTasks: completedCount,
+    project,
+    thisMonthTime: formatDuration(project?.thisMonth.trackedSeconds ?? 0),
+    thisWeekTime: formatDuration(project?.thisWeek.trackedSeconds ?? 0),
+    totalTime: formatDuration(project?.allTime.trackedSeconds ?? 0),
+  };
+};
 
 export const getTaskStats = async () => {
   const user = await validateUserToken();
-
-  const userPrefs = await prisma.user.findUnique({
-    where: { id: user.id! },
-    select: { weekStartDay: true, currentProjectId: true },
-  });
-  const weekStartDay: WeekStartDay = userPrefs?.weekStartDay ?? 'MONDAY';
-  const projectId = userPrefs?.currentProjectId;
-
-  const zeroes = {
-    totalTime: formatDuration(0),
-    completedTasks: 0,
-    activeTasks: 0,
-    thisWeekTime: formatDuration(0),
-    thisMonthTime: formatDuration(0),
-  };
-  if (!projectId) return zeroes;
-
-  const now = new Date();
-  const weekStart = startOfWeek(now, { weekStartsOn: WEEK_STARTS_ON[weekStartDay] });
-  const monthStart = startOfMonth(now);
-
-  const [totalSecondsRow, periodStats, statusGroups] = await Promise.all([
-    prisma.$queryRaw<{ total: number }[]>`
-      SELECT COALESCE(SUM("totalSeconds"), 0)::float AS total
-      FROM "Task"
-      WHERE "userId" = ${user.id} AND "projectId" = ${projectId}
-    `,
-    prisma.$queryRaw<StatsRow[]>`
-      SELECT
-        COALESCE(SUM(GREATEST(0, EXTRACT(EPOCH FROM
-          (LEAST(COALESCE("to", ${now}), ${now}) - GREATEST("from", ${weekStart}))))), 0)::float AS week_seconds,
-        COALESCE(SUM(GREATEST(0, EXTRACT(EPOCH FROM
-          (LEAST(COALESCE("to", ${now}), ${now}) - GREATEST("from", ${monthStart}))))), 0)::float AS month_seconds
-      FROM "TaskTime" tt
-      JOIN "Task" t ON t.id = tt."taskId"
-      WHERE t."userId" = ${user.id} AND t."projectId" = ${projectId} AND (tt."to" IS NULL OR tt."to" >= ${monthStart})
-    `,
-    prisma.task.groupBy({
-      by: ['status'],
-      where: { userId: user.id, projectId },
-      _count: { status: true },
-    }),
-  ]);
-
-  const totalSeconds = totalSecondsRow[0]?.total ?? 0;
-  const row = periodStats[0] ?? { week_seconds: 0, month_seconds: 0 };
-  const completedCount = statusGroups.find((g) => g.status === 'COMPLETED')?._count.status ?? 0;
-  const activeCount = statusGroups
-    .filter((g) => ['IN_PROGRESS', 'RESUMED', 'PAUSED'].includes(g.status))
-    .reduce((sum, g) => sum + g._count.status, 0);
-
-  return {
-    totalTime: formatDuration(totalSeconds),
-    completedTasks: completedCount,
-    activeTasks: activeCount,
-    thisWeekTime: formatDuration(row.week_seconds),
-    thisMonthTime: formatDuration(row.month_seconds),
-  };
+  return getTaskStatsForOwner({ now: new Date(), ownerId: user.id!, prisma });
 };
 
 export const exportTasks = actionClient.inputSchema(exportOptionsSchema).action(async ({ parsedInput }) => {
@@ -413,6 +481,13 @@ export const exportTasks = actionClient.inputSchema(exportOptionsSchema).action(
       createdAt: true,
       progress: true,
       todo: true,
+      currentNextStep: true,
+      workLog: {
+        select: { content: true },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: 1,
+        where: { kind: 'PROGRESS' },
+      },
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -420,12 +495,12 @@ export const exportTasks = actionClient.inputSchema(exportOptionsSchema).action(
   const taskIds = tasks.map((t) => t.id);
 
   const taskTimes = taskIds.length
-    ? await prisma.taskTime.findMany({
+    ? await prisma.workSession.findMany({
         where: {
           taskId: { in: taskIds },
           ...(dateFrom || dateTo
             ? {
-                from: {
+                startedAt: {
                   ...(dateFrom ? { gte: dateFrom } : {}),
                   ...(dateTo ? { lte: dateTo } : {}),
                 },
@@ -435,7 +510,7 @@ export const exportTasks = actionClient.inputSchema(exportOptionsSchema).action(
         include: {
           Task: { select: { title: true, status: true } },
         },
-        orderBy: { from: 'desc' },
+        orderBy: { startedAt: 'desc' },
       })
     : [];
 
@@ -448,18 +523,18 @@ export const exportTasks = actionClient.inputSchema(exportOptionsSchema).action(
   const exportTasksData: ExportTaskRow[] = tasks.map((t) => ({
     id: t.id,
     title: t.title,
-    status: t.status,
+    status: normalizeExecutionState(t.status),
     totalSeconds: t.totalSeconds,
     createdAt: t.createdAt,
-    progress: t.progress,
-    todo: t.todo,
+    progress: t.workLog[0]?.content ?? t.progress,
+    todo: t.currentNextStep ?? t.todo,
   }));
 
   const exportSessionsData: ExportSessionRow[] = taskTimes.map((tt) => ({
     taskTitle: tt.Task.title,
-    taskStatus: tt.Task.status,
-    from: tt.from,
-    to: tt.to,
+    taskStatus: normalizeExecutionState(tt.Task.status),
+    startedAt: tt.startedAt,
+    endedAt: tt.endedAt,
   }));
 
   const workbook = buildExportWorkbook({

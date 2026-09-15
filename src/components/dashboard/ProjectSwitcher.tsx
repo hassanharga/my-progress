@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, ChevronDown, FolderOpen, Settings as SettingsIcon } from 'lucide-react';
 import { useAction } from 'next-safe-action/hooks';
@@ -17,29 +17,47 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function ProjectSwitcher({ onManageProjects }: { onManageProjects: () => void }) {
+import { getProjectSwitcherView, type ProjectSwitcherPhase } from './top-bar-model';
+
+export default function ProjectSwitcher({ onManageProjects }: { onManageProjects: (opener: HTMLElement) => void }) {
   const { user, refetchUser } = useUserContext();
   const router = useRouter();
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [switchFailed, setSwitchFailed] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
 
-  const { execute: loadProjects } = useAction(getProjects, {
+  const { execute: executeLoadProjects, isExecuting: isLoadingProjects } = useAction(getProjects, {
     onSuccess: ({ data }) => {
+      setLoadFailed(false);
       if (data) setProjects(data);
     },
-    onError: ({ error }) => toast.error(error.serverError ?? 'Failed to load projects'),
+    onError: ({ error }) => {
+      setLoadFailed(true);
+      toast.error(error.serverError ?? 'Failed to load projects');
+    },
   });
 
+  const loadProjects = () => {
+    setLoadFailed(false);
+    executeLoadProjects();
+  };
+
   useEffect(() => {
-    loadProjects();
+    executeLoadProjects();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { execute: executeSwitch } = useAction(switchProject, {
+  const { execute: executeSwitch, isExecuting: isSwitching } = useAction(switchProject, {
     onSuccess: () => {
+      setSwitchFailed(false);
       refetchUser();
       router.refresh();
     },
-    onError: ({ error }) => toast.error(error.serverError ?? 'Failed to switch project'),
+    onError: ({ error }) => {
+      setSwitchFailed(true);
+      toast.error(error.serverError ?? 'Failed to switch project');
+    },
   });
 
   const activeId = user?.currentProjectId;
@@ -47,15 +65,33 @@ export default function ProjectSwitcher({ onManageProjects }: { onManageProjects
     ?? projects.find((p) => p.id === activeId)?.name;
   const activeProjects = projects.filter((p) => !p.archived);
 
-  const triggerLabel = activeName ?? (activeProjects.length === 0 ? 'Create a project' : 'Select project');
+  const phase: ProjectSwitcherPhase = loadFailed
+    ? 'load-error'
+    : switchFailed
+      ? 'switch-error'
+      : isLoadingProjects
+        ? 'loading'
+        : isSwitching
+          ? 'switching'
+          : 'idle';
+  const view = getProjectSwitcherView({
+    phase,
+    activeName: activeName ?? null,
+    projectCount: activeProjects.length,
+  });
 
   const handleTriggerClick = () => {
-    if (activeProjects.length === 0) {
-      onManageProjects();
+    if (activeProjects.length === 0 && !view.canRetry) {
+      if (triggerRef.current) onManageProjects(triggerRef.current);
     }
   };
 
-  if (user === null || (user?.currentProjectId && !activeName && projects.length === 0)) {
+  const handleSwitch = (id: string) => {
+    setSwitchFailed(false);
+    executeSwitch({ id });
+  };
+
+  if (user === null || (user?.currentProjectId && !activeName && projects.length === 0 && isLoadingProjects)) {
     return (
       <div className="flex items-center gap-075 px-075 py-050">
         <Skeleton className="h-6 w-6 rounded-sm" />
@@ -67,37 +103,51 @@ export default function ProjectSwitcher({ onManageProjects }: { onManageProjects
   return (
     <DropdownMenu
       onOpenChange={(open) => {
-        if (open) loadProjects();
+        if (open && !loadFailed) loadProjects();
       }}
     >
       <DropdownMenuTrigger asChild>
         <button
+          ref={triggerRef}
           className="flex cursor-pointer items-center gap-075 rounded-md px-075 py-050 text-left hover:bg-neutral-subtle-hovered transition-colors"
           onClick={handleTriggerClick}
+          aria-label={activeName ? `Current project: ${activeName}` : view.label}
+          aria-busy={view.busy}
         >
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-surface-container">
             <FolderOpen className="h-3.5 w-3.5 text-icon-subtle" />
           </div>
           <span className={`truncate text-body font-weight-medium ${activeName ? 'text-text' : 'text-text-subtle'}`}>
-            {triggerLabel}
+            {view.label}
           </span>
           {activeProjects.length > 0 && <ChevronDown className="h-4 w-4 shrink-0 text-icon-subtle" />}
         </button>
       </DropdownMenuTrigger>
-      {activeProjects.length > 0 && (
+      {(activeProjects.length > 0 || view.canRetry) && (
         <DropdownMenuContent side="bottom" align="start" className="w-56">
           {activeProjects.map((p) => (
             <DropdownMenuItem
               key={p.id}
-              onClick={() => executeSwitch({ id: p.id })}
+              onClick={() => handleSwitch(p.id)}
+              disabled={isSwitching}
               className={`cursor-pointer ${p.id === activeId ? 'bg-selected text-text-selected' : ''}`}
             >
               <span className="flex-1 truncate">{p.name}</span>
               {p.id === activeId && <Check className="h-3.5 w-3.5" />}
             </DropdownMenuItem>
           ))}
+          {view.canRetry ? (
+            <DropdownMenuItem onSelect={loadProjects} className="cursor-pointer">
+              Retry loading projects
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={onManageProjects} className="cursor-pointer">
+          <DropdownMenuItem
+            onClick={() => {
+              if (triggerRef.current) onManageProjects(triggerRef.current);
+            }}
+            className="cursor-pointer"
+          >
             <SettingsIcon className="mr-2 h-4 w-4" />
             Manage projects
           </DropdownMenuItem>

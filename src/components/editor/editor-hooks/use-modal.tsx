@@ -1,7 +1,7 @@
 import { JSX, useCallback, useMemo, useState } from 'react';
 import * as React from 'react';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export function useEditorModal(): [
   JSX.Element | null,
@@ -27,6 +27,9 @@ export function useEditorModal(): [
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
+            <DialogDescription>
+              Complete the {title.toLowerCase()} options, then confirm or cancel.
+            </DialogDescription>
           </DialogHeader>
           {content}
         </DialogContent>

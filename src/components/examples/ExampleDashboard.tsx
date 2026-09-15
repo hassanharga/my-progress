@@ -46,12 +46,33 @@ export default function ExampleDashboard({
   tasks = [
     {
       id: '7b3bb9ae-d286-4aaa-8f12-0851cc24cc89',
-      title: 'enhance task card',
-      status: 'COMPLETED',
+      title: 'Plan the next milestone',
+      status: 'READY',
       projectId: 'example-project-id',
       duration: '00:04:11 hours',
       progress: null,
       todo: null,
+      currentNextStep: null,
+      defaultPlannedMinutes: null,
+      completedAt: null,
+      cancelledAt: null,
+      createdAt: new Date('2025-12-23T11:29:32.865Z'),
+      updatedAt: new Date('2025-12-23T11:39:50.058Z'),
+      userId: 'example-user-id',
+      totalSeconds: 0,
+    },
+    {
+      id: '5dc1d3e7-7cf5-4bd0-8bc4-6424fe03bf24',
+      title: 'Polish task interactions',
+      status: 'IN_PROGRESS',
+      projectId: 'example-project-id',
+      duration: '00:04:11 hours',
+      progress: null,
+      todo: null,
+      currentNextStep: null,
+      defaultPlannedMinutes: null,
+      completedAt: null,
+      cancelledAt: null,
       createdAt: new Date('2025-12-23T11:29:32.865Z'),
       updatedAt: new Date('2025-12-23T11:39:50.058Z'),
       userId: 'example-user-id',
@@ -59,25 +80,16 @@ export default function ExampleDashboard({
     },
     {
       id: 'b2ae3cab-c235-4052-825f-db6a9f0df955',
-      title: 'Action buttons new UI',
-      status: 'COMPLETED',
+      title: 'Review weekly outcomes',
+      status: 'PAUSED',
       projectId: 'example-project-id',
       duration: '00:04:11 hours',
       progress: null,
       todo: null,
-      createdAt: new Date('2025-12-23T11:29:32.865Z'),
-      updatedAt: new Date('2025-12-23T11:39:50.058Z'),
-      userId: 'example-user-id',
-      totalSeconds: 0,
-    },
-    {
-      id: 'b2ae3cab-c235-4052-825f-db6a9f0df955',
-      title: 'Action buttons new UI',
-      status: 'COMPLETED',
-      projectId: 'example-project-id',
-      duration: '00:04:11 hours',
-      progress: null,
-      todo: null,
+      currentNextStep: null,
+      defaultPlannedMinutes: null,
+      completedAt: null,
+      cancelledAt: null,
       createdAt: new Date('2025-12-23T11:29:32.865Z'),
       updatedAt: new Date('2025-12-23T11:39:50.058Z'),
       userId: 'example-user-id',
@@ -86,8 +98,8 @@ export default function ExampleDashboard({
   ],
   isLoading = false,
 }: Props) {
-  const handlePlay = () => {
-    toast.success('Task resumed!', {
+  const handlePlay = (mode: 'start' | 'resume') => {
+    toast.success(mode === 'start' ? 'Task started!' : 'Task resumed!', {
       description: 'Timer started successfully',
     });
   };
@@ -134,7 +146,7 @@ export default function ExampleDashboard({
         {tasks.length > 0 && tasks[0] ? (
           <EnhancedTaskCard
             task={tasks[0]}
-            onPlayAction={() => handlePlay()}
+            onPlayAction={() => handlePlay(tasks[0]?.status === 'READY' ? 'start' : 'resume')}
             onPauseAction={() => handlePause()}
             onCompleteAction={() => handleComplete()}
           />
@@ -163,7 +175,7 @@ export default function ExampleDashboard({
                 <StaggerItem key={task.id}>
                   <EnhancedTaskCard
                     task={task}
-                    onPlayAction={() => handlePlay()}
+                    onPlayAction={() => handlePlay(task.status === 'READY' ? 'start' : 'resume')}
                     onPauseAction={() => handlePause()}
                     onCompleteAction={() => handleComplete()}
                   />

@@ -1,8 +1,7 @@
-import ExcelJS from 'exceljs';
-
 import { Statuses } from '@/constants/status';
-import { formatDuration } from '@/utils/time-stats';
 import { lexicalToPlainText } from '@/utils/plain-text';
+import { formatDuration } from '@/utils/time-stats';
+import ExcelJS from 'exceljs';
 
 export type ExportTaskRow = {
   id: string;
@@ -17,8 +16,8 @@ export type ExportTaskRow = {
 export type ExportSessionRow = {
   taskTitle: string;
   taskStatus: string;
-  from: Date;
-  to: Date | null;
+  startedAt: Date;
+  endedAt: Date | null;
 };
 
 type BuildWorkbookParams = {
@@ -61,7 +60,7 @@ const applyHeaderStyle = (ws: ExcelJS.Worksheet, columnCount: number) => {
 /**
  * Builds an ExcelJS workbook with two sheets:
  * 1. "Tasks" — one row per task with summary columns
- * 2. "Sessions" — one row per TaskTime session
+ * 2. "Sessions" — one row per work session
  */
 export const buildExportWorkbook = ({ tasks, sessions, projectName }: BuildWorkbookParams): ExcelJS.Workbook => {
   const wb = new ExcelJS.Workbook();
@@ -108,19 +107,19 @@ export const buildExportWorkbook = ({ tasks, sessions, projectName }: BuildWorkb
     { header: 'Duration (sec)', key: 'durationSec' },
   ];
 
-  const sortedSessions = [...sessions].sort((a, b) => b.from.getTime() - a.from.getTime());
+  const sortedSessions = [...sessions].sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime());
 
   for (const session of sortedSessions) {
-    const durationSec = session.to
-      ? Math.round((session.to.getTime() - session.from.getTime()) / 1000)
+    const durationSec = session.endedAt
+      ? Math.round((session.endedAt.getTime() - session.startedAt.getTime()) / 1000)
       : null;
 
     sessionsWs.addRow({
       taskTitle: session.taskTitle,
       status: Statuses[session.taskStatus as keyof typeof Statuses] ?? session.taskStatus,
-      from: session.from,
-      to: session.to,
-      duration: session.to ? formatDuration(durationSec!) : '',
+      from: session.startedAt,
+      to: session.endedAt,
+      duration: session.endedAt ? formatDuration(durationSec!) : '',
       durationSec: durationSec,
     });
   }

@@ -90,7 +90,7 @@ export const ExportTasks: FC = () => {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[480px]" aria-describedby="Export to Excel">
+        <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>Export to Excel</DialogTitle>
             <DialogDescription>

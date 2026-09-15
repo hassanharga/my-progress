@@ -2,7 +2,7 @@ import { useState, type FC } from 'react';
 import dynamic from 'next/dynamic';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -22,13 +22,14 @@ export const CreateTask: FC<Props> = ({ createTask, isLoading, lastTaskTodo, ope
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[60vw]" aria-describedby="Create task">
+      <DialogContent className="sm:max-w-[60vw]">
         <DialogHeader>
           <DialogTitle>Create Task</DialogTitle>
+          <DialogDescription>Name the task and capture the work you intend to start.</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4 overflow-x-hidden">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="currentCompany" className="text-start">
+            <Label htmlFor="title" className="text-start">
               Title*
             </Label>
             <Input

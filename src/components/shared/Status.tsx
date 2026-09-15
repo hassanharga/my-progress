@@ -1,15 +1,14 @@
 import type { FC } from 'react';
 import { STATUS_TOKENS } from '@/constants/status';
 
-import { TaskStatus } from '../../../generated/prisma/enums';
+import type { TaskStatus } from '@/types/task';
 
 type Props = {
   status: TaskStatus;
 };
 
 const Status: FC<Props> = ({ status }) => {
-  const displayStatus = status === 'RESUMED' ? 'IN_PROGRESS' : status;
-  const tokens = STATUS_TOKENS[displayStatus as keyof typeof STATUS_TOKENS];
+  const tokens = STATUS_TOKENS[status];
 
   if (!tokens) return null;
 

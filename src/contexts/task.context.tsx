@@ -1,14 +1,21 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState, type JSX, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type JSX, type ReactNode } from 'react';
 import { useAction } from 'next-safe-action/hooks';
 
-import { TaskStatus, type TaskListItem } from '@/types/task';
+import type { TaskListItem, TaskWithLoggedTime } from '@/types/task';
 import { createTask, getTaskById, getTasksList, updateTask, updateTaskDetails } from '@/actions/task';
+import { reconcilePagination, reconcileTaskMutation } from '@/contexts/task-reconciliation';
 
 export type CreateTaskInput = Parameters<typeof createTask>[0];
 export type UpdateTaskInput = Parameters<typeof updateTask>[0];
 export type EditTaskInput = Parameters<typeof updateTaskDetails>[0];
+
+export type ActionFeedback = {
+  ok: boolean;
+  error?: string;
+  preserveInput: boolean;
+};
 
 interface TaskContextType {
   limit: number;
@@ -18,31 +25,23 @@ interface TaskContextType {
   hasPrevPage: boolean;
   isLoadingPage: boolean;
   openDrawer: boolean;
-  taskData?: {
-    duration: string;
-    userId: string;
-    id: string;
-    projectId: string;
-    createdAt: Date;
-    updatedAt: Date;
-    title: string;
-    status: TaskStatus;
-    progress: string | null;
-    todo: string | null;
-    totalSeconds: number;
-  } | null;
+  taskData?: TaskWithLoggedTime;
   isExecutingCreateTask: boolean;
   isExecutingUpdateTask: boolean;
   isExecutingEditTask: boolean;
-  editTask: (data: EditTaskInput) => Promise<boolean>;
-  fetchNextPage: () => Promise<void>;
-  fetchPrevPage: () => Promise<void>;
+  pendingTaskIds: string[];
+  isTaskPending: (taskId: string) => boolean;
+  editTask: (data: EditTaskInput) => Promise<ActionFeedback>;
+  fetchNextPage: () => Promise<ActionFeedback>;
+  fetchPrevPage: () => Promise<ActionFeedback>;
   executeGetTaskById: (input: { taskId: string }) => void;
-  createTask: (data: CreateTaskInput) => Promise<void>;
-  updateTask: (data: UpdateTaskInput) => Promise<void>;
-  fetchTasks: () => Promise<void>;
+  createTask: (data: CreateTaskInput) => Promise<ActionFeedback>;
+  updateTask: (data: UpdateTaskInput) => Promise<ActionFeedback>;
+  fetchTasks: () => Promise<ActionFeedback>;
   closeDrawer: () => void;
 }
+
+const idleFeedback = (): ActionFeedback => ({ ok: false, preserveInput: true });
 
 const TaskContext = createContext<TaskContextType>({
   limit: 4,
@@ -55,14 +54,16 @@ const TaskContext = createContext<TaskContextType>({
   isExecutingCreateTask: false,
   isExecutingUpdateTask: false,
   isExecutingEditTask: false,
-  editTask: async () => false,
-  fetchNextPage: async () => {},
-  fetchPrevPage: async () => {},
+  pendingTaskIds: [],
+  isTaskPending: () => false,
+  editTask: async () => idleFeedback(),
+  fetchNextPage: async () => idleFeedback(),
+  fetchPrevPage: async () => idleFeedback(),
   executeGetTaskById: () => {},
-  createTask: async () => {},
-  updateTask: async () => {},
-  closeDrawer: async () => {},
-  fetchTasks: async () => {},
+  createTask: async () => idleFeedback(),
+  updateTask: async () => idleFeedback(),
+  closeDrawer: () => {},
+  fetchTasks: async () => idleFeedback(),
 });
 
 const TaskProvider = ({
@@ -78,95 +79,147 @@ const TaskProvider = ({
 }): JSX.Element => {
   const limit = useMemo(() => 4, []);
   const [tasks, setTasks] = useState(initialTasks);
+  const tasksRef = useRef(tasks ?? []);
   const [hasNextPage, setHasNextPage] = useState(initialHasNextPage ?? false);
   const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor ?? null);
   const [cursorStack, setCursorStack] = useState<(string | null)[]>([null]);
   const [cursorIndex, setCursorIndex] = useState(0);
   const [isLoadingPage, setIsLoadingPage] = useState(false);
   const [openDrawer, setOpenDrawer] = useState(false);
+  const [pendingTaskIds, setPendingTaskIds] = useState<string[]>([]);
+  const mutationVersions = useRef<Record<string, number>>({});
+  const paginationVersion = useRef(0);
 
-  // ACTIONS
-  // task list
-  const { execute: executeList } = useAction(getTasksList, {
-    onSuccess: ({ data }) => {
-      if (data) {
-        setTasks(data.tasks);
-        setHasNextPage(data.hasNextPage);
-        setNextCursor(data.nextCursor);
-      }
-    },
-  });
+  const setTaskItems = (items: TaskListItem[]): void => {
+    tasksRef.current = items;
+    setTasks(items);
+  };
 
-  // get task by id
+  const { executeAsync: executeList } = useAction(getTasksList);
+
   const {
     execute: executeGetTaskById,
     result: { data: taskData },
     reset: resetGetTaskById,
   } = useAction(getTaskById, {
     onSuccess: ({ data }) => {
-      if (!data) return;
-      setOpenDrawer(true);
+      if (data) setOpenDrawer(true);
     },
   });
 
-  // create task
-  const { executeAsync: executeCreateTask, isExecuting } = useAction(createTask);
-
-  // update task
+  const { executeAsync: executeCreateTask, isExecuting: isExecutingCreateTask } = useAction(createTask);
   const { executeAsync: executeUpdateTask, isExecuting: isExecutingUpdateTask } = useAction(updateTask);
-
-  // edit task details
   const { executeAsync: executeEditTask, isExecuting: isExecutingEditTask } = useAction(updateTaskDetails);
 
-  // HANDLERS
+  const loadPage = async (cursor: string | null): Promise<ActionFeedback> => {
+    const responseVersion = paginationVersion.current + 1;
+    paginationVersion.current = responseVersion;
+    setIsLoadingPage(true);
+    const response = await executeList({ cursor, limit });
+    const settlement = reconcilePagination({
+      current: {
+        hasNextPage,
+        isLoading: true,
+        nextCursor,
+        tasks: tasksRef.current,
+      },
+      latestVersion: paginationVersion.current,
+      response,
+      responseVersion,
+    });
+    if (settlement.stale) return idleFeedback();
 
-  // fetch tasks list (first page)
-  const fetchTasks = async (): Promise<void> => {
-    executeList({ limit, cursor: null });
+    setIsLoadingPage(false);
+    if (settlement.error) return { error: settlement.error, ok: false, preserveInput: true };
+    setTaskItems(settlement.tasks);
+    setHasNextPage(settlement.hasNextPage);
+    setNextCursor(settlement.nextCursor);
+    return { ok: true, preserveInput: false };
   };
 
-  // fetch next page using cursor
-  const fetchNextPage = async (): Promise<void> => {
-    if (!nextCursor) return;
-    setIsLoadingPage(true);
-    const newStack = [...cursorStack.slice(0, cursorIndex + 1), nextCursor];
+  const fetchTasks = async (): Promise<ActionFeedback> => loadPage(cursorStack[cursorIndex] ?? null);
+
+  const fetchNextPage = async (): Promise<ActionFeedback> => {
+    if (!nextCursor) return idleFeedback();
+    const requestedCursor = nextCursor;
+    const result = await loadPage(requestedCursor);
+    if (!result.ok) return result;
+    const newStack = [...cursorStack.slice(0, cursorIndex + 1), requestedCursor];
     setCursorStack(newStack);
     setCursorIndex(cursorIndex + 1);
-    executeList({ limit, cursor: nextCursor });
-    setIsLoadingPage(false);
+    return result;
   };
 
-  // fetch previous page using cursor stack
-  const fetchPrevPage = async (): Promise<void> => {
-    if (cursorIndex === 0) return;
-    setIsLoadingPage(true);
+  const fetchPrevPage = async (): Promise<ActionFeedback> => {
+    if (cursorIndex === 0) return idleFeedback();
     const newIndex = cursorIndex - 1;
+    const result = await loadPage(cursorStack[newIndex]);
+    if (!result.ok) return result;
     setCursorIndex(newIndex);
-    executeList({ limit, cursor: cursorStack[newIndex] });
-    setIsLoadingPage(false);
+    return result;
   };
 
-  // create task handler
-  const onStartTask = async ({ title, progress }: CreateTaskInput): Promise<void> => {
-    if (!title?.trim()) return;
-    await executeCreateTask({ title, progress });
-    if (cursorIndex === 0) fetchTasks();
+  const settleMutation = async (
+    operationKey: string,
+    execute: () => ReturnType<typeof executeCreateTask>
+  ): Promise<ActionFeedback> => {
+    const responseVersion = (mutationVersions.current[operationKey] ?? 0) + 1;
+    mutationVersions.current[operationKey] = responseVersion;
+    if (operationKey !== 'create') setPendingTaskIds((current) => [...new Set([...current, operationKey])]);
+
+    const response = await execute();
+    const settlement = reconcileTaskMutation({
+      latestVersion: mutationVersions.current[operationKey],
+      response,
+      responseVersion,
+      tasks: tasksRef.current,
+    });
+    if (settlement.stale) return idleFeedback();
+
+    if (operationKey !== 'create') {
+      setPendingTaskIds((current) => current.filter((taskId) => taskId !== operationKey));
+    }
+    setTaskItems(settlement.tasks);
+    return {
+      error: settlement.error,
+      ok: settlement.confirmedSuccess,
+      preserveInput: settlement.preserveInput,
+    };
   };
 
-  // update task handler
-  const updateTaskHandler = async (data: UpdateTaskInput) => {
-    if (!data?.id) return undefined;
-    await executeUpdateTask(data);
-    if (cursorIndex === 0) fetchTasks();
+  const onStartTask = async (data: CreateTaskInput): Promise<ActionFeedback> => {
+    if (!data.title?.trim()) return { error: 'Enter a task title.', ok: false, preserveInput: true };
+    const result = await settleMutation('create', () =>
+      executeCreateTask({ ...data, startNow: data.startNow ?? true })
+    );
+    if (result.ok && cursorIndex === 0) await fetchTasks();
+    return result;
   };
 
-  // edit task details handler
-  const editTaskHandler = async (data: EditTaskInput): Promise<boolean> => {
-    const result = await executeEditTask(data);
-    if (!result || result.serverError) return false;
-    if (cursorIndex === 0) fetchTasks();
+  const updateTaskHandler = async (data: UpdateTaskInput): Promise<ActionFeedback> => {
+    if (!data?.taskId) return { error: 'Choose a task to update.', ok: false, preserveInput: true };
+    const result = await settleMutation(data.taskId, () => executeUpdateTask(data));
+    if (result.ok && cursorIndex === 0) await fetchTasks();
+    if (result.ok && openDrawer) executeGetTaskById({ taskId: data.taskId });
+    return result;
+  };
+
+  const editTaskHandler = async (data: EditTaskInput): Promise<ActionFeedback> => {
+    const response = await executeEditTask(data);
+    if (response?.serverError) return { error: response.serverError, ok: false, preserveInput: true };
+    if (response?.validationErrors) {
+      return { error: 'Check the task details and try again.', ok: false, preserveInput: true };
+    }
+    if (!response?.data?.ok) {
+      return {
+        error: response?.data?.error?.message ?? 'The task did not return a result.',
+        ok: false,
+        preserveInput: true,
+      };
+    }
+    if (cursorIndex === 0) await fetchTasks();
     executeGetTaskById({ taskId: data.id });
-    return true;
+    return { ok: true, preserveInput: false };
   };
 
   const closeDrawer = () => {
@@ -174,9 +227,6 @@ const TaskProvider = ({
     resetGetTaskById();
   };
 
-  // HOOKS
-
-  // close drawer on unmount
   useEffect(() => {
     return () => {
       setOpenDrawer(false);
@@ -194,9 +244,11 @@ const TaskProvider = ({
         hasPrevPage: cursorIndex > 0,
         isLoadingPage,
         taskData,
-        isExecutingCreateTask: isExecuting,
+        isExecutingCreateTask,
         isExecutingUpdateTask,
         isExecutingEditTask,
+        pendingTaskIds,
+        isTaskPending: (taskId) => pendingTaskIds.includes(taskId),
         editTask: editTaskHandler,
         closeDrawer,
         fetchNextPage,
@@ -214,11 +266,7 @@ const TaskProvider = ({
 
 export const useTaskContext = (): TaskContextType => {
   const context = useContext(TaskContext);
-
-  if (context === undefined) {
-    throw new Error('useTaskContext must be used within a TaskProvider');
-  }
-
+  if (context === undefined) throw new Error('useTaskContext must be used within a TaskProvider');
   return context;
 };
 

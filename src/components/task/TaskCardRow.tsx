@@ -1,12 +1,13 @@
 'use client';
 
-import type { FC, MouseEvent } from 'react';
+import { useRef, type FC, type MouseEvent } from 'react';
 import { STATUS_TOKENS } from '@/constants/status';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { Calendar, Check, Clock, MoreHorizontal, Pause, Play } from 'lucide-react';
 
 import type { TaskListItem } from '@/types/task';
+import { getRevealMotion, useReducedMotion } from '@/hooks/use-reduced-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,35 +23,53 @@ type Props = {
   onPause?: (e: MouseEvent<HTMLButtonElement>) => void;
   onComplete?: (e: MouseEvent<HTMLButtonElement>) => void;
   onEdit?: () => void;
-  onClick?: () => void;
+  onOpenDetails?: (opener: HTMLElement) => void;
   isLoading?: boolean;
   index?: number;
 };
 
-const TaskCardRow: FC<Props> = ({ task, onPlay, onPause, onComplete, onEdit, onClick, isLoading, index = 0 }) => {
-  const displayStatus = task.status === 'RESUMED' ? 'IN_PROGRESS' : task.status;
-  const tokens = STATUS_TOKENS[displayStatus as keyof typeof STATUS_TOKENS];
-  const isActive = ['IN_PROGRESS', 'RESUMED'].includes(task.status);
+const TaskCardRow: FC<Props> = ({ task, onPlay, onPause, onComplete, onEdit, onOpenDetails, isLoading, index = 0 }) => {
+  const tokens = STATUS_TOKENS[task.status];
+  const isActive = task.status === 'IN_PROGRESS';
   const isCompleted = task.status === 'COMPLETED';
   const isCancelled = task.status === 'CANCELLED';
+  const reducedMotion = useReducedMotion();
+  const revealMotion = getRevealMotion(reducedMotion, index);
+  const detailsTriggerRef = useRef<HTMLButtonElement | null>(null);
+
+  const openDetails = () => {
+    if (detailsTriggerRef.current) onOpenDetails?.(detailsTriggerRef.current);
+  };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={revealMotion.initial}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.15, ease: [0.4, 1, 0.6, 1] }}
+      transition={revealMotion.transition}
     >
       <div
         className={`group relative flex cursor-pointer items-center gap-150 rounded-lg border bg-surface p-150 pl-200 transition-colors hover:bg-surface-container ${
           isActive ? 'shadow-raised' : ''
         }`}
-        onClick={onClick}
+        onClick={openDetails}
       >
         <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg ${tokens.stripe}`} />
 
         <div className="flex flex-1 flex-col gap-050 min-w-0">
           <div className="flex items-center justify-between gap-100">
-            <h3 className="truncate text-body font-weight-medium text-text">{task.title}</h3>
+            <h3 className="min-w-0 truncate text-body font-weight-medium text-text">
+              <button
+                ref={detailsTriggerRef}
+                type="button"
+                className="max-w-full truncate rounded-xs text-left outline-none focus-visible:ring-2 focus-visible:ring-border-focused focus-visible:ring-offset-2"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openDetails();
+                }}
+              >
+                {task.title}
+              </button>
+            </h3>
             <div className="flex shrink-0 items-center gap-075 text-body-small text-text-subtle">
               {task.duration && (
                 <span className="flex items-center gap-025">
@@ -73,7 +92,7 @@ const TaskCardRow: FC<Props> = ({ task, onPlay, onPause, onComplete, onEdit, onC
             </div>
 
             {!isCompleted && !isCancelled && (
-              <div className="flex items-center gap-025 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-025 opacity-100 transition-opacity lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100">
                 {isActive && onPause && (
                   <Button
                     variant="subtle"
@@ -85,6 +104,7 @@ const TaskCardRow: FC<Props> = ({ task, onPlay, onPause, onComplete, onEdit, onC
                     }}
                     className="cursor-pointer"
                     title="Pause"
+                    aria-label="Pause"
                   >
                     <Pause className="h-4 w-4" />
                   </Button>
@@ -99,7 +119,8 @@ const TaskCardRow: FC<Props> = ({ task, onPlay, onPause, onComplete, onEdit, onC
                       onPlay(e);
                     }}
                     className="cursor-pointer"
-                    title="Resume"
+                    title={task.status === 'READY' ? 'Start' : 'Resume'}
+                    aria-label={task.status === 'READY' ? 'Start' : 'Resume'}
                   >
                     <Play className="h-4 w-4" />
                   </Button>
@@ -115,6 +136,7 @@ const TaskCardRow: FC<Props> = ({ task, onPlay, onPause, onComplete, onEdit, onC
                     }}
                     className="cursor-pointer"
                     title="Complete"
+                    aria-label="Complete"
                   >
                     <Check className="h-4 w-4" />
                   </Button>
@@ -128,6 +150,7 @@ const TaskCardRow: FC<Props> = ({ task, onPlay, onPause, onComplete, onEdit, onC
                         onClick={(e) => e.stopPropagation()}
                         className="cursor-pointer"
                         title="More actions"
+                        aria-label="More actions"
                       >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>

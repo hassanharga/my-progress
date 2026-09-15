@@ -1,10 +1,11 @@
+import type { ExecutionState } from '@/server/tasks/task-transition-types';
+
 import { findUserLastTask, findUserLastWorkingTask } from '@/actions/task';
 
-import type { Task as ITask, TaskStatus as ITaskStatus, Prisma } from '../../generated/prisma/client';
+import type { Task as ITask } from '../../generated/prisma/client';
 
-export type Task = ITask;
-export type TaskUpdateInput = Prisma.TaskUpdateInput;
-export type TaskStatus = ITaskStatus;
+export type Task = Omit<ITask, 'status'> & { status: ExecutionState };
+export type TaskStatus = ExecutionState;
 
 export type TaskListItem = {
   id: string;

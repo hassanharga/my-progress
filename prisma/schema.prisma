@@ -1,12 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  previewFeatures = ["partialIndexes"]
 }
 
 datasource db {
@@ -14,17 +9,19 @@ datasource db {
 }
 
 model User {
-  id               String       @id @default(uuid())
-  email            String       @unique
-  password         String
-  name             String
-  currentProjectId String?
-  currentProject   Project?     @relation("UserActiveProject", fields: [currentProjectId], references: [id])
-  weekStartDay     WeekStartDay @default(MONDAY)
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-  tasks            Task[]
-  projects         Project[]    @relation("ProjectOwner")
+  id                   String       @id @default(uuid())
+  email                String       @unique
+  password             String
+  name                 String
+  currentProjectId     String?
+  currentProject       Project?     @relation("UserActiveProject", fields: [currentProjectId, id], references: [id, ownerId])
+  weekStartDay         WeekStartDay @default(MONDAY)
+  timezone             String       @default("UTC")
+  dailyCapacityMinutes Int?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  tasks                Task[]
+  projects             Project[]    @relation("ProjectOwner")
 }
 
 model Project {
@@ -35,16 +32,21 @@ model Project {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  owner          User   @relation("ProjectOwner", fields: [ownerId], references: [id])
+  owner          User            @relation("ProjectOwner", fields: [ownerId], references: [id])
   ownerId        String
-  activeForUsers User[] @relation("UserActiveProject")
+  activeForUsers User[]          @relation("UserActiveProject")
   tasks          Task[]
+  dailyPlanItems DailyPlanItem[]
+  workLogEntries WorkLogEntry[]
+  loggedTime     WorkSession[]
 
+  @@unique([id, ownerId])
   @@index([ownerId])
   @@index([ownerId, archived])
 }
 
 enum TaskStatus {
+  READY
   IN_PROGRESS
   PAUSED
   RESUMED
@@ -58,22 +60,49 @@ enum WeekStartDay {
   SATURDAY
 }
 
+enum DailyPlanOutcome {
+  OPEN
+  COMPLETED
+  CANCELLED
+  CARRIED
+  RETURNED_TO_BACKLOG
+}
+
+enum WorkLogEntryKind {
+  PROGRESS
+  NOTE
+  COMPLETION_SUMMARY
+}
+
+enum WorkSessionSource {
+  TIMER
+  MIGRATED
+  MANUAL_CORRECTION
+}
+
 model Task {
-  id        String     @id @default(uuid())
-  title     String
-  status    TaskStatus @default(IN_PROGRESS)
-  progress  String?
-  todo      String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id                    String     @id @default(uuid())
+  title                 String
+  status                TaskStatus @default(READY)
+  progress              String?
+  todo                  String?
+  currentNextStep       String?
+  defaultPlannedMinutes Int?
+  completedAt           DateTime?
+  cancelledAt           DateTime?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
 
-  User         User       @relation(fields: [userId], references: [id])
+  User         User            @relation(fields: [userId], references: [id])
   userId       String
-  Project      Project    @relation(fields: [projectId], references: [id])
+  Project      Project         @relation(fields: [projectId, userId], references: [id, ownerId])
   projectId    String
-  loggedTime   TaskTime[]
-  totalSeconds Float      @default(0)
+  loggedTime   WorkSession[]
+  dailyPlans   DailyPlanItem[]
+  workLog      WorkLogEntry[]
+  totalSeconds Float           @default(0)
 
+  @@unique([id, userId, projectId])
   @@index([userId])
   @@index([userId, updatedAt])
   @@index([userId, status])
@@ -81,14 +110,72 @@ model Task {
   @@index([projectId])
 }
 
-model TaskTime {
-  id   String    @id @default(uuid())
-  from DateTime
-  to   DateTime?
+model WorkSession {
+  id                String            @id @default(uuid())
+  startedAt         DateTime          @map("from")
+  endedAt           DateTime?         @map("to")
+  userId            String
+  projectId         String
+  source            WorkSessionSource @default(TIMER)
+  originalStartedAt DateTime?
+  originalEndedAt   DateTime?
+  correctionReason  String?
+  correctedAt       DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
-  Task   Task   @relation(fields: [taskId], references: [id])
-  taskId String
+  Task           Task           @relation(fields: [taskId, userId, projectId], references: [id, userId, projectId], map: "TaskTime_taskId_userId_projectId_fkey")
+  taskId         String
+  Project        Project        @relation(fields: [projectId, userId], references: [id, ownerId], map: "TaskTime_projectId_userId_fkey")
+  workLogEntries WorkLogEntry[]
 
-  @@index([taskId])
-  @@index([taskId, from])
+  @@unique([id, taskId, userId, projectId], map: "TaskTime_id_taskId_userId_projectId_key")
+  @@unique([taskId], map: "TaskTime_one_open_per_task", where: { endedAt: null })
+  @@unique([projectId], map: "TaskTime_one_open_per_project", where: { endedAt: null })
+  @@index([taskId], map: "TaskTime_taskId_idx")
+  @@index([taskId, startedAt], map: "TaskTime_taskId_from_idx")
+  @@index([userId, startedAt], map: "TaskTime_userId_from_idx")
+  @@index([projectId, startedAt], map: "TaskTime_projectId_from_idx")
+  @@map("TaskTime")
+}
+
+model DailyPlanItem {
+  id             String           @id @default(uuid())
+  userId         String
+  projectId      String
+  taskId         String
+  planDate       DateTime         @db.Date
+  plannedMinutes Int?
+  position       Int
+  outcome        DailyPlanOutcome @default(OPEN)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  Task    Task    @relation(fields: [taskId, userId, projectId], references: [id, userId, projectId])
+  Project Project @relation(fields: [projectId, userId], references: [id, ownerId])
+
+  @@unique([userId, taskId, planDate])
+  @@index([userId, planDate, position])
+  @@index([projectId, planDate])
+}
+
+model WorkLogEntry {
+  id               String           @id @default(uuid())
+  userId           String
+  projectId        String
+  taskId           String
+  sessionId        String?
+  kind             WorkLogEntryKind @default(NOTE)
+  content          String
+  nextStepSnapshot String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  Task    Task         @relation(fields: [taskId, userId, projectId], references: [id, userId, projectId])
+  Project Project      @relation(fields: [projectId, userId], references: [id, ownerId])
+  session WorkSession? @relation(fields: [sessionId, taskId, userId, projectId], references: [id, taskId, userId, projectId], map: "WorkLogEntry_sessionId_taskId_userId_projectId_fkey")
+
+  @@index([userId, createdAt])
+  @@index([taskId, createdAt])
+  @@index([sessionId])
 }

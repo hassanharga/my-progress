@@ -2,14 +2,14 @@ import { useState, type FC } from 'react';
 import dynamic from 'next/dynamic';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 
 const Editor = dynamic(() => import('../../shared/Editor'), { ssr: false });
 
 type Props = {
-  completeTask: ({ progress, todo }: { progress: string; todo: string }) => void;
+  completeTask: ({ progress, todo }: { progress: string; todo: string }) => Promise<void>;
   isLoading: boolean;
   taskProgress: string | null;
   open: boolean;
@@ -22,9 +22,10 @@ export const CompleteTask: FC<Props> = ({ completeTask, isLoading, taskProgress,
 
   return (
     <Dialog open={open} onOpenChange={setOpen} modal>
-      <DialogContent className="sm:max-w-[60vw] sm:max-h-[95%] overflow-y-auto" aria-describedby="Complete task">
+      <DialogContent className="sm:max-w-[60vw] sm:max-h-[95%] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Complete Task</DialogTitle>
+          <DialogDescription>Record your progress and the next step before marking this task complete.</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4 overflow-hidden">
           {/* progress */}
@@ -41,7 +42,7 @@ export const CompleteTask: FC<Props> = ({ completeTask, isLoading, taskProgress,
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="currentCompany" className="text-start w-30">
-              What todo next?
+              Next step
             </Label>
             <Editor
               onChange={(value) => {
@@ -54,7 +55,7 @@ export const CompleteTask: FC<Props> = ({ completeTask, isLoading, taskProgress,
           <Button
             className="self-end cursor-pointer"
             onClick={async () => {
-              completeTask({ progress, todo });
+              await completeTask({ progress, todo });
             }}
             disabled={isLoading}
           >

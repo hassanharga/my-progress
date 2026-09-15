@@ -1,5 +1,6 @@
 import { type FC, type MouseEvent } from 'react';
 import { ChevronLeft, ChevronRight, ClipboardList } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { useTaskContext } from '@/contexts/task.context';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -7,9 +8,12 @@ import { Button } from '@/components/ui/button';
 
 import TaskCardRow from './TaskCardRow';
 
-const List: FC = () => {
+type Props = {
+  onOpenTask: (taskId: string, opener: HTMLElement) => void;
+};
+
+const List: FC<Props> = ({ onOpenTask }) => {
   const {
-    executeGetTaskById,
     updateTask,
     tasks,
     hasNextPage,
@@ -17,7 +21,7 @@ const List: FC = () => {
     isLoadingPage,
     fetchNextPage,
     fetchPrevPage,
-    isExecutingUpdateTask,
+    isTaskPending,
   } = useTaskContext();
 
   if (!tasks) return null;
@@ -32,22 +36,28 @@ const List: FC = () => {
     );
   }
 
-  const handlePlay = (taskId: string) => (e: MouseEvent<HTMLButtonElement>) => {
+  const handlePlay = (taskId: string, isReady: boolean) => async (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    if (isExecutingUpdateTask) return;
-    updateTask({ status: 'RESUMED', id: taskId });
+    if (isTaskPending(taskId)) return;
+    const result = await updateTask({ event: 'START', taskId });
+    if (result.ok) toast.success(isReady ? 'Task started' : 'Task resumed');
+    else if (result.error) toast.error(result.error);
   };
 
-  const handlePause = (taskId: string) => (e: MouseEvent<HTMLButtonElement>) => {
+  const handlePause = (taskId: string) => async (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    if (isExecutingUpdateTask) return;
-    updateTask({ status: 'PAUSED', id: taskId });
+    if (isTaskPending(taskId)) return;
+    const result = await updateTask({ event: 'PAUSE', taskId });
+    if (result.ok) toast.success('Task paused');
+    else if (result.error) toast.error(result.error);
   };
 
-  const handleComplete = (taskId: string) => (e: MouseEvent<HTMLButtonElement>) => {
+  const handleComplete = (taskId: string) => async (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    if (isExecutingUpdateTask) return;
-    updateTask({ status: 'COMPLETED', id: taskId });
+    if (isTaskPending(taskId)) return;
+    const result = await updateTask({ event: 'COMPLETE', taskId });
+    if (result.ok) toast.success('Task completed');
+    else if (result.error) toast.error(result.error);
   };
 
   return (
@@ -57,11 +67,11 @@ const List: FC = () => {
           key={task.id}
           task={task}
           index={idx}
-          isLoading={isExecutingUpdateTask}
-          onPlay={handlePlay(task.id)}
+          isLoading={isTaskPending(task.id)}
+          onPlay={handlePlay(task.id, task.status === 'READY')}
           onPause={handlePause(task.id)}
           onComplete={handleComplete(task.id)}
-          onClick={() => executeGetTaskById({ taskId: task.id })}
+          onOpenDetails={(opener) => onOpenTask(task.id, opener)}
         />
       ))}
 
@@ -71,7 +81,10 @@ const List: FC = () => {
             variant="default"
             size="icon-sm"
             disabled={!hasPrevPage || isLoadingPage}
-            onClick={() => fetchPrevPage()}
+            onClick={async () => {
+              const result = await fetchPrevPage();
+              if (result.error) toast.error(result.error);
+            }}
             className="cursor-pointer disabled:cursor-not-allowed"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -80,7 +93,10 @@ const List: FC = () => {
             variant="default"
             size="icon-sm"
             disabled={!hasNextPage || isLoadingPage}
-            onClick={() => fetchNextPage()}
+            onClick={async () => {
+              const result = await fetchNextPage();
+              if (result.error) toast.error(result.error);
+            }}
             className="cursor-pointer disabled:cursor-not-allowed"
           >
             <ChevronRight className="h-4 w-4" />
