@@ -527,3 +527,74 @@ describe('Package 1 execution-data migrations', () => {
     }
   });
 });
+
+describe('Package 3 Today mutation receipt migration', () => {
+  it('adds a non-null monotonic Today revision with a zero backfill default', async () => {
+    const migrations = await loadMigrations();
+    const revisionMigration = migrations.find(({ name }) => name.includes('add_today_revision'));
+
+    expect(revisionMigration).toBeDefined();
+    expect(revisionMigration?.sql).toMatch(
+      /ADD COLUMN "todayRevision" INTEGER NOT NULL DEFAULT 0/
+    );
+  });
+
+  it('defines an owner-scoped request receipt with task lookup indexes', async () => {
+    const migrations = await loadMigrations();
+    const receiptMigration = migrations.find(({ name }) => name.includes('add_today_mutation_receipts'));
+
+    expect(receiptMigration).toBeDefined();
+    expect(receiptMigration?.sql).toMatch(/CREATE TABLE "TodayMutationReceipt"/);
+    expect(receiptMigration?.sql).toMatch(/CREATE UNIQUE INDEX .*"userId", "requestId"/);
+    expect(receiptMigration?.sql).toMatch(/CREATE INDEX .*"TodayMutationReceipt_userId_idx"/);
+    expect(receiptMigration?.sql).toMatch(/CREATE INDEX .*"TodayMutationReceipt_taskId_idx"/);
+    expect(receiptMigration?.sql).toMatch(/"TodayMutationReceipt_taskId_fkey"[\s\S]*ON DELETE SET NULL/);
+  });
+
+  it('enforces owner-scoped request uniqueness and receipt foreign keys', async () => {
+    const client = await createSchemaClient();
+
+    try {
+      await applyMigrations(client, await loadMigrations());
+      await client.query(`
+        INSERT INTO "User" ("id", "email", "password", "name", "updatedAt") VALUES
+          ('receipt-user-a', 'receipt-a@example.test', 'hash', 'A', NOW()),
+          ('receipt-user-b', 'receipt-b@example.test', 'hash', 'B', NOW());
+        INSERT INTO "Project" ("id", "name", "ownerId", "updatedAt")
+        VALUES ('receipt-project', 'Receipts', 'receipt-user-a', NOW());
+        INSERT INTO "Task" ("id", "title", "userId", "projectId", "updatedAt")
+        VALUES ('receipt-task', 'Keep reference', 'receipt-user-a', 'receipt-project', NOW());
+        INSERT INTO "TodayMutationReceipt" ("id", "userId", "requestId", "kind", "payloadHash", "taskId") VALUES
+          ('receipt-a', 'receipt-user-a', 'same-request', 'CREATE_TASK', 'hash-a', 'receipt-task'),
+          ('receipt-b', 'receipt-user-b', 'same-request', 'CREATE_TASK', 'hash-b', NULL);
+      `);
+
+      await expectConstraintViolation(
+        client.query(`
+          INSERT INTO "TodayMutationReceipt" ("id", "userId", "requestId", "kind", "payloadHash")
+          VALUES ('receipt-duplicate', 'receipt-user-a', 'same-request', 'CREATE_TASK', 'hash-c')
+        `)
+      );
+      await expectConstraintViolation(
+        client.query(`
+          INSERT INTO "TodayMutationReceipt" ("id", "userId", "requestId", "kind", "payloadHash", "taskId")
+          VALUES ('receipt-bad-task', 'receipt-user-a', 'new-request', 'CREATE_TASK', 'hash-d', 'missing-task')
+        `)
+      );
+      await expectConstraintViolation(
+        client.query(`
+          INSERT INTO "TodayMutationReceipt" ("id", "userId", "requestId", "kind", "payloadHash")
+          VALUES ('receipt-bad-owner', 'missing-user', 'owner-request', 'CREATE_TASK', 'hash-e')
+        `)
+      );
+
+      await client.query(`DELETE FROM "Task" WHERE "id" = 'receipt-task'`);
+      const retained = await client.query<{ taskId: string | null }>(
+        `SELECT "taskId" FROM "TodayMutationReceipt" WHERE "id" = 'receipt-a'`
+      );
+      expect(retained.rows).toEqual([{ taskId: null }]);
+    } finally {
+      await disposeSchemaClient(client);
+    }
+  });
+});

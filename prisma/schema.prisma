@@ -18,10 +18,12 @@ model User {
   weekStartDay         WeekStartDay @default(MONDAY)
   timezone             String       @default("UTC")
   dailyCapacityMinutes Int?
+  todayRevision        Int          @default(0)
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
   tasks                Task[]
   projects             Project[]    @relation("ProjectOwner")
+  todayMutationReceipts TodayMutationReceipt[]
 }
 
 model Project {
@@ -100,6 +102,7 @@ model Task {
   loggedTime   WorkSession[]
   dailyPlans   DailyPlanItem[]
   workLog      WorkLogEntry[]
+  todayMutationReceipts TodayMutationReceipt[]
   totalSeconds Float           @default(0)
 
   @@unique([id, userId, projectId])
@@ -178,4 +181,21 @@ model WorkLogEntry {
   @@index([userId, createdAt])
   @@index([taskId, createdAt])
   @@index([sessionId])
+}
+
+model TodayMutationReceipt {
+  id         String   @id @default(uuid())
+  userId     String
+  requestId  String
+  kind       String
+  payloadHash String
+  taskId     String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  task Task? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, requestId])
+  @@index([userId])
+  @@index([taskId])
 }

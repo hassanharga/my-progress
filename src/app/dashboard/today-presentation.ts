@@ -1,6 +1,6 @@
 export const TODAY_PRESENTATION = {
   title: 'Today',
-  description: 'Plan and track work for your current project.',
+  description: "Plan and perform today's work across your projects.",
   robots: {
     index: false,
     follow: false,

@@ -1,4 +1,7 @@
 import { Prisma, type PrismaClient, type TaskStatus } from '../../../generated/prisma/client';
+import { parsePlanDateKey } from '../today/plan-date';
+import { readTodayForOwner } from '../today/read-today';
+import type { TodayViewModel } from '../today/today-types';
 import { getClosedTaskSeconds, getUserPlanDate, normalizeExecutionState, readTransitionSnapshot } from './task-queries';
 import type {
   DomainResult,
@@ -120,6 +123,7 @@ const applyTransitionInTransaction = async ({
   now,
   ownerId,
   ownership,
+  todayOverride,
   tx,
 }: {
   expectedOpenTaskId: string | null;
@@ -127,6 +131,7 @@ const applyTransitionInTransaction = async ({
   now: Date;
   ownerId: string;
   ownership: LockedTask;
+  todayOverride?: { date: Date; key: string };
   tx: Prisma.TransactionClient;
 }): Promise<DomainResult<TaskTransitionSnapshot>> => {
   const task = await tx.task.findFirst({
@@ -137,7 +142,14 @@ const applyTransitionInTransaction = async ({
   const state = normalizeExecutionState(task.status);
   if (!isAllowed(state, input.event)) return invalidTransition(state, input.event);
 
-  const today = await readTodayIfPlanned(tx, ownerId, task.id, ownership.timezone, now);
+  const today = todayOverride
+    ? (await tx.dailyPlanItem.findUnique({
+        select: { id: true },
+        where: { userId_taskId_planDate: { planDate: todayOverride.date, taskId: task.id, userId: ownerId } },
+      }))
+      ? todayOverride
+      : null
+    : await readTodayIfPlanned(tx, ownerId, task.id, ownership.timezone, now);
   const existingOpenSession = await tx.workSession.findFirst({
     orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
     where: { endedAt: null, projectId: task.projectId, taskId: task.id, userId: ownerId },
@@ -373,31 +385,36 @@ const executeTransition = async (
     { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
   );
 
+const nestedDatabaseCode = (value: unknown): string | null => {
+  if (typeof value !== 'object' || value === null) return null;
+  const record = value as Record<string, unknown>;
+  if (typeof record.code === 'string') return record.code;
+  const adapterError = record.driverAdapterError;
+  if (typeof adapterError !== 'object' || adapterError === null) return null;
+  const cause = (adapterError as Record<string, unknown>).cause;
+  if (typeof cause !== 'object' || cause === null) return null;
+  const originalCode = (cause as Record<string, unknown>).originalCode;
+  return typeof originalCode === 'string' ? originalCode : null;
+};
+
 const requestErrorCode = (error: unknown): string | null => {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    const databaseCode =
-      typeof error.meta?.code === 'string'
-        ? error.meta.code
-        : typeof error.meta?.driverAdapterError === 'object' &&
-            error.meta.driverAdapterError !== null &&
-            'cause' in error.meta.driverAdapterError &&
-            typeof error.meta.driverAdapterError.cause === 'object' &&
-            error.meta.driverAdapterError.cause !== null &&
-            'originalCode' in error.meta.driverAdapterError.cause &&
-            typeof error.meta.driverAdapterError.cause.originalCode === 'string'
-          ? error.meta.driverAdapterError.cause.originalCode
-          : null;
-    if (databaseCode === '40001') return 'P2034';
+    const databaseCode = nestedDatabaseCode(error.meta);
+    if (databaseCode === '40001' || databaseCode === '40P01') return 'P2034';
     if (databaseCode === '23505') return 'P2002';
     return error.code;
   }
-  if (typeof error === 'object' && error !== null && 'code' in error && typeof error.code === 'string') {
-    if (error.code === '40001') return 'P2034';
-    if (error.code === '23505') return 'P2002';
-    return error.code;
+  if (typeof error === 'object' && error !== null) {
+    const record = error as Record<string, unknown>;
+    const databaseCode = nestedDatabaseCode(record.meta) ?? (typeof record.code === 'string' ? record.code : null);
+    if (databaseCode === '40001' || databaseCode === '40P01') return 'P2034';
+    if (databaseCode === '23505') return 'P2002';
+    return databaseCode;
   }
   return null;
 };
+
+export const isTransitionSerializationError = (error: unknown): boolean => requestErrorCode(error) === 'P2034';
 
 export const runTransitionWithRetry = async <T>({
   execute,
@@ -435,6 +452,26 @@ export const runTransitionWithRetry = async <T>({
     },
     ok: false,
   };
+};
+
+export const runTodayTransitionWithRetry = async <T>({
+  execute,
+  reconcile,
+}: {
+  execute: () => Promise<DomainResult<T>>;
+  reconcile: () => Promise<DomainResult<T>>;
+}): Promise<DomainResult<T>> => {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await execute();
+    } catch (error) {
+      if (isTransitionSerializationError(error) && attempt === 0) continue;
+      if (isTransitionSerializationError(error) || requestErrorCode(error) === 'P2002') return reconcile();
+      throw error;
+    }
+  }
+
+  return reconcile();
 };
 
 export const createTaskWithTransition = async ({
@@ -591,9 +628,148 @@ export const transitionTask = async ({
     where: { endedAt: null, projectId: initialTask.projectId, userId: ownerId },
   });
 
-  return runTransitionWithRetry({
+  return runTransitionWithRetry<TaskTransitionSnapshot>({
     execute: () => executeTransition(prisma, ownerId, input, clock, initialOpenSession?.taskId ?? null),
     reconcile: () => reconcileTaskTransition({ clock, input, ownerId, prisma }),
+  });
+};
+
+type TransactionTransitionOptions = {
+  clock?: () => Date;
+  expectedOpenTaskId?: string | null;
+  input: TaskTransitionInput;
+  ownerId: string;
+  planDate?: string;
+  tx: Prisma.TransactionClient;
+};
+
+/**
+ * Applies the canonical task transition using an already-open transaction.
+ * Today cockpit commands use this seam so the task, session and selected-date
+ * read model share one serializable transaction.
+ */
+export const transitionTaskInTransaction = async ({
+  clock = () => new Date(),
+  expectedOpenTaskId,
+  input,
+  ownerId,
+  planDate,
+  tx,
+}: TransactionTransitionOptions): Promise<DomainResult<TaskTransitionSnapshot>> => {
+  const locked = await tx.$queryRaw<LockedTask[]>`
+    SELECT p."id" AS "projectId", p."archived", u."timezone"
+    FROM "Task" t
+    JOIN "Project" p ON p."id" = t."projectId" AND p."ownerId" = t."userId"
+    JOIN "User" u ON u."id" = t."userId"
+    WHERE t."id" = ${input.taskId}
+      AND t."userId" = ${ownerId}
+    FOR UPDATE OF p
+  `;
+  const ownership = locked[0];
+  if (!ownership) return notFound();
+  await fenceProject(tx, ownership.projectId);
+  const expectedOpenSession =
+    expectedOpenTaskId === undefined
+      ? await tx.workSession.findFirst({
+          select: { taskId: true },
+          where: { endedAt: null, projectId: ownership.projectId, userId: ownerId },
+        })
+      : null;
+
+  return applyTransitionInTransaction({
+    expectedOpenTaskId: expectedOpenTaskId ?? expectedOpenSession?.taskId ?? null,
+    input,
+    now: clock(),
+    ownerId,
+    ownership,
+    ...(planDate ? { todayOverride: parsePlanDateKey(planDate) } : {}),
+    tx,
+  });
+};
+
+export const transitionTodayTaskForOwner = async ({
+  beforeTransaction,
+  clock = () => new Date(),
+  input,
+  ownerId,
+  prisma,
+}: {
+  /** Test-only coordination hook; safe actions never provide this seam. */
+  beforeTransaction?: () => Promise<void>;
+  clock?: () => Date;
+  input: { planDate: string; transition: TaskTransitionInput };
+  ownerId: string;
+  prisma: PrismaClient;
+}): Promise<DomainResult<TodayViewModel>> => {
+  let selectedDate: { date: Date; key: string };
+  try {
+    selectedDate = parsePlanDateKey(input.planDate);
+  } catch (error) {
+    return {
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: error instanceof Error ? error.message : 'Invalid plan date',
+        retryable: false,
+      },
+      ok: false,
+    };
+  }
+
+  const initialTask = await prisma.task.findFirst({
+    select: { projectId: true },
+    where: { id: input.transition.taskId, userId: ownerId },
+  });
+  if (!initialTask) {
+    return { error: { code: 'NOT_FOUND', message: 'Task not found', retryable: false }, ok: false };
+  }
+  const initialOpenSession = await prisma.workSession.findFirst({
+    select: { taskId: true },
+    where: { endedAt: null, projectId: initialTask.projectId, userId: ownerId },
+  });
+  await beforeTransaction?.();
+
+  return runTodayTransitionWithRetry<TodayViewModel>({
+    execute: () =>
+      prisma.$transaction(
+        async (tx) => {
+          const owner = await tx.$queryRaw<{ id: string }[]>`
+            SELECT "id" FROM "User" WHERE "id" = ${ownerId} FOR UPDATE
+          `;
+          if (owner.length === 0) {
+            return {
+              error: { code: 'NOT_FOUND' as const, message: 'Today owner not found', retryable: false },
+              ok: false as const,
+            };
+          }
+
+          await tx.user.update({ data: { todayRevision: { increment: 1 } }, where: { id: ownerId } });
+
+          const result = await transitionTaskInTransaction({
+            clock,
+            expectedOpenTaskId: initialOpenSession?.taskId ?? null,
+            input: input.transition,
+            ownerId,
+            planDate: selectedDate.key,
+            tx,
+          });
+          if (!result.ok) {
+            const canonical = result.canonical
+              ? await readTodayForOwner({ clock, ownerId, planDate: selectedDate.key, prisma: tx })
+              : undefined;
+            return { error: result.error, ok: false as const, ...(canonical ? { canonical } : {}) };
+          }
+          return {
+            data: await readTodayForOwner({ clock, ownerId, planDate: selectedDate.key, prisma: tx }),
+            ok: true as const,
+          };
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+      ),
+    reconcile: async () => ({
+      canonical: await readTodayForOwner({ clock, ownerId, planDate: selectedDate.key, prisma }),
+      error: { code: 'CONFLICT' as const, message: 'The Today plan changed concurrently. Try again.', retryable: true },
+      ok: false as const,
+    }),
   });
 };
 

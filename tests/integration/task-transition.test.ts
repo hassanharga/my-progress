@@ -8,9 +8,12 @@ import { PrismaClient, type TaskStatus } from '../../generated/prisma/client';
 import type { TaskTransitionEvent } from '../../src/server/tasks/task-transition-types';
 import {
   archiveOwnedProject,
+  isTransitionSerializationError,
   reconcileTaskTransition,
+  runTodayTransitionWithRetry,
   runTransitionWithRetry,
   transitionTask,
+  transitionTodayTaskForOwner,
 } from '../../src/server/tasks/transition-task';
 import { getTestDatabaseUrl } from '../helpers/database';
 
@@ -34,6 +37,24 @@ jest.setTimeout(60_000);
 const quoteIdentifier = (value: string): string => {
   if (!/^[a-z][a-z0-9_]*$/.test(value)) throw new Error(`Unsafe SQL identifier: ${value}`);
   return `"${value}"`;
+};
+
+const twoCallBarrier = () => {
+  let arrivals = 0;
+  let release!: () => void;
+  let ready!: () => void;
+  const released = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const bothArrived = new Promise<void>((resolve) => {
+    ready = resolve;
+  });
+  const enter = async (): Promise<void> => {
+    arrivals += 1;
+    if (arrivals === 2) ready();
+    await released;
+  };
+  return { bothArrived, enter, release };
 };
 
 const migrateSchema = async (): Promise<void> => {
@@ -161,6 +182,319 @@ afterAll(async () => {
 });
 
 describe('owner-scoped task transitions', () => {
+  it('returns the full selected-date Today model after a cockpit transition', async () => {
+    await seedTaskState('READY');
+    await prisma.dailyPlanItem.create({
+      data: {
+        planDate: new Date('2026-09-13T00:00:00.000Z'),
+        plannedMinutes: 45,
+        position: 0,
+        projectId: PROJECT_A_ID,
+        taskId: TASK_ID,
+        userId: USER_A_ID,
+      },
+    });
+
+    const result = await transitionTodayTaskForOwner({
+      clock: () => NOW,
+      input: { planDate: '2026-09-13', transition: { event: 'START', taskId: TASK_ID } },
+      ownerId: USER_A_ID,
+      prisma,
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      data: { items: [{ taskId: TASK_ID, position: 0 }], planDate: '2026-09-13' },
+    });
+    expect(result.ok && result.data.focus).toMatchObject({
+      planItemId: expect.any(String),
+      source: 'planned',
+      taskId: TASK_ID,
+    });
+  });
+
+  it('returns a full selected-date canonical conflict when cockpit starts race', async () => {
+    await prisma.task.createMany({
+      data: [
+        { id: TASK_ID, projectId: PROJECT_A_ID, title: 'Cockpit A', userId: USER_A_ID },
+        { id: SECOND_TASK_ID, projectId: PROJECT_A_ID, title: 'Cockpit B', userId: USER_A_ID },
+      ],
+    });
+    await prisma.dailyPlanItem.createMany({
+      data: [
+        {
+          planDate: new Date('2026-09-13T00:00:00.000Z'),
+          plannedMinutes: 30,
+          position: 0,
+          projectId: PROJECT_A_ID,
+          taskId: TASK_ID,
+          userId: USER_A_ID,
+        },
+        {
+          planDate: new Date('2026-09-13T00:00:00.000Z'),
+          plannedMinutes: 45,
+          position: 1,
+          projectId: PROJECT_A_ID,
+          taskId: SECOND_TASK_ID,
+          userId: USER_A_ID,
+        },
+      ],
+    });
+    const { bothArrived, enter, release } = twoCallBarrier();
+    const resultsPromise = Promise.all(
+      [TASK_ID, SECOND_TASK_ID].map((taskId) =>
+        transitionTodayTaskForOwner({
+          beforeTransaction: enter,
+          clock: () => NOW,
+          input: { planDate: '2026-09-13', transition: { event: 'START', taskId } },
+          ownerId: USER_A_ID,
+          prisma,
+        })
+      )
+    );
+    await bothArrived;
+    release();
+    const results = await resultsPromise;
+    const winner = results.find((result) => result.ok);
+    const conflictResult = results.find((result) => !result.ok);
+    expect(winner).toBeDefined();
+    expect(conflictResult).toMatchObject({
+      canonical: expect.objectContaining({
+        focus: expect.objectContaining({ taskId: winner?.ok ? winner.data.focus?.taskId : undefined }),
+        items: expect.arrayContaining([
+          expect.objectContaining({ taskId: TASK_ID }),
+          expect.objectContaining({ taskId: SECOND_TASK_ID }),
+        ]),
+        planDate: '2026-09-13',
+        runningIndicators: expect.arrayContaining([
+          expect.objectContaining({ taskId: winner?.ok ? winner.data.focus?.taskId : undefined }),
+        ]),
+        summary: expect.objectContaining({ openCount: 2, totalCount: 2 }),
+      }),
+      error: expect.objectContaining({ code: 'CONFLICT', message: expect.any(String), retryable: true }),
+      ok: false,
+    });
+  });
+
+  it('returns selected-date focus, timers, and aggregates after completing one of multiple project tasks', async () => {
+    await prisma.project.create({ data: { id: PROJECT_C_ID, name: 'Project C', ownerId: USER_A_ID } });
+    await seedTaskState('IN_PROGRESS');
+    await prisma.task.create({
+      data: {
+        id: SECOND_TASK_ID,
+        projectId: PROJECT_C_ID,
+        status: 'IN_PROGRESS',
+        title: 'Other running task',
+        userId: USER_A_ID,
+      },
+    });
+    await prisma.workSession.create({
+      data: {
+        id: '30000000-0000-4000-8000-000000000002',
+        projectId: PROJECT_C_ID,
+        source: 'TIMER',
+        startedAt: new Date('2026-09-13T09:30:00.000Z'),
+        taskId: SECOND_TASK_ID,
+        userId: USER_A_ID,
+      },
+    });
+    await prisma.dailyPlanItem.createMany({
+      data: [
+        {
+          planDate: new Date('2026-09-13T00:00:00.000Z'),
+          plannedMinutes: 45,
+          position: 0,
+          projectId: PROJECT_A_ID,
+          taskId: TASK_ID,
+          userId: USER_A_ID,
+        },
+        {
+          planDate: new Date('2026-09-13T00:00:00.000Z'),
+          plannedMinutes: 60,
+          position: 1,
+          projectId: PROJECT_C_ID,
+          taskId: SECOND_TASK_ID,
+          userId: USER_A_ID,
+        },
+      ],
+    });
+
+    const result = await transitionTodayTaskForOwner({
+      clock: () => NOW,
+      input: { planDate: '2026-09-13', transition: { event: 'COMPLETE', taskId: TASK_ID } },
+      ownerId: USER_A_ID,
+      prisma,
+    });
+
+    expect(result).toMatchObject({
+      data: {
+        focus: { planItemId: expect.any(String), source: 'planned', taskId: SECOND_TASK_ID },
+        planDate: '2026-09-13',
+        runningIndicators: [expect.objectContaining({ taskId: SECOND_TASK_ID })],
+        summary: { completedCount: 1, openCount: 1, totalCount: 2 },
+      },
+      ok: true,
+    });
+    expect(result.ok && result.data.items.find(({ taskId }) => taskId === TASK_ID)).toMatchObject({
+      actualSeconds: 3600,
+      outcome: 'COMPLETED',
+      status: 'COMPLETED',
+    });
+    expect(result.ok && result.data.workload).toMatchObject({ actualSeconds: 5400, plannedMinutes: 105 });
+    expect(result.ok && result.data.runningIndicators).toEqual([
+      expect.objectContaining({
+        elapsedSeconds: 1800,
+        project: { id: PROJECT_C_ID, name: 'Project C' },
+        taskId: SECOND_TASK_ID,
+      }),
+    ]);
+  });
+
+  it('returns the complete selected-date snapshot after replacing the running task', async () => {
+    await seedTaskState('IN_PROGRESS');
+    await prisma.task.create({
+      data: { id: SECOND_TASK_ID, projectId: PROJECT_A_ID, status: 'READY', title: 'Replacement', userId: USER_A_ID },
+    });
+    await prisma.dailyPlanItem.createMany({
+      data: [
+        {
+          planDate: new Date('2026-09-13T00:00:00.000Z'),
+          plannedMinutes: 45,
+          position: 0,
+          projectId: PROJECT_A_ID,
+          taskId: TASK_ID,
+          userId: USER_A_ID,
+        },
+        {
+          planDate: new Date('2026-09-13T00:00:00.000Z'),
+          plannedMinutes: 30,
+          position: 1,
+          projectId: PROJECT_A_ID,
+          taskId: SECOND_TASK_ID,
+          userId: USER_A_ID,
+        },
+      ],
+    });
+
+    const result = await transitionTodayTaskForOwner({
+      clock: () => NOW,
+      input: { planDate: '2026-09-13', transition: { event: 'START', taskId: SECOND_TASK_ID } },
+      ownerId: USER_A_ID,
+      prisma,
+    });
+
+    expect(result).toMatchObject({
+      data: {
+        focus: { planItemId: expect.any(String), source: 'planned', taskId: SECOND_TASK_ID },
+        items: [
+          { actualSeconds: 3600, outcome: 'OPEN', status: 'PAUSED', taskId: TASK_ID },
+          { actualSeconds: 0, outcome: 'OPEN', plannedMinutes: 30, status: 'IN_PROGRESS', taskId: SECOND_TASK_ID },
+        ],
+        planDate: '2026-09-13',
+        runningIndicators: [
+          expect.objectContaining({ project: { id: PROJECT_A_ID, name: 'Project A' }, taskId: SECOND_TASK_ID }),
+        ],
+        workload: { actualSeconds: 3600, plannedMinutes: 75 },
+      },
+      ok: true,
+    });
+    expect(await prisma.workSession.count({ where: { endedAt: null, userId: USER_A_ID } })).toBe(1);
+  });
+
+  it.each([
+    { event: 'PAUSE' as const, expectedStatus: 'PAUSED' as const, expectedOutcome: 'OPEN' as const },
+    { event: 'CANCEL' as const, expectedStatus: 'CANCELLED' as const, expectedOutcome: 'CANCELLED' as const },
+  ])(
+    'returns the full selected-date snapshot for wrapper $event',
+    async ({ event, expectedOutcome, expectedStatus }) => {
+      await seedTaskState('IN_PROGRESS');
+      await prisma.dailyPlanItem.create({
+        data: {
+          planDate: new Date('2026-09-13T00:00:00.000Z'),
+          plannedMinutes: 45,
+          position: 0,
+          projectId: PROJECT_A_ID,
+          taskId: TASK_ID,
+          userId: USER_A_ID,
+        },
+      });
+
+      const result = await transitionTodayTaskForOwner({
+        clock: () => NOW,
+        input: { planDate: '2026-09-13', transition: { event, taskId: TASK_ID } },
+        ownerId: USER_A_ID,
+        prisma,
+      });
+
+      expect(result).toMatchObject({
+        data: {
+          items: [{ actualSeconds: 3600, outcome: expectedOutcome, status: expectedStatus, taskId: TASK_ID }],
+          planDate: '2026-09-13',
+          runningIndicators: [],
+          summary: {
+            actualSeconds: 3600,
+            cancelledCount: event === 'CANCEL' ? 1 : 0,
+            completedCount: 0,
+            openCount: event === 'PAUSE' ? 1 : 0,
+            totalCount: 1,
+          },
+        },
+        ok: true,
+      });
+      expect(result.ok && result.data.focus?.taskId).toBe(event === 'PAUSE' ? TASK_ID : undefined);
+    }
+  );
+
+  it('rolls back cockpit task, session, log, and Today effects after a post-effect failure', async () => {
+    await seedTaskState('READY');
+    await prisma.dailyPlanItem.create({
+      data: {
+        planDate: new Date('2026-09-13T00:00:00.000Z'),
+        plannedMinutes: 45,
+        position: 0,
+        projectId: PROJECT_A_ID,
+        taskId: TASK_ID,
+        userId: USER_A_ID,
+      },
+    });
+    const before = await Promise.all([
+      prisma.task.findUniqueOrThrow({ where: { id: TASK_ID } }),
+      prisma.workSession.findMany({ where: { taskId: TASK_ID } }),
+      prisma.workLogEntry.findMany({ where: { taskId: TASK_ID } }),
+      prisma.dailyPlanItem.findMany({ where: { taskId: TASK_ID } }),
+    ]);
+    const failingPrisma = prisma.$extends({
+      query: {
+        workLogEntry: {
+          async create({ args, query }: any) {
+            await query(args);
+            throw new Error('injected cockpit rollback');
+          },
+        },
+      },
+    });
+
+    await expect(
+      transitionTodayTaskForOwner({
+        clock: () => NOW,
+        input: {
+          planDate: '2026-09-13',
+          transition: { event: 'START', progressNote: 'started', taskId: TASK_ID },
+        },
+        ownerId: USER_A_ID,
+        prisma: failingPrisma as unknown as PrismaClient,
+      })
+    ).rejects.toThrow('injected cockpit rollback');
+    await expect(
+      Promise.all([
+        prisma.task.findUniqueOrThrow({ where: { id: TASK_ID } }),
+        prisma.workSession.findMany({ where: { taskId: TASK_ID } }),
+        prisma.workLogEntry.findMany({ where: { taskId: TASK_ID } }),
+        prisma.dailyPlanItem.findMany({ where: { taskId: TASK_ID } }),
+      ])
+    ).resolves.toEqual(before);
+  });
+
   it.each(matrix)('$from + $event -> $expected', async ({ event, expected, from }) => {
     await seedTaskState(from);
 
@@ -651,6 +985,34 @@ describe('owner-scoped task transitions', () => {
 });
 
 describe('transition conflict retry policy', () => {
+  it.each(['P2034', '40001', '40P01'])('classifies %s as a serialization/deadlock failure', (code) => {
+    expect(isTransitionSerializationError({ code })).toBe(true);
+  });
+
+  it('classifies adapter metadata serialization codes', () => {
+    expect(
+      isTransitionSerializationError({
+        code: 'P2028',
+        meta: { driverAdapterError: { cause: { originalCode: '40P01' } } },
+      })
+    ).toBe(true);
+    expect(isTransitionSerializationError({ code: 'P2028', meta: { code: '40001' } })).toBe(true);
+  });
+
+  it('reconciles cockpit serialization after bounded retry exhaustion with canonical state', async () => {
+    const canonical = {
+      canonical: { planDate: '2026-09-13' },
+      error: { code: 'CONFLICT' as const, message: 'retry', retryable: true },
+      ok: false as const,
+    };
+    const execute = jest.fn().mockRejectedValue({ code: '40P01' });
+    const reconcile = jest.fn().mockResolvedValue(canonical);
+
+    await expect(runTodayTransitionWithRetry({ execute, reconcile })).resolves.toBe(canonical);
+    expect(execute).toHaveBeenCalledTimes(2);
+    expect(reconcile).toHaveBeenCalledTimes(1);
+  });
+
   it.each(['P2034', '40001'])('retries one %s and returns a retryable conflict after exhaustion', async (code) => {
     const execute = jest.fn().mockRejectedValue({ code });
     const reconcile = jest.fn();
