@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect, useRef, useState, type ComponentPropsWithoutRef, type MouseEvent } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Check, ChevronDown, FolderOpen, Settings as SettingsIcon } from 'lucide-react';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
+import { paths } from '@/paths';
 import { getProjects, switchProject, type ProjectListItem } from '@/actions/project';
 import { useUserContext } from '@/contexts/user.context';
 import {
@@ -18,6 +20,42 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { getProjectSwitcherView, type ProjectSwitcherPhase } from './top-bar-model';
+
+type ProjectSwitcherLinkProps = Omit<ComponentPropsWithoutRef<'a'>, 'href' | 'id' | 'name'> & {
+  id: string;
+  name: string;
+  selected: boolean;
+};
+
+type ProjectLinkClick = Pick<MouseEvent<HTMLAnchorElement>, 'button' | 'ctrlKey' | 'metaKey' | 'shiftKey' | 'altKey'>;
+
+export const handleProjectLinkClick = (
+  event: ProjectLinkClick,
+  projectId: string,
+  switchCurrentProject: (id: string) => void
+): void => {
+  if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+    switchCurrentProject(projectId);
+  }
+};
+
+export const ProjectSwitcherLink = forwardRef<HTMLAnchorElement, ProjectSwitcherLinkProps>(function ProjectSwitcherLink(
+  { className, id, name, selected, ...linkProps },
+  ref
+) {
+  return (
+    <Link
+      {...linkProps}
+      href={paths.project(id)}
+      aria-label={`Open ${name} workspace${selected ? ' (current project)' : ''}`}
+      ref={ref}
+      className={[className, selected ? 'bg-selected text-text-selected' : ''].filter(Boolean).join(' ')}
+    >
+      <span className="flex-1 truncate">{name}</span>
+      {selected && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
+    </Link>
+  );
+});
 
 export default function ProjectSwitcher({ onManageProjects }: { onManageProjects: (opener: HTMLElement) => void }) {
   const { user, refetchUser } = useUserContext();
@@ -61,8 +99,7 @@ export default function ProjectSwitcher({ onManageProjects }: { onManageProjects
   });
 
   const activeId = user?.currentProjectId;
-  const activeName = user?.currentProject?.name
-    ?? projects.find((p) => p.id === activeId)?.name;
+  const activeName = user?.currentProject?.name ?? projects.find((p) => p.id === activeId)?.name;
   const activeProjects = projects.filter((p) => !p.archived);
 
   const phase: ProjectSwitcherPhase = loadFailed
@@ -126,14 +163,13 @@ export default function ProjectSwitcher({ onManageProjects }: { onManageProjects
       {(activeProjects.length > 0 || view.canRetry) && (
         <DropdownMenuContent side="bottom" align="start" className="w-56">
           {activeProjects.map((p) => (
-            <DropdownMenuItem
-              key={p.id}
-              onClick={() => handleSwitch(p.id)}
-              disabled={isSwitching}
-              className={`cursor-pointer ${p.id === activeId ? 'bg-selected text-text-selected' : ''}`}
-            >
-              <span className="flex-1 truncate">{p.name}</span>
-              {p.id === activeId && <Check className="h-3.5 w-3.5" />}
+            <DropdownMenuItem key={p.id} asChild disabled={isSwitching} className="cursor-pointer">
+              <ProjectSwitcherLink
+                id={p.id}
+                name={p.name}
+                onClick={(event) => handleProjectLinkClick(event, p.id, handleSwitch)}
+                selected={p.id === activeId}
+              />
             </DropdownMenuItem>
           ))}
           {view.canRetry ? (

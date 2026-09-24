@@ -1017,6 +1017,483 @@
     }
   }
 
+  /* Package 4: canonical project workspace */
+  .project-workspace,
+  .projects-index,
+  .project-workspace-not-found {
+    @apply mx-auto min-w-0 max-w-6xl px-300 py-400;
+  }
+
+  .project-workspace-header {
+    @apply grid min-w-0 gap-250 border-b border-border pb-300;
+  }
+
+  .project-workspace-header__nav {
+    @apply flex min-w-0 flex-wrap items-center justify-between gap-150;
+  }
+
+  .project-workspace-back-link,
+  .project-ledger-task__open,
+  .project-workspace-not-found > a,
+  .projects-index__list a {
+    @apply inline-flex min-h-11 items-center gap-075 rounded-md text-body font-weight-medium text-link underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-border-focused;
+  }
+
+  .project-workspace-back-link svg,
+  .project-ledger-task__open svg,
+  .projects-index__list svg {
+    @apply size-4 shrink-0;
+  }
+
+  .project-workspace-eyebrow {
+    @apply text-body-small font-weight-medium uppercase text-text-subtle;
+    letter-spacing: 0.08em;
+  }
+
+  .project-workspace-header h1,
+  .projects-index h1,
+  .project-workspace-not-found h1 {
+    @apply mt-050 font-heading text-heading-xlarge text-text;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  .project-workspace-header__description,
+  .projects-index > header > p:last-child,
+  .project-workspace-not-found > p:not(.project-workspace-eyebrow) {
+    @apply mt-100 max-w-2xl text-body-large text-text-subtle;
+  }
+
+  .project-workspace-archive-badge {
+    @apply gap-075 border-border-bold;
+  }
+
+  .project-workspace-read-only {
+    @apply rounded-md border border-border-bold bg-surface-container px-150 py-100 text-body text-text;
+  }
+
+  .project-workspace-read-only strong {
+    @apply font-weight-semibold;
+  }
+
+  .project-workspace-summary {
+    @apply grid border-b border-border py-200;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .project-workspace-summary > div {
+    @apply min-w-0 border-l border-border px-200 first:border-l-0 first:pl-0;
+  }
+
+  .project-workspace-summary dt {
+    @apply text-body-small text-text-subtle;
+  }
+
+  .project-workspace-summary dd {
+    @apply mt-025 font-mono text-heading-small text-text;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .project-workspace-filters {
+    @apply grid gap-150 border-b border-border py-250;
+  }
+
+  .project-workspace-search label {
+    @apply block text-body-small font-weight-semibold text-text;
+  }
+
+  .project-workspace-search > div {
+    @apply mt-075 flex max-w-2xl gap-100;
+  }
+
+  .project-workspace-search input {
+    @apply min-h-11 min-w-0 flex-1 rounded-md border border-border-input bg-input-bg px-150 text-body text-text outline-none placeholder:text-text-subtlest focus-visible:border-border-focused focus-visible:ring-2 focus-visible:ring-border-focused/50;
+  }
+
+  .project-workspace-search button {
+    @apply min-h-11 rounded-md bg-brand-bold px-200 text-body font-weight-medium text-text-inverse outline-none hover:bg-brand-bold-hovered focus-visible:ring-2 focus-visible:ring-border-focused;
+  }
+
+  .project-workspace-state-filters {
+    @apply flex min-w-0 flex-wrap gap-075;
+  }
+
+  .project-workspace-state-filters a {
+    @apply inline-flex min-h-11 items-center rounded-md border border-border px-150 text-body font-weight-medium text-text-subtle outline-none hover:bg-neutral-subtle-hovered focus-visible:ring-2 focus-visible:ring-border-focused;
+  }
+
+  .project-workspace-state-filters a[aria-current='page'] {
+    @apply border-border-selected bg-selected text-text-selected;
+  }
+
+  .project-working-ledger {
+    @apply relative mt-300;
+  }
+
+  .project-working-ledger::before {
+    content: '';
+    @apply absolute bottom-8 left-[1.125rem] top-8 w-px bg-border;
+  }
+
+  .project-ledger-region {
+    @apply relative grid min-w-0 gap-200 pb-400;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+  }
+
+  .project-ledger-region__node {
+    @apply relative z-10 flex size-9 items-center justify-center rounded-full border border-border bg-surface text-icon-subtle;
+  }
+
+  .project-ledger-region:first-child .project-ledger-region__node {
+    @apply border-border-selected bg-brand-subtlest text-icon-information;
+  }
+
+  .project-ledger-region__node svg {
+    @apply size-4;
+  }
+
+  .project-ledger-region__body {
+    @apply min-w-0 pt-050;
+  }
+
+  .project-ledger-region__heading {
+    @apply flex min-w-0 items-baseline justify-between gap-150 border-b border-border pb-100;
+  }
+
+  .project-ledger-region__heading h2,
+  .projects-index h2 {
+    @apply font-heading text-heading-medium text-text;
+  }
+
+  .project-ledger-region__heading > span {
+    @apply font-mono text-body-small text-text-subtle;
+  }
+
+  .project-ledger-region__tasks {
+    @apply grid min-w-0 divide-y divide-border;
+  }
+
+  .project-ledger-task {
+    @apply grid min-w-0 items-start gap-150 py-200;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .project-ledger-task__identity,
+  .project-ledger-task__title-line {
+    @apply min-w-0;
+  }
+
+  .project-ledger-task__title-line {
+    @apply flex flex-wrap items-start gap-100;
+  }
+
+  .project-ledger-task h3 {
+    @apply min-w-0 font-heading text-heading-small text-text;
+    overflow-wrap: anywhere;
+  }
+
+  .project-ledger-task__identity > p {
+    @apply mt-075 text-body text-text-subtle;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
+
+  .project-ledger-task__meta {
+    @apply mt-100 flex flex-wrap gap-150 font-mono text-body-small text-text-subtlest;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .project-ledger-task__open {
+    @apply px-100;
+  }
+
+  .project-ledger-region__empty,
+  .projects-index__empty {
+    @apply mt-150 rounded-md border border-dashed border-border px-200 py-250 text-body text-text-subtle;
+  }
+
+  .projects-index {
+    @apply grid gap-400;
+  }
+
+  .projects-index > section {
+    @apply grid gap-150;
+  }
+
+  .projects-index__list {
+    @apply grid gap-100;
+  }
+
+  .projects-index__list > li {
+    @apply grid min-w-0 items-center gap-150 rounded-lg border border-border bg-surface-raised p-200;
+    box-shadow: var(--shadow-raised);
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .projects-index__list > li > svg {
+    @apply size-5 text-icon-subtle;
+  }
+
+  .projects-index__list strong,
+  .projects-index__list span {
+    @apply block;
+  }
+
+  .projects-index__list strong {
+    @apply font-heading text-heading-small text-text;
+    overflow-wrap: anywhere;
+  }
+
+  .projects-index__list span,
+  .projects-index__manager > p {
+    @apply mt-025 text-body-small text-text-subtle;
+  }
+
+  .projects-index__list--archived > li {
+    @apply border-dashed bg-surface-sunken shadow-none;
+  }
+
+  .projects-index__manager {
+    @apply rounded-lg border border-border bg-surface-raised p-250;
+  }
+
+  .projects-index__manager > div {
+    @apply mt-200;
+  }
+
+  .project-workspace-not-found {
+    @apply flex min-h-[60dvh] flex-col items-start justify-center;
+  }
+
+  .project-workspace-not-found > svg {
+    @apply mb-200 size-10 text-icon-subtle;
+  }
+
+  .project-workspace-loading {
+    @apply grid animate-pulse gap-250 motion-reduce:animate-none;
+  }
+
+  .project-workspace-loading > div {
+    @apply rounded-md bg-skeleton;
+  }
+
+  .project-workspace-loading__header { @apply h-32; }
+  .project-workspace-loading__summary { @apply h-20; }
+  .project-workspace-loading__filters { @apply h-28; }
+  .project-workspace-loading__ledger { @apply h-96; }
+
+  @media (max-width: 40rem) {
+    .project-workspace,
+    .projects-index,
+    .project-workspace-not-found {
+      @apply px-200 py-300;
+    }
+
+    .project-workspace-summary {
+      @apply grid-cols-2 gap-y-150;
+    }
+
+    .project-workspace-summary > div:nth-child(3) {
+      @apply border-l-0 pl-0;
+    }
+
+    .project-workspace-search > div,
+    .project-ledger-task,
+    .projects-index__list > li {
+      @apply grid-cols-1;
+    }
+
+    .project-workspace-search button,
+    .project-ledger-task__open,
+    .projects-index__list a {
+      @apply w-full justify-center;
+    }
+
+    .project-working-ledger::before {
+      @apply left-4;
+    }
+
+    .project-ledger-region {
+      @apply gap-150;
+      grid-template-columns: 2rem minmax(0, 1fr);
+    }
+
+    .project-ledger-region__node {
+      @apply size-8;
+    }
+  }
+
+  /* Package 4: URL-addressable task workspace */
+  .task-workspace-sheet {
+    @apply w-full gap-0 overflow-hidden border-l border-border bg-surface p-0 sm:max-w-2xl;
+  }
+
+  .task-workspace-sheet__header {
+    @apply sticky top-0 border-b border-border bg-surface px-250 py-200 pr-600;
+  }
+
+  .task-workspace-sheet__header [data-slot='sheet-title'] {
+    @apply font-heading text-heading-large text-text;
+    overflow-wrap: anywhere;
+  }
+
+  .task-workspace-notice {
+    @apply mx-250 mt-200 rounded-md border border-border bg-surface-container px-150 py-100 text-body text-text;
+  }
+
+  .task-workspace-notice[data-tone='error'] {
+    @apply border-border-danger text-text-danger-bolder;
+  }
+
+  .task-workspace-panel {
+    @apply flex min-h-0 min-w-0 flex-1 flex-col gap-250 overflow-y-auto px-250 py-250;
+  }
+
+  .task-workspace-identity {
+    @apply flex min-w-0 flex-wrap items-center justify-between gap-150;
+  }
+
+  .task-workspace-identity__details {
+    @apply grid min-w-0 gap-075;
+  }
+
+  .task-workspace-identity__details h2 {
+    @apply font-heading text-heading-medium text-text;
+    overflow-wrap: anywhere;
+  }
+
+  .task-workspace-identity__meta {
+    @apply flex min-w-0 flex-wrap items-center gap-100 text-body text-text-subtle;
+  }
+
+  .task-workspace-section {
+    @apply grid min-w-0 gap-150;
+  }
+
+  .task-workspace-section__heading {
+    @apply grid min-w-0 gap-050;
+  }
+
+  .task-workspace-section__heading--action {
+    @apply grid items-start gap-150 sm:grid-cols-[minmax(0,1fr)_auto];
+  }
+
+  .task-workspace-section__heading h3 {
+    @apply font-heading text-heading-small text-text;
+  }
+
+  .task-workspace-section__heading p,
+  .task-workspace-empty,
+  .task-workspace-read-only-note {
+    @apply text-body text-text-subtle;
+  }
+
+  .task-workspace-read-only-note {
+    @apply rounded-md border border-border bg-surface-container px-150 py-100;
+  }
+
+  .task-workspace-form {
+    @apply grid min-w-0 gap-100 rounded-lg border border-border bg-surface-sunken p-150;
+  }
+
+  .task-workspace-form textarea {
+    @apply min-h-11 w-full min-w-0 resize-y rounded-md border border-border-input bg-input-bg px-150 py-100 text-body text-text outline-none placeholder:text-text-subtlest focus-visible:border-border-focused focus-visible:ring-2 focus-visible:ring-border-focused/50 aria-invalid:border-border-danger aria-invalid:ring-2 aria-invalid:ring-border-danger/20;
+  }
+
+  .task-workspace-form [data-slot='button'] {
+    @apply justify-self-start;
+  }
+
+  .task-work-log,
+  .task-session-list {
+    @apply grid min-w-0 divide-y divide-border border-y border-border;
+  }
+
+  .task-work-log > li,
+  .task-session-list > li {
+    @apply grid min-w-0 gap-100 py-175;
+  }
+
+  .task-work-log__meta,
+  .task-session-list__summary {
+    @apply flex min-w-0 flex-wrap items-baseline justify-between gap-100 text-body-small text-text-subtle;
+  }
+
+  .task-work-log__meta > span,
+  .task-session-list__summary strong {
+    @apply font-weight-semibold text-text;
+  }
+
+  .task-work-log > li > p:not(.task-work-log__next) {
+    @apply text-body text-text;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
+
+  .task-work-log__next,
+  .task-session-list__audit {
+    @apply text-body-small text-text-subtle;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
+
+  .task-session-correction {
+    @apply sm:grid-cols-2;
+  }
+
+  .task-session-correction > div {
+    @apply grid gap-075;
+  }
+
+  .task-session-correction__reason,
+  .task-workspace-field-error,
+  .task-session-correction [data-slot='button'] {
+    @apply sm:col-span-2;
+  }
+
+  .task-workspace-field-error {
+    @apply text-body-small text-text-danger-bolder;
+  }
+
+  .task-workspace-finish {
+    @apply shrink-0 overflow-y-auto border-t border-border bg-surface px-250 pt-150;
+    max-height: 45dvh;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  .task-workspace-finish__actions {
+    @apply flex flex-wrap gap-100;
+  }
+
+  @media (max-width: 40rem) {
+    .task-workspace-sheet {
+      @apply w-full max-w-none border-l-0;
+    }
+
+    .task-workspace-sheet__header,
+    .task-workspace-panel,
+    .task-workspace-finish {
+      @apply px-200;
+    }
+
+    .task-workspace-identity,
+    .task-workspace-finish__actions {
+      @apply grid grid-cols-1;
+    }
+
+    .task-workspace-identity [data-slot='button'],
+    .task-workspace-finish__actions [data-slot='button'] {
+      @apply w-full;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .task-workspace-sheet {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+
   .dashboard-shell {
     @apply min-h-dvh bg-surface-sunken text-text;
   }

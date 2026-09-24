@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CalendarCheck2 } from 'lucide-react';
+import { CalendarCheck2, FolderOpen } from 'lucide-react';
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -22,16 +22,17 @@ export default function ApplicationNavigation({ pathname, placement }: Applicati
   const isMedium = placement === 'medium';
 
   const navigation = (
-    <nav
-      aria-label={isNarrow ? 'Mobile primary' : 'Primary'}
-      className={placementClassNames[placement]}
-    >
+    <nav aria-label={isNarrow ? 'Mobile primary' : 'Primary'} className={placementClassNames[placement]}>
       {!isNarrow ? (
         <div className="dashboard-navigation-brand" aria-label="My Progress">
-          <span aria-hidden="true" className="dashboard-navigation-mark">M</span>
+          <span aria-hidden="true" className="dashboard-navigation-mark">
+            M
+          </span>
           {!isMedium ? (
             <span className="leading-tight">
-              <span className="block text-body-small font-weight-semibold uppercase tracking-[0.16em] text-text-subtlest">My</span>
+              <span className="block text-body-small font-weight-semibold uppercase tracking-[0.16em] text-text-subtlest">
+                My
+              </span>
               <span className="block font-heading text-heading-xsmall text-text">Progress</span>
             </span>
           ) : null}
@@ -41,6 +42,7 @@ export default function ApplicationNavigation({ pathname, placement }: Applicati
       <div className={isNarrow ? 'dashboard-navigation-items-mobile' : 'dashboard-navigation-items'}>
         {items.map((item) => {
           const current = item.isActive(pathname);
+          const Icon = item.icon === 'today' ? CalendarCheck2 : FolderOpen;
           const link = (
             <Link
               key={item.key}
@@ -50,7 +52,7 @@ export default function ApplicationNavigation({ pathname, placement }: Applicati
               className="dashboard-navigation-link"
               data-current={current ? 'true' : undefined}
             >
-              <CalendarCheck2 className="size-5" aria-hidden="true" />
+              <Icon className="size-5" aria-hidden="true" />
               {!isMedium || isNarrow ? <span>{item.label}</span> : null}
             </Link>
           );

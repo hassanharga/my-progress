@@ -1,12 +1,12 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
-import { Laptop, LogOut, Moon, Plus, Settings as SettingsIcon, Sun } from 'lucide-react';
+import { Laptop, LogOut, Moon, Settings as SettingsIcon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 import { useUserContext } from '@/contexts/user.context';
-import { Settings } from '@/components/shared/Settings';
 import { restoreOverlayFocus } from '@/components/shared/overlay-focus';
+import { Settings } from '@/components/shared/Settings';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -50,22 +50,11 @@ export default function DashboardTopBar() {
       .slice(0, 2);
   }, [user]);
 
-  const handleCreateTask = () => {
-    window.dispatchEvent(new CustomEvent('create-task'));
-  };
-
   return (
     <header className="sticky top-0 z-20 flex h-[var(--shell-topbar-height)] shrink-0 items-center gap-200 border-b bg-surface/90 px-200 backdrop-blur sm:px-300">
       <ProjectSwitcher onManageProjects={openSettings} />
 
       <div className="ml-auto flex items-center gap-100">
-        {user?.currentProjectId && (
-          <Button variant="primary" size="sm" className="cursor-pointer" onClick={handleCreateTask} aria-label="Create task">
-            <Plus className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Create task</span>
-          </Button>
-        )}
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="subtle" size="icon" aria-label="Choose theme" className="relative cursor-pointer">
@@ -90,7 +79,11 @@ export default function DashboardTopBar() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button ref={accountMenuTriggerRef} aria-label="Open account menu" className="cursor-pointer rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-border-focused focus-visible:ring-offset-2">
+            <button
+              ref={accountMenuTriggerRef}
+              aria-label="Open account menu"
+              className="cursor-pointer rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-border-focused focus-visible:ring-offset-2"
+            >
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-brand-subtlest text-xs font-weight-medium text-text-brand">
                   {userInitials}

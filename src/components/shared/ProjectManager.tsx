@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState, type FC } from 'react';
+import type { ProjectWorkspaceViewModel } from '@/server/projects/project-workspace-types';
+import type { DomainResult } from '@/server/tasks/task-transition-types';
 import { Archive, Check, ChevronDown, ChevronRight, Plus, X } from 'lucide-react';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
@@ -14,7 +16,63 @@ import {
   type ProjectListItem,
 } from '@/actions/project';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+
+export function ProjectArchiveConfirmation({
+  name,
+  onConfirm,
+  pending,
+}: {
+  name: string;
+  onConfirm: () => void;
+  pending: boolean;
+}) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          aria-label={`Archive ${name}`}
+          className="cursor-pointer shrink-0"
+          size="icon-sm"
+          title="Archive project"
+          variant="subtle"
+        >
+          <Archive className="w-3.5 h-3.5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Archive this project?</DialogTitle>
+          <DialogDescription>
+            {name} will leave the active project list. Its tasks and work history remain available to restore.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="default">
+              Keep project
+            </Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button disabled={pending} onClick={onConfirm} type="button" variant="danger">
+              Confirm archive
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 const ProjectManager: FC = () => {
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
@@ -48,13 +106,25 @@ const ProjectManager: FC = () => {
     onError: ({ error }) => toast.error(error.serverError ?? 'Failed to rename project'),
   });
 
-  const { execute: executeArchive } = useAction(archiveProject, {
-    onSuccess: () => loadProjects(),
+  const onLifecycleSuccess = ({ data }: { data?: DomainResult<ProjectWorkspaceViewModel> }) => {
+    if (!data) {
+      toast.error('The project change could not be confirmed');
+      return;
+    }
+    if (!data.ok) {
+      toast.error(data.error.message);
+      return;
+    }
+    loadProjects();
+  };
+
+  const { execute: executeArchive, isPending: isArchiving } = useAction(archiveProject, {
+    onSuccess: onLifecycleSuccess,
     onError: ({ error }) => toast.error(error.serverError ?? 'Failed to archive project'),
   });
 
   const { execute: executeUnarchive } = useAction(unarchiveProject, {
-    onSuccess: () => loadProjects(),
+    onSuccess: onLifecycleSuccess,
     onError: ({ error }) => toast.error(error.serverError ?? 'Failed to unarchive project'),
   });
 
@@ -85,6 +155,8 @@ const ProjectManager: FC = () => {
     setEditingId(null);
     setEditValue('');
   };
+
+  const confirmArchive = (projectId: string) => executeArchive({ id: projectId });
 
   return (
     <div className="flex flex-col gap-2">
@@ -157,15 +229,11 @@ const ProjectManager: FC = () => {
                   <span className="truncate text-body font-weight-medium text-text">{p.name}</span>
                 </button>
                 <span className="shrink-0 text-body-small text-text-subtlest">{p.taskCount} tasks</span>
-                <Button
-                  variant="subtle"
-                  size="icon-sm"
-                  onClick={() => executeArchive({ id: p.id })}
-                  className="cursor-pointer shrink-0"
-                  title="Archive project"
-                >
-                  <Archive className="w-3.5 h-3.5" />
-                </Button>
+                <ProjectArchiveConfirmation
+                  name={p.name}
+                  onConfirm={() => confirmArchive(p.id)}
+                  pending={isArchiving}
+                />
               </>
             )}
           </div>

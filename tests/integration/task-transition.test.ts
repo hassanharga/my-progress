@@ -5,9 +5,9 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Client } from 'pg';
 
 import { PrismaClient, type TaskStatus } from '../../generated/prisma/client';
+import { mutateProjectWorkspaceLifecycleForOwner } from '../../src/server/projects/mutate-project-workspace';
 import type { TaskTransitionEvent } from '../../src/server/tasks/task-transition-types';
 import {
-  archiveOwnedProject,
   isTransitionSerializationError,
   reconcileTaskTransition,
   runTodayTransitionWithRetry,
@@ -972,7 +972,12 @@ describe('owner-scoped task transitions', () => {
 
     const results = await Promise.all([
       transitionTask({ clock: () => NOW, input: { event: 'START', taskId: TASK_ID }, ownerId: USER_A_ID, prisma }),
-      archiveOwnedProject({ ownerId: USER_A_ID, prisma, projectId: PROJECT_A_ID }),
+      mutateProjectWorkspaceLifecycleForOwner({
+        mutation: { projectId: PROJECT_A_ID, type: 'ARCHIVE' },
+        ownerId: USER_A_ID,
+        prisma,
+        query: { query: '', state: null, taskId: null },
+      }),
     ]);
 
     expect(results.filter(({ ok }) => ok)).toHaveLength(1);

@@ -3,13 +3,16 @@
 import { revalidatePath } from 'next/cache';
 import { validateUserToken } from '@/helpers/validate-user';
 import { projectCreateSchema, projectIdSchema, projectRenameSchema } from '@/schema/project';
-import { archiveOwnedProject } from '@/server/tasks/transition-task';
+import { mutateProjectWorkspaceLifecycleForOwner } from '@/server/projects/mutate-project-workspace';
+import type { ProjectWorkspaceQuery } from '@/server/projects/project-workspace-types';
 
 import { paths } from '@/paths';
 import { actionClient } from '@/lib/action-client';
 import prisma from '@/lib/db';
 
 import type { PrismaClient } from '../../generated/prisma/client';
+
+const defaultWorkspaceQuery: ProjectWorkspaceQuery = { query: '', state: null, taskId: null };
 
 export const createProject = actionClient.inputSchema(projectCreateSchema).action(async ({ parsedInput: { name } }) => {
   const user = await validateUserToken();
@@ -48,53 +51,48 @@ export const archiveProjectForOwner = async ({
   ownerId,
   prisma: client,
   projectId,
+  query = defaultWorkspaceQuery,
 }: {
   clock?: () => Date;
   ownerId: string;
   prisma: PrismaClient;
   projectId: string;
+  query?: ProjectWorkspaceQuery;
 }) => {
-  const result = await archiveOwnedProject({ clock, ownerId, prisma: client, projectId });
-  if (!result.ok) return result;
-
-  const userData = await client.user.findUnique({
-    where: { id: ownerId },
-    select: { currentProjectId: true },
+  return mutateProjectWorkspaceLifecycleForOwner({
+    clock,
+    mutation: { projectId, type: 'ARCHIVE' },
+    ownerId,
+    prisma: client,
+    query,
   });
-  if (userData?.currentProjectId === projectId) {
-    const next = await client.project.findFirst({
-      where: { ownerId, archived: false, id: { not: projectId } },
-      orderBy: { createdAt: 'desc' },
-      select: { id: true },
-    });
-    await client.user.update({
-      where: { id: ownerId },
-      data: { currentProjectId: next?.id ?? null },
-    });
-  }
-
-  return result;
 };
 
 export const archiveProject = actionClient.inputSchema(projectIdSchema).action(async ({ parsedInput: { id } }) => {
   const user = await validateUserToken();
   const result = await archiveProjectForOwner({ ownerId: user.id!, prisma, projectId: id });
 
-  if (result.ok) revalidatePath(paths.dashboard);
+  if (result.ok) {
+    revalidatePath(paths.dashboard);
+    revalidatePath(`/projects/${id}`);
+  }
   return result;
 });
 
 export const unarchiveProject = actionClient.inputSchema(projectIdSchema).action(async ({ parsedInput: { id } }) => {
   const user = await validateUserToken();
-
-  const { count } = await prisma.project.updateMany({
-    where: { id, ownerId: user.id },
-    data: { archived: false, archivedAt: null },
+  const result = await mutateProjectWorkspaceLifecycleForOwner({
+    mutation: { projectId: id, type: 'RESTORE' },
+    ownerId: user.id!,
+    prisma,
+    query: defaultWorkspaceQuery,
   });
 
-  if (count === 0) throw new Error('Project not found');
-
-  revalidatePath(paths.dashboard);
+  if (result.ok) {
+    revalidatePath(paths.dashboard);
+    revalidatePath(`/projects/${id}`);
+  }
+  return result;
 });
 
 export const switchProject = actionClient.inputSchema(projectIdSchema).action(async ({ parsedInput: { id } }) => {
