@@ -2,7 +2,10 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { Children, isValidElement, type ReactElement, type ReactNode } from 'react';
+import ProjectsPage from '@/app/projects/page';
+import { validateUserToken } from '@/helpers/validate-user';
 
+import db from '@/lib/db';
 import { ProjectArchiveConfirmation } from '@/components/shared/ProjectManager';
 
 jest.mock('next-safe-action/hooks', () => ({ useAction: jest.fn() }));
@@ -14,9 +17,18 @@ jest.mock('@/actions/project', () => ({
   unarchiveProject: jest.fn(),
 }));
 jest.mock('sonner', () => ({ toast: { error: jest.fn() } }));
+jest.mock('@/helpers/validate-user', () => ({ validateUserToken: jest.fn() }));
+jest.mock('@/lib/db', () => ({
+  __esModule: true,
+  default: { project: { findFirst: jest.fn(), findMany: jest.fn() }, user: { findUnique: jest.fn() } },
+}));
+jest.mock('next/navigation', () => ({
+  redirect: jest.fn(() => {
+    throw new Error('Unexpected redirect');
+  }),
+}));
 
 const projectPageSource = readFileSync(resolve(process.cwd(), 'src/app/projects/[projectId]/page.tsx'), 'utf8');
-const projectsPageSource = readFileSync(resolve(process.cwd(), 'src/app/projects/page.tsx'), 'utf8');
 const projectManagerSource = readFileSync(resolve(process.cwd(), 'src/components/shared/ProjectManager.tsx'), 'utf8');
 
 describe('Project workspace route contract', () => {
@@ -42,13 +54,28 @@ describe('Project workspace route contract', () => {
     expect(projectPageSource).toContain('initialWorkspace={workspace}');
   });
 
-  it('redirects only to an owned active project and otherwise renders the chooser', () => {
-    expect(projectsPageSource).toContain('validateUserToken()');
-    expect(projectsPageSource).toContain('ownerId: user.id!');
-    expect(projectsPageSource).toContain('archived: false');
-    expect(projectsPageSource).toContain('currentProjectId');
-    expect(projectsPageSource).toContain('redirect(`/projects/${activeProject.id}`)');
-    expect(projectsPageSource).toContain('<ProjectsIndex projects={projects} />');
+  it('lists owned projects even when the user has a current project', async () => {
+    jest
+      .mocked(validateUserToken)
+      .mockResolvedValue({ id: 'owner-1' } as Awaited<ReturnType<typeof validateUserToken>>);
+    jest
+      .mocked(db.user.findUnique)
+      .mockResolvedValue({ currentProjectId: 'project-1' } as Awaited<ReturnType<typeof db.user.findUnique>>);
+    jest
+      .mocked(db.project.findFirst)
+      .mockResolvedValue({ id: 'project-1' } as Awaited<ReturnType<typeof db.project.findFirst>>);
+    jest.mocked(db.project.findMany).mockResolvedValue([
+      { _count: { tasks: 2 }, archived: false, archivedAt: null, id: 'project-1', name: 'Personal' },
+      { _count: { tasks: 1 }, archived: false, archivedAt: null, id: 'project-2', name: 'Shared' },
+    ] as unknown as Awaited<ReturnType<typeof db.project.findMany>>);
+
+    const result = await ProjectsPage();
+
+    expect(result.props.projects).toEqual([
+      { archived: false, archivedAt: null, id: 'project-1', name: 'Personal', taskCount: 2 },
+      { archived: false, archivedAt: null, id: 'project-2', name: 'Shared', taskCount: 1 },
+    ]);
+    expect(db.project.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { ownerId: 'owner-1' } }));
   });
 
   it('reloads project choices only after confirmed archive and restore success', () => {

@@ -1,24 +1,20 @@
 import { useState, type FC } from 'react';
-import dynamic from 'next/dynamic';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-const Editor = dynamic(() => import('../../shared/Editor'), { ssr: false });
-
 type Props = {
-  createTask: ({ progress, title }: { progress: string; title: string }) => void;
+  createTask: ({ description, title }: { description: string; title: string }) => void;
   isLoading: boolean;
-  lastTaskTodo: string;
   setOpen: (open: boolean) => void;
   open: boolean;
 };
 
-export const CreateTask: FC<Props> = ({ createTask, isLoading, lastTaskTodo, open, setOpen }) => {
+export const CreateTask: FC<Props> = ({ createTask, isLoading, open, setOpen }) => {
   const [title, setTitle] = useState('');
-  const [progress, setProgress] = useState(lastTaskTodo);
+  const [description, setDescription] = useState('');
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -42,14 +38,17 @@ export const CreateTask: FC<Props> = ({ createTask, isLoading, lastTaskTodo, ope
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="currentCompany" className="text-start">
-              What are you going to do in this task?
+            <Label htmlFor="task-description" className="text-start">
+              Description (optional)
             </Label>
-            <Editor
-              defaultValue={lastTaskTodo}
-              onChange={(value) => {
-                setProgress(value);
-              }}
+            <textarea
+              className="min-h-24 w-full rounded-md border border-border-input bg-surface px-150 py-100 text-body text-text outline-none focus-visible:border-border-focused focus-visible:ring-[3px] focus-visible:ring-border-focused/50"
+              id="task-description"
+              maxLength={20_000}
+              onChange={(event) => setDescription(event.currentTarget.value)}
+              placeholder="What does this task involve?"
+              rows={3}
+              value={description}
             />
           </div>
         </div>
@@ -57,7 +56,7 @@ export const CreateTask: FC<Props> = ({ createTask, isLoading, lastTaskTodo, ope
           <Button
             className={`self-end ${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             onClick={async () => {
-              createTask({ title, progress });
+              createTask({ title, description });
             }}
             disabled={isLoading || !title}
           >

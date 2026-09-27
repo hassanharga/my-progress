@@ -1362,6 +1362,10 @@
     overflow-wrap: anywhere;
   }
 
+  .task-workspace-identity__time {
+    @apply text-body-small text-text-subtle;
+  }
+
   .task-workspace-identity__meta {
     @apply flex min-w-0 flex-wrap items-center gap-100 text-body text-text-subtle;
   }
@@ -1411,7 +1415,7 @@
 
   .task-work-log > li,
   .task-session-list > li {
-    @apply grid min-w-0 gap-100 py-175;
+    @apply grid min-w-0 gap-100 py-150;
   }
 
   .task-work-log__meta,
@@ -1459,6 +1463,16 @@
     @apply shrink-0 overflow-y-auto border-t border-border bg-surface px-250 pt-150;
     max-height: 45dvh;
     padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  .task-workspace-outcome {
+    @apply rounded-lg border border-border-success bg-success-subtler p-150;
+  }
+
+  .task-workspace-outcome > p {
+    @apply text-body text-text;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
   }
 
   .task-workspace-finish__actions {

@@ -110,6 +110,18 @@ afterAll(async () => {
 });
 
 describe('task workspace mutations', () => {
+  it('updates description without adding progress, including after completion', async () => {
+    await createTask({ status: 'COMPLETED' });
+    const result = await mutateTaskWorkspaceForOwner({
+      mutation: { description: 'Final scope', projectId: PROJECT_ID, taskId: TASK_ID, type: 'UPDATE_DESCRIPTION' },
+      ownerId: OWNER_ID,
+      prisma,
+      query: query(),
+    });
+    expect(result).toMatchObject({ data: { selectedTask: { task: { description: 'Final scope' }, workLog: [] } }, ok: true });
+    await expect(prisma.task.findUniqueOrThrow({ where: { id: TASK_ID } })).resolves.toMatchObject({ description: 'Final scope' });
+  });
+
   it('appends one progress entry and atomically updates the next step', async () => {
     await createTask();
 

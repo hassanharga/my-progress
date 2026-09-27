@@ -18,6 +18,16 @@ const canonical = (name: string): ProjectWorkspaceViewModel => ({
 });
 
 describe('task workspace reducer', () => {
+  it('retains a description draft and attaches a save failure to its field', () => {
+    let state = createProjectWorkspaceClientState(canonical('Original'));
+    state = taskWorkspaceReducer(state, { field: 'description', type: 'EDIT_DRAFT', value: 'The scope' });
+    state = taskWorkspaceReducer(state, { key: 'description', requestId: 1, type: 'REQUEST' });
+    state = taskWorkspaceReducer(state, {
+      key: 'description', message: 'Could not save description.', requestId: 1, type: 'FAILURE',
+    });
+    expect(state.drafts.description).toBe('The scope');
+    expect(state.fieldErrors.description).toBe('Could not save description.');
+  });
   it('keeps each request identity when same-key responses resolve out of order', async () => {
     let state = createProjectWorkspaceClientState(canonical('Original'));
     let resolveFirst!: (value: ProjectWorkspaceViewModel) => void;

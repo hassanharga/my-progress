@@ -6,6 +6,7 @@ export type CorrectionDraft = { endedAt: string; reason: string; startedAt: stri
 
 export type WorkspaceDrafts = {
   corrections: Record<string, CorrectionDraft>;
+  description: string;
   nextStep: string;
   progress: string;
   progressNextStep: string;
@@ -16,7 +17,7 @@ export type WorkspaceNotice = { message: string; tone: 'error' | 'info' | 'succe
 export type ProjectWorkspaceClientState = {
   canonical: ProjectWorkspaceViewModel;
   drafts: WorkspaceDrafts;
-  fieldErrors: { nextStep: string | null; progress: string | null };
+  fieldErrors: { description: string | null; nextStep: string | null; progress: string | null };
   notice: WorkspaceNotice | null;
   pending: Record<string, number>;
   requiresRefresh: boolean;
@@ -26,7 +27,7 @@ export type ProjectWorkspaceClientState = {
 type ClearTarget = 'nextStep' | 'progress' | { correction: string };
 
 export type TaskWorkspaceAction =
-  | { type: 'EDIT_DRAFT'; field: 'nextStep' | 'progress' | 'progressNextStep'; value: string }
+  | { type: 'EDIT_DRAFT'; field: 'description' | 'nextStep' | 'progress' | 'progressNextStep'; value: string }
   | { type: 'EDIT_CORRECTION'; sessionId: string; value: CorrectionDraft }
   | { type: 'REQUEST'; key: string; requestId: number }
   | {
@@ -81,11 +82,12 @@ export const createProjectWorkspaceClientState = (
   canonical,
   drafts: {
     corrections: {},
+    description: canonical.selectedTask?.task.description ?? '',
     nextStep: readableRichText(canonical.selectedTask?.task.currentNextStep),
     progress: '',
     progressNextStep: '',
   },
-  fieldErrors: { nextStep: null, progress: null },
+  fieldErrors: { description: null, nextStep: null, progress: null },
   notice: null,
   pending: {},
   requiresRefresh: false,
@@ -123,7 +125,9 @@ export function taskWorkspaceReducer(
       return {
         ...state,
         fieldErrors:
-          action.key === 'progress'
+          action.key === 'description'
+            ? { ...state.fieldErrors, description: null }
+            : action.key === 'progress'
             ? { ...state.fieldErrors, progress: null }
             : action.key === 'next-step'
               ? { ...state.fieldErrors, nextStep: null }
@@ -139,7 +143,9 @@ export function taskWorkspaceReducer(
         canonical: state.requiresRefresh ? state.canonical : action.workspace,
         drafts: clearedDrafts(state.drafts, action.clear),
         fieldErrors:
-          action.key === 'progress'
+          action.key === 'description'
+            ? { ...state.fieldErrors, description: null }
+            : action.key === 'progress'
             ? { ...state.fieldErrors, progress: null }
             : action.key === 'next-step'
               ? { ...state.fieldErrors, nextStep: null }
@@ -155,7 +161,9 @@ export function taskWorkspaceReducer(
         ...state,
         canonical: state.requiresRefresh ? state.canonical : (action.canonical ?? state.canonical),
         fieldErrors:
-          action.key === 'progress'
+          action.key === 'description'
+            ? { ...state.fieldErrors, description: action.message }
+            : action.key === 'progress'
             ? { ...state.fieldErrors, progress: action.message }
             : action.key === 'next-step'
               ? { ...state.fieldErrors, nextStep: action.message }

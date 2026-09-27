@@ -7,6 +7,7 @@ import type { ProjectWorkspaceViewModel } from '@/server/projects/project-worksp
 import { CheckCircle2, XCircle } from 'lucide-react';
 import { useAction } from 'next-safe-action/hooks';
 
+import { readableRichText } from '@/lib/rich-text-content';
 import { correctWorkSession, mutateTaskWorkspace } from '@/actions/task-workspace';
 import { buildProjectWorkspaceHref } from '@/components/project-workspace/project-workspace-url';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { Spinner } from '@/components/ui/spinner';
 
 import { NextStepEditor } from './NextStepEditor';
+import { DescriptionEditor } from './DescriptionEditor';
 import { correctionDraftForSession } from './SessionCorrectionForm';
 import { SessionHistory } from './SessionHistory';
 import {
@@ -37,9 +39,10 @@ import { TaskWorkspaceHeader } from './TaskWorkspaceHeader';
 import { WorkLogComposer } from './WorkLogComposer';
 import { WorkLogTimeline } from './WorkLogTimeline';
 
-type DraftFields = { nextStep: string; progress: string; progressNextStep: string };
+type DraftFields = { description: string; nextStep: string; progress: string; progressNextStep: string };
 
 const mutationKey = (mutation: TaskWorkspaceMutation): string => {
+  if (mutation.type === 'UPDATE_DESCRIPTION') return 'description';
   if (mutation.type === 'LOG_PROGRESS') return 'progress';
   if (mutation.type === 'UPDATE_NEXT_STEP') return 'next-step';
   return `transition:${mutation.transition.event.toLowerCase()}`;
@@ -114,6 +117,30 @@ function TaskWorkspaceFinishActions({
   );
 }
 
+function TaskWorkspaceOutcome({ selected }: { selected: NonNullable<ProjectWorkspaceViewModel['selectedTask']> }) {
+  const completed = selected.task.status === 'COMPLETED';
+  const summary = selected.workLog.find((entry) => entry.kind === 'COMPLETION_SUMMARY');
+  const terminalAt = selected.task.terminalAt;
+  return (
+    <section aria-labelledby="task-outcome-heading" className="task-workspace-section task-workspace-outcome">
+      <div className="task-workspace-section__heading">
+        <h3 id="task-outcome-heading">{completed ? 'Done' : 'Closed'}</h3>
+        <p>
+          {completed ? 'Completed' : 'Cancelled'}
+          {terminalAt ? ' on ' : ''}
+          {terminalAt ? (
+            <time dateTime={terminalAt.toISOString()}>
+              {new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(terminalAt)}
+            </time>
+          ) : null}
+          .
+        </p>
+      </div>
+      {completed ? <p>{summary ? readableRichText(summary.content) : 'No completion summary was recorded.'}</p> : null}
+    </section>
+  );
+}
+
 export function TaskWorkspacePanel({
   composerExpanded = false,
   correctionDrafts,
@@ -127,6 +154,7 @@ export function TaskWorkspacePanel({
   onLogProgress,
   onTransition,
   onUpdateNextStep,
+  onUpdateDescription = () => undefined,
   pending,
   showFinishActions = true,
   workspace,
@@ -135,7 +163,7 @@ export function TaskWorkspacePanel({
   correctionDrafts: Record<string, CorrectionDraft>;
   drafts: DraftFields;
   errorBySession?: Record<string, string>;
-  errorByField?: { nextStep?: string | null; progress?: string | null };
+  errorByField?: { description?: string | null; nextStep?: string | null; progress?: string | null };
   onCorrectionDraftChange: (sessionId: string, value: CorrectionDraft) => void;
   onCorrectSession: (sessionId: string) => void;
   onDraftChange: (field: keyof DraftFields, value: string) => void;
@@ -143,6 +171,7 @@ export function TaskWorkspacePanel({
   onLogProgress: () => void;
   onTransition: (event: 'CANCEL' | 'COMPLETE' | 'PAUSE' | 'START') => void;
   onUpdateNextStep: () => void;
+  onUpdateDescription?: () => void;
   pending: Record<string, number>;
   showFinishActions?: boolean;
   workspace: ProjectWorkspaceViewModel;
@@ -169,6 +198,15 @@ export function TaskWorkspacePanel({
         </p>
       ) : null}
       <Separator />
+      <DescriptionEditor
+        archived={archived}
+        current={selected.task.description}
+        draft={drafts.description}
+        error={errorByField.description}
+        onChange={(value) => onDraftChange('description', value)}
+        onSubmit={onUpdateDescription}
+        pending={Boolean(pending.description)}
+      />
       <NextStepEditor
         archived={archived || terminal}
         current={selected.task.currentNextStep}
@@ -177,6 +215,7 @@ export function TaskWorkspacePanel({
         onChange={(value) => onDraftChange('nextStep', value)}
         onSubmit={onUpdateNextStep}
         pending={Boolean(pending['next-step'])}
+        terminal={terminal}
       />
       {!archived && !terminal ? (
         <WorkLogComposer
@@ -191,7 +230,7 @@ export function TaskWorkspacePanel({
           pending={Boolean(pending.progress)}
         />
       ) : null}
-      <WorkLogTimeline entries={selected.workLog} />
+      <WorkLogTimeline entries={selected.workLog.filter((entry) => entry.kind !== 'COMPLETION_SUMMARY')} />
       <SessionHistory
         archived={archived}
         drafts={correctionDrafts}
@@ -201,6 +240,7 @@ export function TaskWorkspacePanel({
         pending={pending}
         sessions={selected.sessions}
       />
+      {terminal ? <TaskWorkspaceOutcome selected={selected} /> : null}
       {!archived && !terminal && showFinishActions ? (
         <TaskWorkspaceFinishActions onTransition={onTransition} pending={pending} />
       ) : null}
@@ -271,7 +311,9 @@ export function TaskWorkspaceSheet({ initialWorkspace }: { initialWorkspace: Pro
         const clear: 'nextStep' | 'progress' | undefined =
           mutation.type === 'LOG_PROGRESS' ? 'progress' : mutation.type === 'UPDATE_NEXT_STEP' ? 'nextStep' : undefined;
         const message =
-          mutation.type === 'LOG_PROGRESS'
+          mutation.type === 'UPDATE_DESCRIPTION'
+            ? 'Description saved.'
+            : mutation.type === 'LOG_PROGRESS'
             ? 'Progress saved.'
             : mutation.type === 'UPDATE_NEXT_STEP'
               ? 'Next step saved.'
@@ -308,7 +350,7 @@ export function TaskWorkspaceSheet({ initialWorkspace }: { initialWorkspace: Pro
       open={Boolean(selected)}
     >
       <SheetContent
-        className="task-workspace-sheet"
+        className="task-workspace-sheet w-full sm:max-w-2xl"
         onOpenAutoFocus={() => {
           const active = document.activeElement;
           if (active instanceof HTMLElement && active.matches('a[href]')) opener.current = active;
@@ -431,6 +473,15 @@ export function TaskWorkspaceSheet({ initialWorkspace }: { initialWorkspace: Pro
               projectId: state.canonical.project.id,
               taskId: selected.task.id,
               type: 'UPDATE_NEXT_STEP',
+            });
+          }}
+          onUpdateDescription={() => {
+            if (!selected) return;
+            runMutation({
+              description: state.drafts.description,
+              projectId: state.canonical.project.id,
+              taskId: selected.task.id,
+              type: 'UPDATE_DESCRIPTION',
             });
           }}
           pending={state.pending}

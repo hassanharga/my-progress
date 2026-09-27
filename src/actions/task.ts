@@ -136,6 +136,7 @@ export const updateTaskDetailsForOwner = async ({
 
     await tx.task.update({
       data: {
+        ...(input.description !== undefined ? { description: input.description || null } : {}),
         ...(input.progress !== undefined ? { progress: input.progress || null } : {}),
         ...(input.title !== undefined ? { title: input.title } : {}),
         ...(input.todo !== undefined ? { currentNextStep: input.todo || null, todo: input.todo || null } : {}),

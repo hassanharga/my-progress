@@ -215,6 +215,7 @@ export function TodayCockpit({ initialToday }: TodayCockpitProps): ReactNode {
           timezone={state.today.timezone}
           workload={state.today.workload}
         />
+        <DailySummary summary={state.today.summary} workload={state.today.workload} />
         {state.today.projects.length === 0 ? (
           <section aria-labelledby="today-first-project-heading" className="rounded-lg border border-dashed border-border bg-surface p-250">
             <h2 id="today-first-project-heading" className="font-heading text-heading-small text-text">Create your first project</h2>
@@ -273,7 +274,6 @@ export function TodayCockpit({ initialToday }: TodayCockpitProps): ReactNode {
           }
           onTransition={(taskId, event) => void transition({ event, taskId })}
         />
-        <DailySummary summary={state.today.summary} workload={state.today.workload} />
       </section>
     </TodayCockpitContext.Provider>
   );

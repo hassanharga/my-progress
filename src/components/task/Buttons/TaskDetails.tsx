@@ -32,6 +32,7 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [progress, setProgress] = useState('');
   const [todo, setTodo] = useState('');
   const completeTriggerRef = useRef<HTMLButtonElement>(null);
@@ -47,6 +48,7 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
 
   const handleEdit = () => {
     setTitle(task.title);
+    setDescription(task.description || '');
     setProgress(task.progress || '');
     setTodo(task.todo || '');
     setIsEditing(true);
@@ -60,8 +62,9 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
     const result = await editTask({
       id: task.id,
       title,
-      progress,
-      todo,
+      description,
+      progress: progress === (task.progress || '') ? undefined : progress,
+      todo: todo === (task.todo || '') ? undefined : todo,
     });
     if (!result.ok) {
       toast.error(result.error ?? 'Task details were not saved');
@@ -101,7 +104,7 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
         <DialogContent className="sm:max-w-[60vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Task</DialogTitle>
-            <DialogDescription>Update the task title, progress, and next steps.</DialogDescription>
+            <DialogDescription>Update the task title, description, progress, and next steps.</DialogDescription>
             <Badge className={`${statusColor.badge} w-fit`}>{statusColor.label}</Badge>
           </DialogHeader>
 
@@ -113,6 +116,17 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Task title"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="edit-description">Description (optional)</Label>
+              <textarea
+                className="min-h-24 w-full rounded-md border border-border-input bg-surface px-150 py-100 text-body text-text outline-none focus-visible:border-border-focused focus-visible:ring-[3px] focus-visible:ring-border-focused/50"
+                id="edit-description"
+                maxLength={20_000}
+                onChange={(event) => setDescription(event.currentTarget.value)}
+                rows={3}
+                value={description}
               />
             </div>
           </div>
@@ -168,6 +182,11 @@ export const TaskDetails: FC<Props> = ({ task, open, setOpen }) => {
           </DialogHeader>
 
           <Separator className="my-6" />
+
+          <div className="mb-6 space-y-2">
+            <h3 className="font-medium">Task description</h3>
+            <p className="whitespace-pre-line text-text-subtle">{task.description || 'No description added yet.'}</p>
+          </div>
 
           {/* Meta Information */}
           <FadeIn delay={0.1}>

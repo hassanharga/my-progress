@@ -481,7 +481,7 @@ export const createTaskWithTransition = async ({
   prisma,
 }: {
   clock?: () => Date;
-  input: { progress?: string; startNow: boolean; title: string };
+  input: { description?: string; progress?: string; startNow: boolean; title: string };
   ownerId: string;
   prisma: PrismaClient;
 }): Promise<DomainResult<TaskTransitionSnapshot>> =>
@@ -509,6 +509,7 @@ export const createTaskWithTransition = async ({
           });
           const task = await tx.task.create({
             data: {
+              description: input.description || null,
               progress: input.progress || null,
               projectId: ownership.projectId,
               status: 'READY',

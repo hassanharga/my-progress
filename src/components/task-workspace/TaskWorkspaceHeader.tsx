@@ -36,6 +36,8 @@ export function TaskWorkspaceHeader({
 }) {
   const isRunning = task.status === 'IN_PROGRESS';
   const canStart = task.status === 'READY' || task.status === 'PAUSED';
+  const trackedMinutes = Math.floor(task.totalSeconds / 60);
+  const trackedTime = `${Math.floor(trackedMinutes / 60)}h ${trackedMinutes % 60}m tracked`;
 
   return (
     <div className="task-workspace-identity">
@@ -46,6 +48,7 @@ export function TaskWorkspaceHeader({
           {archived ? <Badge variant="outline">Archived project · Read-only</Badge> : null}
         </div>
         <h2>{task.title}</h2>
+        <p className="task-workspace-identity__time">{trackedTime}</p>
       </div>
       {!archived && (isRunning || canStart) ? (
         <Button

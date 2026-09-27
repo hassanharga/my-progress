@@ -19,6 +19,7 @@ import type { TodayProjectIdentity } from '@/server/today/today-types';
 import type { TodayActionOutcome } from './today-reducer';
 
 export type InlineTaskDraft = {
+  description: string;
   plannedMinutes: string;
   projectId: string;
   requestId: string | null;
@@ -27,6 +28,7 @@ export type InlineTaskDraft = {
 };
 
 export const createInlineTaskDraft = (): InlineTaskDraft => ({
+  description: '',
   plannedMinutes: '',
   projectId: '',
   requestId: null,
@@ -72,6 +74,18 @@ export function InlineTaskFormFields({ draft, onChange, pending, projects }: Inl
           onChange={(event) => onChange({ ...draft, title: event.currentTarget.value })}
           required
           value={draft.title}
+        />
+      </div>
+      <div className="space-y-075">
+        <Label htmlFor="today-create-description">Task description <span className="text-text-subtle">(optional)</span></Label>
+        <textarea
+          className="min-h-24 w-full rounded-md border border-border-input bg-surface px-150 py-100 text-body text-text outline-none focus-visible:border-border-focused focus-visible:ring-[3px] focus-visible:ring-border-focused/50"
+          id="today-create-description"
+          maxLength={20_000}
+          onChange={(event) => onChange({ ...draft, description: event.currentTarget.value })}
+          placeholder="What does this task involve?"
+          rows={3}
+          value={draft.description}
         />
       </div>
       <div className="space-y-075">
@@ -121,6 +135,7 @@ export function InlineTaskForm({ onCreate, planDate, projects }: InlineTaskFormP
     setDraft(submittedDraft);
     setPending(true);
     const outcome = await onCreate({
+      description: submittedDraft.description,
       planDate,
       plannedMinutes: submittedDraft.plannedMinutes === '' ? undefined : Number(submittedDraft.plannedMinutes),
       projectId: submittedDraft.projectId,

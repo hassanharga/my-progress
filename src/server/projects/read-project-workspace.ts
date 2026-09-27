@@ -78,6 +78,7 @@ const toTask = (
     id: string;
     projectId: string;
     title: string;
+    description: string | null;
     status: TaskStatus;
     currentNextStep: string | null;
     defaultPlannedMinutes: number | null;
@@ -102,6 +103,7 @@ const toTask = (
 
   return {
     createdAt: task.createdAt,
+    description: task.description,
     currentNextStep: task.currentNextStep,
     id: task.id,
     openSessionStartedAt: openSession?.startedAt ?? null,
@@ -142,6 +144,7 @@ export const readProjectWorkspaceForOwner = async ({
           cancelledAt: true,
           completedAt: true,
           createdAt: true,
+          description: true,
           currentNextStep: true,
           dailyPlans: {
             orderBy: [{ position: 'asc' }, { id: 'asc' }],

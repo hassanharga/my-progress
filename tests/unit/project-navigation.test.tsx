@@ -1,13 +1,16 @@
 import ProjectsLayout from '@/app/projects/layout';
+import { useAction } from 'next-safe-action/hooks';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import { paths } from '@/paths';
+import { useUserContext } from '@/contexts/user.context';
 import DashboardShell from '@/components/dashboard/DashboardShell';
-import { handleProjectLinkClick, ProjectSwitcherLink } from '@/components/dashboard/ProjectSwitcher';
+import ProjectSwitcher, { handleProjectLinkClick, ProjectSwitcherLink } from '@/components/dashboard/ProjectSwitcher';
 
 jest.mock('next-safe-action/hooks', () => ({ useAction: jest.fn() }));
 jest.mock('@/actions/project', () => ({ getProjects: jest.fn(), switchProject: jest.fn() }));
 jest.mock('@/contexts/user.context', () => ({ useUserContext: jest.fn() }));
+jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: jest.fn() }) }));
 jest.mock('@/components/dashboard/DashboardTopBar', () => () => null);
 
 describe('project navigation', () => {
@@ -97,5 +100,24 @@ describe('project navigation', () => {
 
     expect(element.type).toBe(DashboardShell);
     expect(element.props.children).toBe(children);
+  });
+
+  it('replaces a settled failed user load with a visible retry instead of a skeleton', () => {
+    jest.mocked(useUserContext).mockReturnValue({
+      user: null,
+      userLoading: false,
+      userLoadFailed: true,
+      refetchUser: jest.fn(),
+      logout: jest.fn(),
+      setUserData: jest.fn(),
+    });
+    jest
+      .mocked(useAction)
+      .mockReturnValue({ execute: jest.fn(), isExecuting: false } as unknown as ReturnType<typeof useAction>);
+
+    const html = renderToStaticMarkup(<ProjectSwitcher onManageProjects={() => undefined} />);
+
+    expect(html).toContain('Retry loading account');
+    expect(html).not.toContain('data-slot="skeleton"');
   });
 });

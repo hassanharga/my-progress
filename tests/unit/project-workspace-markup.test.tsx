@@ -20,6 +20,7 @@ jest.mock('@/components/dashboard/DashboardTopBar', () => () => null);
 const task = (overrides: Partial<ProjectWorkspaceViewModel['backlog'][number]> = {}) => ({
   createdAt: new Date('2026-09-15T08:00:00.000Z'),
   currentNextStep: 'Review the acceptance criteria',
+  description: null,
   id: '11111111-1111-4111-8111-111111111111',
   openSessionStartedAt: null,
   planPosition: null,

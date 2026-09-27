@@ -9,6 +9,7 @@ const projectId = z.uuid();
 const requestId = z.uuid();
 
 export const createTodayTaskInputSchema = z.object({
+  description: z.string().trim().max(20_000).optional(),
   planDate,
   plannedMinutes: plannedMinutes.optional(),
   projectId,

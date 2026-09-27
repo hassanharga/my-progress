@@ -166,13 +166,19 @@ describe('owner-scoped task action coordinators', () => {
   it('creates a READY task without opening a session when startNow is false', async () => {
     const result = await createTaskForOwner({
       clock: () => NOW,
-      input: { startNow: false, title: 'Backlog task' },
+      input: { description: 'Define the handoff', startNow: false, title: 'Backlog task' },
       ownerId: OWNER_ID,
       prisma,
     });
 
     expect(result).toMatchObject({ data: { session: null, task: { status: 'READY' } }, ok: true });
+    if (!result.ok) throw new Error('Expected task creation to succeed');
     await expect(prisma.workSession.count({ where: { projectId: PROJECT_ID } })).resolves.toBe(0);
+    await expect(prisma.task.findFirstOrThrow({ where: { title: 'Backlog task' } })).resolves.toMatchObject({
+      description: 'Define the handoff',
+      progress: null,
+    });
+    await expect(prisma.workLogEntry.count({ where: { taskId: result.data.task.id } })).resolves.toBe(0);
   });
 
   it('does not leave a created task behind when the active project is archived', async () => {
@@ -297,6 +303,7 @@ describe('owner-scoped task action coordinators', () => {
 
     const result = await updateTaskDetailsForOwner({
       input: {
+        description: 'Updated scope',
         id: TASK_ID,
         progress: '<p>Edited progress</p>',
         title: 'After',
@@ -308,6 +315,7 @@ describe('owner-scoped task action coordinators', () => {
 
     expect(result).toMatchObject({
       data: {
+        description: 'Updated scope',
         progress: '<p>Edited progress</p>',
         title: 'After',
         todo: '<p>Edited next step</p>',
@@ -315,6 +323,7 @@ describe('owner-scoped task action coordinators', () => {
       ok: true,
     });
     await expect(prisma.task.findUniqueOrThrow({ where: { id: TASK_ID } })).resolves.toMatchObject({
+      description: 'Updated scope',
       currentNextStep: '<p>Edited next step</p>',
       progress: '<p>Edited progress</p>',
       todo: '<p>Edited next step</p>',
@@ -324,6 +333,21 @@ describe('owner-scoped task action coordinators', () => {
       kind: 'PROGRESS',
       nextStepSnapshot: '<p>Edited next step</p>',
     });
+  });
+
+  it('edits a legacy task description without adding a progress entry', async () => {
+    await prisma.task.create({
+      data: { id: TASK_ID, projectId: PROJECT_ID, title: 'Before', userId: OWNER_ID },
+    });
+
+    const result = await updateTaskDetailsForOwner({
+      input: { description: 'Updated scope', id: TASK_ID },
+      ownerId: OWNER_ID,
+      prisma,
+    });
+
+    expect(result).toMatchObject({ data: { description: 'Updated scope' }, ok: true });
+    await expect(prisma.workLogEntry.count({ where: { taskId: TASK_ID } })).resolves.toBe(0);
   });
 });
 

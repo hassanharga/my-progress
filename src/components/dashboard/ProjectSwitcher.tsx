@@ -58,7 +58,7 @@ export const ProjectSwitcherLink = forwardRef<HTMLAnchorElement, ProjectSwitcher
 });
 
 export default function ProjectSwitcher({ onManageProjects }: { onManageProjects: (opener: HTMLElement) => void }) {
-  const { user, refetchUser } = useUserContext();
+  const { user, userLoading, userLoadFailed, refetchUser } = useUserContext();
   const router = useRouter();
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -128,12 +128,24 @@ export default function ProjectSwitcher({ onManageProjects }: { onManageProjects
     executeSwitch({ id });
   };
 
-  if (user === null || (user?.currentProjectId && !activeName && projects.length === 0 && isLoadingProjects)) {
+  if (userLoading || (user?.currentProjectId && !activeName && projects.length === 0 && isLoadingProjects)) {
     return (
       <div className="flex items-center gap-075 px-075 py-050">
         <Skeleton className="h-6 w-6 rounded-sm" />
         <Skeleton className="h-4 w-24" />
       </div>
+    );
+  }
+
+  if (!user && userLoadFailed) {
+    return (
+      <button
+        className="rounded-md px-075 py-050 text-body text-text-subtle hover:bg-neutral-subtle-hovered"
+        onClick={refetchUser}
+        type="button"
+      >
+        Retry loading account
+      </button>
     );
   }
 

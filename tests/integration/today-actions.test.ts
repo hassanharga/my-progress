@@ -1342,6 +1342,7 @@ describe('Today inline create-and-plan', () => {
     const result = await createTodayTaskForOwner({
       clock: () => NOW,
       input: {
+        description: 'Write a clear launch checklist',
         planDate: '2026-09-15',
         plannedMinutes: 45,
         projectId: PROJECT_B_ID,
@@ -1364,7 +1365,7 @@ describe('Today inline create-and-plan', () => {
       ok: true,
     });
     const created = await prisma.task.findFirstOrThrow({ where: { title: 'Inline task', userId: OWNER_ID } });
-    expect(created).toMatchObject({ projectId: PROJECT_B_ID, status: 'READY', title: 'Inline task' });
+    expect(created).toMatchObject({ description: 'Write a clear launch checklist', projectId: PROJECT_B_ID, status: 'READY', title: 'Inline task' });
   });
 
   it.each([
@@ -1449,6 +1450,7 @@ describe('Today inline create-and-plan', () => {
 
   it('replays an identical request from its receipt and rejects a changed payload', async () => {
     const input = {
+      description: 'Original scope',
       planDate: '2026-09-15',
       plannedMinutes: 30,
       projectId: PROJECT_A_ID,
@@ -1464,6 +1466,12 @@ describe('Today inline create-and-plan', () => {
       ownerId: OWNER_ID,
       prisma,
     });
+    const changedDescription = await createTodayTaskForOwner({
+      clock: () => NOW,
+      input: { ...input, description: 'Different scope' },
+      ownerId: OWNER_ID,
+      prisma,
+    });
 
     expect(second).toEqual(first);
     expect(changed).toMatchObject({
@@ -1474,6 +1482,7 @@ describe('Today inline create-and-plan', () => {
       },
       ok: false,
     });
+    expect(changedDescription).toMatchObject({ error: { code: 'VALIDATION_ERROR' }, ok: false });
     await expect(prisma.task.count({ where: { userId: OWNER_ID, title: 'Retry me' } })).resolves.toBe(1);
     await expect(
       prisma.todayMutationReceipt.count({ where: { userId: OWNER_ID, requestId: input.requestId } })

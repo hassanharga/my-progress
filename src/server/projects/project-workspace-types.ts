@@ -8,6 +8,7 @@ export type ProjectWorkspaceTask = {
   id: string;
   projectId: string;
   title: string;
+  description: string | null;
   status: ExecutionState;
   currentNextStep: string | null;
   totalSeconds: number;

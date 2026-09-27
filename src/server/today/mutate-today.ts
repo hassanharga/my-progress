@@ -294,6 +294,7 @@ export const mutateTodayForOwner = async ({
 
 const stableTodayCreatePayload = (input: CreateTodayTaskInput, planDate: string): string =>
   JSON.stringify({
+    description: input.description?.trim() ?? '',
     planDate,
     plannedMinutes: input.plannedMinutes ?? null,
     projectId: input.projectId,
@@ -361,6 +362,7 @@ export const createTodayTaskForOwner = async ({
             await compact(tx, ownerId, selectedDate.date);
             const task = await tx.task.create({
               data: {
+                description: normalizedInput.description || null,
                 projectId: project.id,
                 status: 'READY',
                 title: normalizedInput.title.trim(),

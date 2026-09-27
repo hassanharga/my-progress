@@ -11,12 +11,16 @@ import { me } from '@/actions/user';
 
 interface UserContextType {
   user: User | null;
+  userLoading: boolean;
+  userLoadFailed: boolean;
   refetchUser: () => void;
   setUserData: (userData: User | null) => void;
   logout: () => Promise<void>;
 }
 const UserContext = createContext<UserContextType>({
   user: null,
+  userLoading: true,
+  userLoadFailed: false,
   refetchUser: () => {},
   logout: async () => {},
   setUserData: () => {},
@@ -25,16 +29,33 @@ const UserContext = createContext<UserContextType>({
 const UserProvider = ({ children }: { children: ReactNode }): JSX.Element => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [userLoading, setUserLoading] = useState(true);
+  const [userLoadFailed, setUserLoadFailed] = useState(false);
 
   const { execute } = useAction(me, {
     onSuccess: ({ data }) => {
-      // console.log('user data ====>', data?.user);
-      if (data?.user) setUserData(data.user);
+      setUser(data?.user ?? null);
+      setUserLoadFailed(!data?.user);
+      setUserLoading(false);
+    },
+    onError: () => {
+      setUserLoadFailed(true);
+      setUserLoading(false);
     },
   });
 
   const setUserData = (userData: User | null) => {
     setUser(userData);
+    if (userData) {
+      setUserLoadFailed(false);
+      setUserLoading(false);
+    }
+  };
+
+  const refetchUser = () => {
+    setUserLoading(true);
+    setUserLoadFailed(false);
+    execute();
   };
 
   useEffect(() => {
@@ -49,7 +70,9 @@ const UserProvider = ({ children }: { children: ReactNode }): JSX.Element => {
   };
 
   return (
-    <UserContext.Provider value={{ user, refetchUser: execute, logout, setUserData }}>{children}</UserContext.Provider>
+    <UserContext.Provider value={{ user, userLoading, userLoadFailed, refetchUser, logout, setUserData }}>
+      {children}
+    </UserContext.Provider>
   );
 };
 

@@ -58,6 +58,21 @@ describe('task workspace mutation schema', () => {
     });
   });
 
+  it('accepts a trimmed description update and rejects oversized text', () => {
+    expect(taskWorkspaceMutationSchema.parse({
+      description: '  Define the delivery scope  ',
+      projectId: PROJECT_ID,
+      taskId: TASK_ID,
+      type: 'UPDATE_DESCRIPTION',
+    })).toMatchObject({ description: 'Define the delivery scope' });
+    expect(taskWorkspaceMutationSchema.safeParse({
+      description: 'x'.repeat(20_001),
+      projectId: PROJECT_ID,
+      taskId: TASK_ID,
+      type: 'UPDATE_DESCRIPTION',
+    }).success).toBe(false);
+  });
+
   it('rejects malformed project and task identifiers', () => {
     expect(
       taskWorkspaceMutationSchema.safeParse({

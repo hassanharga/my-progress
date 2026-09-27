@@ -19,6 +19,14 @@ const transitionInputSchema = z
 export const taskWorkspaceMutationSchema = z.discriminatedUnion('type', [
   z
     .object({
+      description: z.string().trim().max(20_000),
+      projectId: identifier,
+      taskId: identifier,
+      type: z.literal('UPDATE_DESCRIPTION'),
+    })
+    .strict(),
+  z
+    .object({
       content: progressContent,
       nextStep: richText.optional(),
       projectId: identifier,

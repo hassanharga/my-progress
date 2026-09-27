@@ -47,6 +47,7 @@ export default function ExampleDashboard({
     {
       id: '7b3bb9ae-d286-4aaa-8f12-0851cc24cc89',
       title: 'Plan the next milestone',
+      description: null,
       status: 'READY',
       projectId: 'example-project-id',
       duration: '00:04:11 hours',
@@ -64,6 +65,7 @@ export default function ExampleDashboard({
     {
       id: '5dc1d3e7-7cf5-4bd0-8bc4-6424fe03bf24',
       title: 'Polish task interactions',
+      description: null,
       status: 'IN_PROGRESS',
       projectId: 'example-project-id',
       duration: '00:04:11 hours',
@@ -81,6 +83,7 @@ export default function ExampleDashboard({
     {
       id: 'b2ae3cab-c235-4052-825f-db6a9f0df955',
       title: 'Review weekly outcomes',
+      description: null,
       status: 'PAUSED',
       projectId: 'example-project-id',
       duration: '00:04:11 hours',

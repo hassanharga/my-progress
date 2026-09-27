@@ -13,6 +13,8 @@ import {
   settleInlineTaskDraft,
 } from '@/components/today/InlineTaskForm';
 import type { TodayBacklogItem, TodayProjectIdentity } from '@/server/today/today-types';
+import { createTodayTaskInputSchema } from '@/schema/today';
+import { createTaskInputSchema, taskDetailsSchema } from '@/schema/task';
 
 const backlog: TodayBacklogItem[] = [
   {
@@ -45,6 +47,23 @@ const projects: TodayProjectIdentity[] = [
 ];
 
 describe('Today add-work flows', () => {
+  it('accepts an optional trimmed description with a 20,000-character limit', () => {
+    const input = { description: '  Clarify the scope  ', planDate: '2026-09-27', projectId: '10000000-0000-4000-8000-000000000101', requestId: '20000000-0000-4000-8000-000000000101', title: 'Plan release' };
+    expect(createTodayTaskInputSchema.parse(input).description).toBe('Clarify the scope');
+    expect(createTodayTaskInputSchema.safeParse({ ...input, description: 'x'.repeat(20_001) }).success).toBe(false);
+  });
+
+  it('accepts descriptions in the older create action without treating them as progress', () => {
+    const parsed = createTaskInputSchema.parse({ description: '  Outline the release  ', startNow: true, title: 'Plan release' });
+    expect(parsed.description).toBe('Outline the release');
+    expect(parsed.progress).toBeUndefined();
+  });
+
+  it('accepts description edits in the older task details action', () => {
+    const parsed = taskDetailsSchema.parse({ id: '20000000-0000-4000-8000-000000000101', description: '  Updated scope  ' });
+    expect(parsed.description).toBe('Updated scope');
+    expect(parsed.progress).toBeUndefined();
+  });
   it('filters backlog by task or project and preserves deterministic source order', () => {
     expect(filterTodayBacklog(backlog, 'launch')).toEqual([backlog[0]]);
     expect(filterTodayBacklog(backlog, 'PERSONAL')).toEqual([backlog[1]]);
@@ -106,6 +125,8 @@ describe('Today add-work flows', () => {
     expect(html).toContain('Project');
     expect(html).toContain('Choose a project');
     expect(html).toContain('Task title');
+    expect(html).toContain('Task description');
+    expect(html).toContain('id="today-create-description"');
     expect(html).toContain('Planned minutes');
     expect(html).toContain('min="1"');
     expect(html).toContain('max="1440"');
@@ -120,6 +141,7 @@ describe('Today add-work flows', () => {
     expect(createId).toHaveBeenCalledTimes(1);
 
     const draft = {
+      description: 'Why this work matters',
       plannedMinutes: '45',
       projectId: 'project-1',
       requestId: 'request-1',

@@ -139,9 +139,11 @@ export async function mutateTaskWorkspaceForOwner({
               return resultError(transition.error.code, transition.error.message, transition.error.retryable, canonical ?? undefined);
             }
           } else {
-            if (task.status === 'COMPLETED' || task.status === 'CANCELLED') return terminalTaskError();
+            if (normalizedMutation.type !== 'UPDATE_DESCRIPTION' && (task.status === 'COMPLETED' || task.status === 'CANCELLED')) return terminalTaskError();
 
-            if (normalizedMutation.type === 'LOG_PROGRESS') {
+            if (normalizedMutation.type === 'UPDATE_DESCRIPTION') {
+              await tx.task.update({ data: { description: normalizedMutation.description || null }, where: { id: task.id } });
+            } else if (normalizedMutation.type === 'LOG_PROGRESS') {
               await tx.task.update({
                 data: {
                   currentNextStep:

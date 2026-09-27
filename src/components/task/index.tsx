@@ -26,7 +26,7 @@ type Props = {
   lastTaskTodo?: string;
 };
 
-const TaskPage: FC<Props> = ({ stats, lastTaskTodo }) => {
+const TaskPage: FC<Props> = ({ stats }) => {
   const [openCreateTaskDrawer, setOpenCreateTaskDrawer] = useState(false);
   const createTaskOpenerRef = useRef<HTMLElement | null>(null);
   const taskDetailsOpenerRef = useRef<HTMLElement | null>(null);
@@ -60,7 +60,7 @@ const TaskPage: FC<Props> = ({ stats, lastTaskTodo }) => {
     restoreOverlayFocus(taskDetailsOpenerRef.current);
   };
 
-  const handleCreateTask = async (data: { progress: string; title: string }) => {
+  const handleCreateTask = async (data: { description: string; title: string }) => {
     const result = await createTask({ ...data, startNow: true });
     if (!result.ok) {
       toast.error(result.error ?? 'Task was not created');
@@ -109,7 +109,6 @@ const TaskPage: FC<Props> = ({ stats, lastTaskTodo }) => {
           setOpen={handleCreateTaskOpenChange}
           createTask={handleCreateTask}
           isLoading={isExecutingCreateTask}
-          lastTaskTodo={lastTaskTodo || ''}
         />
       ) : null}
 

@@ -3,6 +3,7 @@ import { z } from 'zod';
 const optionalRichText = z.string().trim().max(20_000).optional();
 
 export const createTaskInputSchema = z.object({
+  description: optionalRichText,
   progress: optionalRichText,
   startNow: z.boolean().default(true),
   title: z.string().trim().min(1).max(200),
@@ -18,6 +19,7 @@ export const taskTransitionSchema = z.object({
 
 export const taskDetailsSchema = z.object({
   id: z.uuid(),
+  description: optionalRichText,
   progress: optionalRichText,
   title: z.string().trim().min(1).max(200).optional(),
   todo: optionalRichText,

@@ -31,6 +31,7 @@ const selectedTask = (status: TaskWorkspaceViewModel['task']['status'] = 'IN_PRO
   task: {
     createdAt: new Date('2026-09-20T08:00:00.000Z'),
     currentNextStep: 'Review the final layout',
+    description: null,
     id: '11111111-1111-4111-8111-111111111111',
     openSessionStartedAt: status === 'IN_PROGRESS' ? new Date('2026-09-21T11:00:00.000Z') : null,
     planPosition: null,
@@ -90,7 +91,7 @@ describe('Task workspace markup', () => {
     const html = renderToStaticMarkup(
       <TaskWorkspacePanel
         correctionDrafts={{}}
-        drafts={{ nextStep: 'Review the evidence', progress: '', progressNextStep: '' }}
+        drafts={{ description: '', nextStep: 'Review the evidence', progress: '', progressNextStep: '' }}
         onCorrectionDraftChange={() => undefined}
         onCorrectSession={() => undefined}
         onDraftChange={() => undefined}
@@ -107,10 +108,12 @@ describe('Task workspace markup', () => {
   });
 
   it('renders a descriptive task panel with project identity, state, and timer action', () => {
+    const selected = selectedTask();
+    selected.task.description = 'Define what success looks like';
     const html = renderToStaticMarkup(
       <TaskWorkspacePanel
         correctionDrafts={{}}
-        drafts={{ nextStep: '', progress: '', progressNextStep: '' }}
+        drafts={{ description: 'Define what success looks like', nextStep: '', progress: '', progressNextStep: '' }}
         onCorrectionDraftChange={() => undefined}
         onCorrectSession={() => undefined}
         onDraftChange={() => undefined}
@@ -118,24 +121,28 @@ describe('Task workspace markup', () => {
         onTransition={() => undefined}
         onUpdateNextStep={() => undefined}
         pending={{}}
-        workspace={workspace()}
+        workspace={workspace({ selectedTask: selected })}
       />
     );
 
     expect(html).toContain('Build the task workspace');
     expect(html).toContain('My Progress');
     expect(html).toContain('In progress');
+    expect(html).toContain('Define what success looks like');
+    expect(html).toContain('Task description');
+    expect(html.indexOf('Task description')).toBeLessThan(html.indexOf('Current next step'));
     expect(html).toContain('Pause timer');
+    expect(html).toContain('1h 0m tracked');
     expect(html.indexOf('Current next step')).toBeLessThan(html.indexOf('Log progress'));
-    expect(html.indexOf('Log progress')).toBeLessThan(html.indexOf('Work ledger'));
-    expect(html.indexOf('Work ledger')).toBeLessThan(html.indexOf('Session history'));
+    expect(html.indexOf('Log progress')).toBeLessThan(html.indexOf('>Progress</h3>'));
+    expect(html.indexOf('>Progress</h3>')).toBeLessThan(html.indexOf('Session history'));
   });
 
   it('uses an ordered work ledger and keeps essential actions visible', () => {
     const html = renderToStaticMarkup(
       <TaskWorkspacePanel
         correctionDrafts={{}}
-        drafts={{ nextStep: '', progress: '', progressNextStep: '' }}
+        drafts={{ description: '', nextStep: '', progress: '', progressNextStep: '' }}
         onCorrectionDraftChange={() => undefined}
         onCorrectSession={() => undefined}
         onDraftChange={() => undefined}
@@ -158,7 +165,7 @@ describe('Task workspace markup', () => {
     const html = renderToStaticMarkup(
       <TaskWorkspacePanel
         correctionDrafts={{}}
-        drafts={{ nextStep: '', progress: '', progressNextStep: '' }}
+        drafts={{ description: '', nextStep: '', progress: '', progressNextStep: '' }}
         onCorrectionDraftChange={() => undefined}
         onCorrectSession={() => undefined}
         onDraftChange={() => undefined}
@@ -176,6 +183,65 @@ describe('Task workspace markup', () => {
     expect(html).not.toContain('Cancel task…');
   });
 
+  it('shows progress history and a done summary for a completed task without edit actions', () => {
+    const selected = selectedTask('COMPLETED');
+    selected.task.terminalAt = new Date('2026-09-21T12:30:00.000Z');
+    selected.workLog.push({
+      content: 'Delivered the final layout',
+      createdAt: new Date('2026-09-21T12:30:00.000Z'),
+      id: 'log-3',
+      kind: 'COMPLETION_SUMMARY',
+      nextStepSnapshot: null,
+      updatedAt: new Date('2026-09-21T12:30:00.000Z'),
+    });
+    const html = renderToStaticMarkup(
+      <TaskWorkspacePanel
+        correctionDrafts={{}}
+        drafts={{ description: '', nextStep: '', progress: '', progressNextStep: '' }}
+        onCorrectionDraftChange={() => undefined}
+        onCorrectSession={() => undefined}
+        onDraftChange={() => undefined}
+        onLogProgress={() => undefined}
+        onTransition={() => undefined}
+        onUpdateNextStep={() => undefined}
+        pending={{}}
+        workspace={workspace({ selectedTask: selected })}
+      />
+    );
+
+    expect(html).toContain('>Progress</h3>');
+    expect(html).toContain('Mapped the interaction states');
+    expect(html).toContain('>Done</h3>');
+    expect(html).toContain('Last next step');
+    expect(html).not.toContain('Current next step');
+    expect(html).toContain('Delivered the final layout');
+    expect(html.match(/Delivered the final layout/g)).toHaveLength(1);
+    expect(html).toContain('Completed on');
+    expect(html).not.toContain('Save progress');
+    expect(html).not.toContain('Complete task');
+  });
+
+  it('shows an honest empty progress state for completed work without logs', () => {
+    const selected = selectedTask('COMPLETED');
+    selected.workLog = [];
+    const html = renderToStaticMarkup(
+      <TaskWorkspacePanel
+        correctionDrafts={{}}
+        drafts={{ description: '', nextStep: '', progress: '', progressNextStep: '' }}
+        onCorrectionDraftChange={() => undefined}
+        onCorrectSession={() => undefined}
+        onDraftChange={() => undefined}
+        onLogProgress={() => undefined}
+        onTransition={() => undefined}
+        onUpdateNextStep={() => undefined}
+        pending={{}}
+        workspace={workspace({ selectedTask: selected })}
+      />
+    );
+    expect(html).toContain('No progress has been logged yet.');
+    expect(html).toContain('No completion summary was recorded.');
+  });
+
   it('removes only task selection when closing', () => {
     expect(taskWorkspaceCloseHref(workspace())).toBe(
       '/projects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa?query=workspace&amp;state=OPEN'.replace('&amp;', '&')
@@ -187,7 +253,7 @@ describe('Task workspace markup', () => {
       <TaskWorkspacePanel
         composerExpanded
         correctionDrafts={{}}
-        drafts={{ nextStep: 'Keep this', progress: 'Draft progress', progressNextStep: '' }}
+        drafts={{ description: '', nextStep: 'Keep this', progress: 'Draft progress', progressNextStep: '' }}
         errorByField={{ nextStep: 'Could not save next step.', progress: 'Could not save progress.' }}
         onCorrectionDraftChange={() => undefined}
         onCorrectSession={() => undefined}
@@ -217,6 +283,7 @@ describe('Task workspace markup', () => {
     const css = readFileSync(resolve(process.cwd(), 'src/app/globals.css'), 'utf8');
     expect(sheetSource).toContain('showFinishActions={false}');
     expect(sheetSource).toContain('<TaskWorkspaceFinishActions');
+    expect(sheetSource).toContain('className="task-workspace-sheet w-full sm:max-w-2xl"');
     expect(css).toMatch(/\.task-workspace-sheet\s*\{[^}]*overflow-hidden/);
     expect(css).toMatch(/\.task-workspace-panel\s*\{[^}]*overflow-y-auto/);
     expect(css).toMatch(/\.task-workspace-finish\s*\{[^}]*env\(safe-area-inset-bottom\)/);

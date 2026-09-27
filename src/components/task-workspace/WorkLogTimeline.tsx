@@ -9,8 +9,8 @@ export function WorkLogTimeline({ entries }: { entries: TaskWorkspaceViewModel['
   return (
     <section aria-labelledby="task-work-ledger-heading" className="task-workspace-section">
       <div className="task-workspace-section__heading">
-        <h3 id="task-work-ledger-heading">Work ledger</h3>
-        <p>Progress and milestones in chronological order.</p>
+        <h3 id="task-work-ledger-heading">Progress</h3>
+        <p>Updates and milestones in chronological order.</p>
       </div>
       {entries.length ? (
         <ol className="task-work-log">

@@ -4,6 +4,7 @@ import type { ProjectWorkspaceTask } from '@/server/projects/project-workspace-t
 const task = (overrides: Partial<ProjectWorkspaceTask>): ProjectWorkspaceTask => ({
   createdAt: new Date('2026-09-20T08:00:00.000Z'),
   currentNextStep: null,
+  description: null,
   id: '00000000-0000-4000-8000-000000000001',
   openSessionStartedAt: null,
   planPosition: null,
