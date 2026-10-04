@@ -1,113 +1,111 @@
 'use server';
 
-import { validateUserToken } from '@/helpers/validate-user';
-import { loginSchema, registerSchema, settingsSchema } from '@/schema/user';
-import { getFromCookies, setCookie } from '@/utils/cookie';
+import { randomUUID } from 'node:crypto';
 
-import { User, UserSelect } from '@/types/user';
+import { revalidatePath } from 'next/cache';
+import { unstable_rethrow } from 'next/navigation';
+import { validateUserToken } from '@/helpers/validate-user';
+import { firstUseTimezoneSchema, loginSchema, registerSchema, settingsSchema } from '@/schema/user';
+import { readAccountIdentity } from '@/server/account/account-identity';
+import { readAccountProfileForOwner, updateAccountPreferencesForOwner } from '@/server/account/account-preferences';
+import { accountProfileSelect, toAccountProfile } from '@/server/account/account-profile';
+import { saveFirstUseTimezoneForOwner } from '@/server/account/save-first-use-timezone';
+import { setCookie } from '@/utils/cookie';
+
+import type { AccountProfile } from '@/types/user';
 import { actionClient } from '@/lib/action-client';
 import db from '@/lib/db';
-import { generateToken, verifyToken } from '@/lib/generate-token';
+import { generateToken } from '@/lib/generate-token';
 import { hashPassword, verifyPassword } from '@/lib/hash';
 
-/**
- * Maps the returned user data to include a generated JWT token and redirects to the home page.
- *
- * @param user  - The user object to be mapped.
- * @returns Never, as the function redirects to the home page.
- */
-const mapReturnedUser = async (user: User): Promise<User> => {
+const mapReturnedUser = async (user: AccountProfile): Promise<AccountProfile> => {
   const { id, name, email } = user;
 
-  // generate token
   const token = generateToken({ id, name, email });
   // 12 hours
   await setCookie('token', token, { maxAge: 43200 });
 
-  //  return user and token
-  // return { user: { id, name, email }, token: generateToken({ id, name, email }) };
-  return user;
-};
-
-const findUser = async (email: string, select?: UserSelect): Promise<User | null> => {
-  return await db.user.findUnique({
-    where: { email },
-    select,
-  });
+  return toAccountProfile(user);
 };
 
 export const createUser = actionClient.inputSchema(registerSchema).action(async ({ parsedInput }) => {
-  // check current user exists
-  const isUserExist = await findUser(parsedInput.email, { id: true });
-  if (isUserExist) throw new Error('User already exists');
-
-  // create user
-  const newUser = await db.user.create({
-    data: {
-      email: parsedInput.email,
-      password: await hashPassword(parsedInput.password),
-      name: parsedInput.name,
-    },
-  });
-
-  return mapReturnedUser(newUser);
+  let newUser: AccountProfile;
+  try {
+    const existing = await db.user.findUnique({ where: { email: parsedInput.email }, select: { id: true } });
+    if (existing) throw new Error('ACCOUNT_EXISTS');
+    newUser = await db.user.create({
+      data: {
+        id: randomUUID(),
+        email: parsedInput.email,
+        password: await hashPassword(parsedInput.password),
+        name: parsedInput.name,
+      },
+      select: accountProfileSelect,
+    });
+  } catch (error) {
+    const duplicate =
+      (error instanceof Error && error.message === 'ACCOUNT_EXISTS') ||
+      (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002');
+    throw new Error(
+      duplicate ? 'An account with this email already exists.' : 'Unable to create your account. Please try again.'
+    );
+  }
+  try {
+    return await mapReturnedUser(newUser);
+  } catch {
+    throw new Error('Unable to sign in. Please try again.');
+  }
 });
 
 export const loginUser = actionClient.inputSchema(loginSchema).action(async ({ parsedInput }) => {
-  // check user exists
-  const user = await findUser(parsedInput.email);
-  // logger.debug('user', user);
-  if (!user) throw new Error('Bad Credential');
-
-  // check password
-  const isMatch = await verifyPassword(user.password, parsedInput.password);
-  if (!isMatch) throw new Error('Bad Credentials');
-
-  return mapReturnedUser(user);
+  let profile: AccountProfile | null;
+  try {
+    const user = await db.user.findUnique({
+      where: { email: parsedInput.email },
+      select: { ...accountProfileSelect, password: true },
+    });
+    profile = user && (await verifyPassword(user.password, parsedInput.password)) ? toAccountProfile(user) : null;
+  } catch {
+    throw new Error('Unable to sign in. Please try again.');
+  }
+  if (!profile) throw new Error('Email or password is incorrect.');
+  try {
+    return await mapReturnedUser(profile);
+  } catch {
+    throw new Error('Unable to sign in. Please try again.');
+  }
 });
 
 export const me = actionClient.action(async () => {
-  const token = await getFromCookies<string>('token');
-  if (!token) return null;
-
   try {
-    const data = verifyToken(token) as Partial<User>;
-    if (!data) return null;
-
-    const user = await findUser(data?.email || '', {
-      id: true,
-      name: true,
-      email: true,
-      currentProjectId: true,
-      currentProject: { select: { id: true, name: true } },
-      weekStartDay: true,
-    });
-
-    if (!user) return null;
-
-    return { user };
-  } catch {
-    return null;
+    const identity = await readAccountIdentity();
+    if (identity.status !== 'authenticated') return null;
+    const user = await readAccountProfileForOwner({ prisma: db, ownerId: identity.user.id });
+    return user ? { user } : null;
+  } catch (error) {
+    unstable_rethrow(error);
+    throw new Error('Unable to load your account. Please try again.');
   }
 });
 
 export const updateSettings = actionClient.inputSchema(settingsSchema).action(async ({ parsedInput }) => {
-  const { email } = await validateUserToken();
+  const { id } = await validateUserToken();
+  try {
+    if (!id) throw new Error('Account unavailable.');
+    const profile = await updateAccountPreferencesForOwner({ prisma: db, ownerId: id, input: parsedInput });
+    for (const path of ['/settings', '/dashboard', '/projects', '/insights', '/reports']) revalidatePath(path);
+    return toAccountProfile(profile);
+  } catch {
+    throw new Error('Unable to save preferences. Please try again.');
+  }
+});
 
-  const data = await db.user.update({
-    where: { email },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      currentProjectId: true,
-      currentProject: { select: { id: true, name: true } },
-      weekStartDay: true,
-    },
-    data: {
-      weekStartDay: parsedInput.weekStartDay,
-    },
-  });
-
-  return data;
+export const saveFirstUseTimezone = actionClient.inputSchema(firstUseTimezoneSchema).action(async ({ parsedInput }) => {
+  const { id } = await validateUserToken();
+  if (!id) throw new Error('Account unavailable.');
+  const result = await saveFirstUseTimezoneForOwner({ prisma: db, ownerId: id, input: parsedInput });
+  if (result.ok) {
+    for (const path of ['/settings', '/dashboard', '/projects', '/insights', '/reports']) revalidatePath(path);
+  }
+  return result;
 });

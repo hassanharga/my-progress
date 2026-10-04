@@ -1,12 +1,17 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+
+import type { TodayViewModel } from '@/server/today/today-types';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import { TodayCockpit } from '@/components/today/TodayCockpit';
-import type { TodayViewModel } from '@/server/today/today-types';
 
 jest.mock('next-safe-action/hooks', () => ({ useAction: () => ({ executeAsync: jest.fn() }) }));
-jest.mock('@/actions/today', () => ({ createTodayTask: jest.fn(), mutateToday: jest.fn(), transitionTodayTask: jest.fn() }));
+jest.mock('@/actions/today', () => ({
+  createTodayTask: jest.fn(),
+  mutateToday: jest.fn(),
+  transitionTodayTask: jest.fn(),
+}));
 
 const dashboardPageSource = readFileSync(resolve(process.cwd(), 'src/app/dashboard/page.tsx'), 'utf8');
 const cockpitSource = readFileSync(resolve(process.cwd(), 'src/components/today/TodayCockpit.tsx'), 'utf8');
@@ -25,7 +30,14 @@ describe('Today dashboard integration contract', () => {
       runningIndicators: [],
       summary: { actualSeconds: 0, cancelledCount: 0, completedCount: 0, openCount: 0, totalCount: 0 },
       timezone: 'UTC',
-      workload: { actualSeconds: 0, capacityMinutes: null, plannedMinutes: 0, remainingMinutes: null, state: 'unset', utilizationPercent: null },
+      workload: {
+        actualSeconds: 0,
+        capacityMinutes: null,
+        plannedMinutes: 0,
+        remainingMinutes: null,
+        state: 'unset',
+        utilizationPercent: null,
+      },
     };
     const html = renderToStaticMarkup(<TodayCockpit initialToday={today} />);
     expect(html.indexOf('Day summary')).toBeGreaterThan(html.indexOf('Daily workload'));
@@ -42,7 +54,9 @@ describe('Today dashboard integration contract', () => {
   });
 
   it('passes the serializable Today snapshot across the server-client boundary', () => {
-    expect(dashboardPageSource).toContain('<TodayCockpit initialToday={today} />');
+    expect(dashboardPageSource).toContain(
+      '<FirstUseToday firstUse={firstUse} initialToday={today} profile={profile} />'
+    );
     expect(dashboardPageSource).not.toContain('JSON.stringify');
     expect(cockpitSource).toContain('Date.parse(state.today.generatedAt)');
   });

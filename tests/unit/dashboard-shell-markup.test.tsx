@@ -36,7 +36,7 @@ describe('DashboardShellFrame', () => {
     expect(html).toContain('aria-current="page"');
   });
 
-  it('renders Today and Projects in all navigation placements with Today current', () => {
+  it('renders Today, Projects, and Insights in all navigation placements with Today current', () => {
     const html = renderToStaticMarkup(
       <DashboardShellFrame pathname="/dashboard" topBar={<div>Toolbar</div>}>
         <h1>Today</h1>
@@ -45,10 +45,12 @@ describe('DashboardShellFrame', () => {
 
     expect(html.match(/href="\/dashboard"/g)).toHaveLength(3);
     expect(html.match(/href="\/projects"/g)).toHaveLength(3);
+    expect(html.match(/href="\/insights"/g)).toHaveLength(3);
     expect(
       html.match(/<a\b[^>]*href="\/dashboard"[^>]*>/g)?.every((link) => link.includes('aria-current="page"'))
     ).toBe(true);
-    expect(html).not.toMatch(/Insights|Reports/);
+    expect(html).toContain('href="/reports"');
+    expect(html).toContain('href="/settings"');
   });
 
   it('marks Projects current in all placements for a project workspace', () => {

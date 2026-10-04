@@ -115,7 +115,7 @@ describe('project navigation', () => {
       .mocked(useAction)
       .mockReturnValue({ execute: jest.fn(), isExecuting: false } as unknown as ReturnType<typeof useAction>);
 
-    const html = renderToStaticMarkup(<ProjectSwitcher onManageProjects={() => undefined} />);
+    const html = renderToStaticMarkup(<ProjectSwitcher />);
 
     expect(html).toContain('Retry loading account');
     expect(html).not.toContain('data-slot="skeleton"');

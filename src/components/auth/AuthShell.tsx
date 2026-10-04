@@ -15,39 +15,42 @@ const features = [
 
 export default function AuthShell({ children }: AuthShellProps) {
   return (
-    <div className="flex min-h-screen w-full">
+    <main className="grid min-h-screen w-full grid-cols-1 bg-surface lg:grid-cols-2">
       {/* Branding panel — hidden on mobile */}
-      <div className="relative hidden w-1/2 flex-col justify-between bg-gradient-to-br from-brand-bold to-information-bold p-12 lg:flex">
+      <aside
+        aria-label="About My Progress"
+        className="hidden min-w-0 flex-col justify-between bg-surface-raised p-12 lg:flex"
+      >
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-heading-medium text-text-inverse">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-brand-bold text-text-inverse text-heading-medium">
             M
           </div>
-          <span className="text-heading-small font-weight-semibold text-text-inverse">My Progress</span>
+          <span className="text-heading-small font-weight-semibold">My Progress</span>
         </div>
 
         {/* Tagline */}
         <div className="max-w-sm">
-          <p className="text-heading-large font-weight-medium leading-snug text-text-inverse">
+          <p className="text-heading-large font-weight-medium leading-snug">
             &ldquo;Track tasks, log time, and see how far you&apos;ve come.&rdquo;
           </p>
         </div>
 
         {/* Feature bullets */}
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           {features.map((feature) => (
             <div key={feature.text} className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15">
-                <feature.icon className="h-4 w-4 text-text-inverse" />
+              <div className="flex size-8 items-center justify-center rounded-lg bg-surface-sunken">
+                <feature.icon className="size-4" aria-hidden="true" />
               </div>
-              <span className="text-body text-text-inverse/90">{feature.text}</span>
+              <span className="text-body text-text-subtle">{feature.text}</span>
             </div>
           ))}
         </div>
-      </div>
+      </aside>
 
       {/* Form panel */}
-      <div className="flex w-full flex-col items-center justify-center p-6 lg:w-1/2">
+      <div className="flex min-w-0 w-full flex-col items-center justify-center px-4 py-10 sm:px-8">
         {/* Mobile logo */}
         <div className="mb-8 flex items-center gap-2 lg:hidden">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-bold text-heading-medium text-text-inverse">
@@ -57,6 +60,6 @@ export default function AuthShell({ children }: AuthShellProps) {
         </div>
         {children}
       </div>
-    </div>
+    </main>
   );
 }

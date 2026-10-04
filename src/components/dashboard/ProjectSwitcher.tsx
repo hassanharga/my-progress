@@ -57,7 +57,7 @@ export const ProjectSwitcherLink = forwardRef<HTMLAnchorElement, ProjectSwitcher
   );
 });
 
-export default function ProjectSwitcher({ onManageProjects }: { onManageProjects: (opener: HTMLElement) => void }) {
+export default function ProjectSwitcher() {
   const { user, userLoading, userLoadFailed, refetchUser } = useUserContext();
   const router = useRouter();
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
@@ -83,8 +83,7 @@ export default function ProjectSwitcher({ onManageProjects }: { onManageProjects
 
   useEffect(() => {
     executeLoadProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [executeLoadProjects, user?.currentProjectId]);
 
   const { execute: executeSwitch, isExecuting: isSwitching } = useAction(switchProject, {
     onSuccess: () => {
@@ -118,8 +117,8 @@ export default function ProjectSwitcher({ onManageProjects }: { onManageProjects
   });
 
   const handleTriggerClick = () => {
-    if (activeProjects.length === 0 && !view.canRetry) {
-      if (triggerRef.current) onManageProjects(triggerRef.current);
+    if (!activeName && activeProjects.length === 0 && !view.canRetry) {
+      router.push(paths.settings);
     }
   };
 
@@ -146,6 +145,17 @@ export default function ProjectSwitcher({ onManageProjects }: { onManageProjects
       >
         Retry loading account
       </button>
+    );
+  }
+
+  if (!activeName && activeProjects.length === 0 && !view.canRetry && !view.busy) {
+    return (
+      <Link
+        href={paths.settings}
+        className="rounded-md px-075 py-050 text-body text-text-subtle hover:bg-neutral-subtle-hovered"
+      >
+        Set up your projects
+      </Link>
     );
   }
 
@@ -190,14 +200,11 @@ export default function ProjectSwitcher({ onManageProjects }: { onManageProjects
             </DropdownMenuItem>
           ) : null}
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => {
-              if (triggerRef.current) onManageProjects(triggerRef.current);
-            }}
-            className="cursor-pointer"
-          >
-            <SettingsIcon className="mr-2 h-4 w-4" />
-            Manage projects
+          <DropdownMenuItem asChild className="cursor-pointer">
+            <Link href={paths.projects}>
+              <SettingsIcon className="mr-2 h-4 w-4" />
+              Manage projects
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuContent>
       )}

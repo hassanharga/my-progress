@@ -2,7 +2,6 @@
 
 import { revalidatePath } from 'next/cache';
 import { validateUserToken } from '@/helpers/validate-user';
-import { exportOptionsSchema } from '@/schema/export';
 import {
   createTaskInputSchema,
   taskDetailsSchema,
@@ -15,10 +14,8 @@ import { normalizeExecutionState } from '@/server/tasks/task-queries';
 import type { TaskTransitionInput } from '@/server/tasks/task-transition-types';
 import { createTaskWithTransition, transitionTask } from '@/server/tasks/transition-task';
 import { formatTaskDuration } from '@/utils/calculate-elapsed-time';
-import { buildExportWorkbook, sanitizeFilename, type ExportSessionRow, type ExportTaskRow } from '@/utils/export-tasks';
 import { logger } from '@/utils/logger';
-import { formatDuration, getUserPeriodBoundaries, WEEK_STARTS_ON, type WeekStartDay } from '@/utils/time-stats';
-import { endOfMonth, startOfMonth, startOfWeek, subMonths } from 'date-fns';
+import { formatDuration, getUserPeriodBoundaries, type WeekStartDay } from '@/utils/time-stats';
 import { z } from 'zod';
 
 import { paths } from '@/paths';
@@ -419,134 +416,3 @@ export const getTaskStats = async () => {
   const user = await validateUserToken();
   return getTaskStatsForOwner({ now: new Date(), ownerId: user.id!, prisma });
 };
-
-export const exportTasks = actionClient.inputSchema(exportOptionsSchema).action(async ({ parsedInput }) => {
-  const user = await validateUserToken();
-
-  const userData = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { currentProjectId: true, weekStartDay: true },
-  });
-
-  if (!userData?.currentProjectId) {
-    throw new Error('No active project. Create or select a project first.');
-  }
-
-  const projectId = userData.currentProjectId;
-  const weekStartDay: WeekStartDay = userData.weekStartDay ?? 'MONDAY';
-
-  const now = new Date();
-  let dateFrom: Date | null = null;
-  let dateTo: Date | null = null;
-
-  switch (parsedInput.preset) {
-    case 'this_week':
-      dateFrom = startOfWeek(now, { weekStartsOn: WEEK_STARTS_ON[weekStartDay] });
-      dateTo = now;
-      break;
-    case 'this_month':
-      dateFrom = startOfMonth(now);
-      dateTo = now;
-      break;
-    case 'last_month':
-      dateFrom = startOfMonth(subMonths(now, 1));
-      dateTo = endOfMonth(subMonths(now, 1));
-      break;
-    case 'custom':
-      dateFrom = parsedInput.dateFrom ? new Date(parsedInput.dateFrom) : null;
-      dateTo = parsedInput.dateTo ? new Date(parsedInput.dateTo) : null;
-      break;
-    case 'all_time':
-    default:
-      break;
-  }
-
-  const tasks = await prisma.task.findMany({
-    where: {
-      userId: user.id,
-      projectId,
-      ...(dateFrom || dateTo
-        ? {
-            createdAt: {
-              ...(dateFrom ? { gte: dateFrom } : {}),
-              ...(dateTo ? { lte: dateTo } : {}),
-            },
-          }
-        : {}),
-    },
-    select: {
-      id: true,
-      title: true,
-      status: true,
-      totalSeconds: true,
-      createdAt: true,
-      progress: true,
-      todo: true,
-      currentNextStep: true,
-      workLog: {
-        select: { content: true },
-        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-        take: 1,
-        where: { kind: 'PROGRESS' },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-
-  const taskIds = tasks.map((t) => t.id);
-
-  const taskTimes = taskIds.length
-    ? await prisma.workSession.findMany({
-        where: {
-          taskId: { in: taskIds },
-          ...(dateFrom || dateTo
-            ? {
-                startedAt: {
-                  ...(dateFrom ? { gte: dateFrom } : {}),
-                  ...(dateTo ? { lte: dateTo } : {}),
-                },
-              }
-            : {}),
-        },
-        include: {
-          Task: { select: { title: true, status: true } },
-        },
-        orderBy: { startedAt: 'desc' },
-      })
-    : [];
-
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-    select: { name: true },
-  });
-  const projectName = project?.name ?? 'project';
-
-  const exportTasksData: ExportTaskRow[] = tasks.map((t) => ({
-    id: t.id,
-    title: t.title,
-    status: normalizeExecutionState(t.status),
-    totalSeconds: t.totalSeconds,
-    createdAt: t.createdAt,
-    progress: t.workLog[0]?.content ?? t.progress,
-    todo: t.currentNextStep ?? t.todo,
-  }));
-
-  const exportSessionsData: ExportSessionRow[] = taskTimes.map((tt) => ({
-    taskTitle: tt.Task.title,
-    taskStatus: normalizeExecutionState(tt.Task.status),
-    startedAt: tt.startedAt,
-    endedAt: tt.endedAt,
-  }));
-
-  const workbook = buildExportWorkbook({
-    tasks: exportTasksData,
-    sessions: exportSessionsData,
-    projectName,
-  });
-
-  const buffer = await workbook.xlsx.writeBuffer();
-  const base64 = Buffer.from(buffer).toString('base64');
-  const filename = `${sanitizeFilename(projectName)}-export-${now.toISOString().slice(0, 10)}.xlsx`;
-
-  return { base64, filename };
-});

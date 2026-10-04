@@ -22,6 +22,27 @@ export const registerSchema = z
     }
   });
 
-export const settingsSchema = z.object({
-  weekStartDay: z.enum(['SUNDAY', 'MONDAY', 'SATURDAY']).default('MONDAY'),
-});
+export const settingsSchema = z
+  .object({
+    weekStartDay: z.enum(['SUNDAY', 'MONDAY', 'SATURDAY']).optional(),
+    timezone: z
+      .string()
+      .refine((value) => {
+        if (/^[+-]/.test(value)) return false;
+        try {
+          new Intl.DateTimeFormat('en', { timeZone: value }).format();
+          return true;
+        } catch {
+          return false;
+        }
+      }, 'Choose a valid IANA timezone.')
+      .optional(),
+    dailyCapacityMinutes: z.number().int().min(0).max(1440).nullable().optional(),
+  })
+  .refine((input) => Object.values(input).some((value) => value !== undefined), {
+    message: 'Provide at least one preference.',
+  });
+
+export type SettingsInput = z.infer<typeof settingsSchema>;
+
+export const firstUseTimezoneSchema = z.object({ timezone: settingsSchema.shape.timezone.unwrap() });

@@ -1,5 +1,7 @@
-import type { TodayViewModel } from '@/server/today/today-types';
 import type { DomainResult } from '@/server/tasks/task-transition-types';
+import type { TodayViewModel } from '@/server/today/today-types';
+
+import type { AccountProfile } from '@/types/user';
 
 export type TodayOperationKey = {
   kind: string;
@@ -20,6 +22,7 @@ export type TodayPendingOperation = TodayOperationKey & {
 };
 
 export type TodayClientState = {
+  profile?: AccountProfile;
   error: TodayClientError | null;
   latestAppliedSequence: number;
   notice: string | null;
@@ -34,18 +37,29 @@ export type TodayActionEnvelope = {
 };
 
 export type TodayActionOutcome =
-  | { ok: true; preserveInput: false }
-  | { error: TodayClientError; ok: false; preserveInput: true; stale?: boolean };
+  { ok: true; preserveInput: false } | { error: TodayClientError; ok: false; preserveInput: true; stale?: boolean };
 
 export type TodayActionInterpretation =
   | { kind: 'SUCCESS'; outcome: Extract<TodayActionOutcome, { ok: true }>; snapshot: TodayViewModel }
-  | { canonical?: TodayViewModel; error: TodayClientError; kind: 'CONFLICT'; outcome: Extract<TodayActionOutcome, { ok: false }> }
+  | {
+      canonical?: TodayViewModel;
+      error: TodayClientError;
+      kind: 'CONFLICT';
+      outcome: Extract<TodayActionOutcome, { ok: false }>;
+    }
   | { error: TodayClientError; kind: 'FAILURE'; outcome: Extract<TodayActionOutcome, { ok: false }> };
 
 export type TodayReducerEvent =
   | { key: TodayOperationKey; sequence: number; type: 'REQUEST' }
   | { key: TodayOperationKey; orderedItemIds: string[]; sequence: number; type: 'OPTIMISTIC_REORDER' }
-  | { key: TodayOperationKey; notice?: string; sequence: number; snapshot: TodayViewModel; type: 'SUCCESS' }
+  | {
+      key: TodayOperationKey;
+      notice?: string;
+      sequence: number;
+      snapshot: TodayViewModel;
+      profile?: AccountProfile;
+      type: 'SUCCESS';
+    }
   | { canonical?: TodayViewModel; error: TodayClientError; key: TodayOperationKey; sequence: number; type: 'CONFLICT' }
   | { error: TodayClientError; key: TodayOperationKey; sequence: number; type: 'FAILURE' }
   | { key?: TodayOperationKey; type: 'RESET' };
@@ -101,7 +115,11 @@ const applyReorderMove = (orderedItemIds: string[], operation: TodayPendingOpera
   return nextOrder;
 };
 
-const replayPendingReorders = (today: TodayViewModel, baseOrder: string[], pending: TodayPendingOperation[]): TodayViewModel => {
+const replayPendingReorders = (
+  today: TodayViewModel,
+  baseOrder: string[],
+  pending: TodayPendingOperation[]
+): TodayViewModel => {
   const replayedOrder = pending
     .filter((operation) => operation.kind === 'REORDER' && operation.rollbackOrder !== undefined)
     .sort((left, right) => left.sequence - right.sequence)
@@ -123,10 +141,15 @@ const failureInterpretation = (error: TodayClientError): TodayActionInterpretati
 export const interpretTodayActionResult = (response: TodayActionEnvelope): TodayActionInterpretation => {
   if (response.serverError) return failureInterpretation(unknownError(response.serverError));
   if (response.validationErrors) {
-    return failureInterpretation({ code: 'VALIDATION_ERROR', message: 'Check the highlighted fields.', retryable: false });
+    return failureInterpretation({
+      code: 'VALIDATION_ERROR',
+      message: 'Check the highlighted fields.',
+      retryable: false,
+    });
   }
   if (!response.data) return failureInterpretation(unknownError('The action did not return a result'));
-  if (response.data.ok) return { kind: 'SUCCESS', outcome: { ok: true, preserveInput: false }, snapshot: response.data.data };
+  if (response.data.ok)
+    return { kind: 'SUCCESS', outcome: { ok: true, preserveInput: false }, snapshot: response.data.data };
   if (response.data.error.code === 'CONFLICT') {
     return {
       canonical: response.data.canonical,
@@ -159,13 +182,20 @@ const failureNotice = (key: TodayOperationKey, error: TodayClientError): string 
 };
 
 const conflictNotice = (error: TodayClientError, hasCanonical: boolean): string => {
-  if (hasCanonical) return error.retryable ? 'The plan changed elsewhere. The server state is shown; you can retry.' : 'The plan changed elsewhere. The server state is shown.';
+  if (hasCanonical)
+    return error.retryable
+      ? 'The plan changed elsewhere. The server state is shown; you can retry.'
+      : 'The plan changed elsewhere. The server state is shown.';
   return error.retryable ? 'The server state could not be confirmed. Try again.' : error.message;
 };
 
-const invalidateRollbackOrders = (pending: TodayPendingOperation[], settledKey: TodayOperationKey): TodayPendingOperation[] =>
+const invalidateRollbackOrders = (
+  pending: TodayPendingOperation[],
+  settledKey: TodayOperationKey
+): TodayPendingOperation[] =>
   pending.map((operation) => {
-    if (operation.kind !== 'REORDER' || sameKey(operation, settledKey) || operation.rollbackOrder === undefined) return operation;
+    if (operation.kind !== 'REORDER' || sameKey(operation, settledKey) || operation.rollbackOrder === undefined)
+      return operation;
     const withoutRollback = { ...operation };
     delete withoutRollback.reorderDirection;
     delete withoutRollback.reorderItemId;
@@ -232,6 +262,7 @@ export const todayReducer = (state: TodayClientState, event: TodayReducerEvent):
     }
     const pending = invalidateRollbackOrders(removePending(state.pending, event.key), event.key);
     return {
+      profile: event.profile ?? state.profile,
       error: null,
       latestAppliedSequence: Math.max(state.latestAppliedSequence, event.sequence),
       notice: event.notice ?? successNotice(event.key),
@@ -245,6 +276,7 @@ export const todayReducer = (state: TodayClientState, event: TodayReducerEvent):
     if (event.canonical) {
       if (event.canonical.revision < state.today.revision) return { ...state, pending };
       return {
+        profile: state.profile,
         error: event.error,
         latestAppliedSequence: Math.max(state.latestAppliedSequence, event.sequence),
         notice: conflictNotice(event.error, true),
@@ -253,6 +285,7 @@ export const todayReducer = (state: TodayClientState, event: TodayReducerEvent):
       };
     }
     return {
+      profile: state.profile,
       error: event.error,
       latestAppliedSequence: state.latestAppliedSequence,
       notice: conflictNotice(event.error, false),
@@ -267,6 +300,7 @@ export const todayReducer = (state: TodayClientState, event: TodayReducerEvent):
 
   const pending = removePending(state.pending, event.key);
   return {
+    profile: state.profile,
     error: event.error,
     latestAppliedSequence: state.latestAppliedSequence,
     notice: failureNotice(event.key, event.error),

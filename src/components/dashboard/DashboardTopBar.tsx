@@ -1,12 +1,12 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
+import Link from 'next/link';
 import { Laptop, LogOut, Moon, Settings as SettingsIcon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
+import { paths } from '@/paths';
 import { useUserContext } from '@/contexts/user.context';
-import { restoreOverlayFocus } from '@/components/shared/overlay-focus';
-import { Settings } from '@/components/shared/Settings';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,20 +25,7 @@ import { THEME_OPTIONS } from './top-bar-model';
 
 export default function DashboardTopBar() {
   const { setTheme, theme } = useTheme();
-  const { user, logout, refetchUser } = useUserContext();
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const accountMenuTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const settingsOpenerRef = useRef<HTMLElement | null>(null);
-
-  const openSettings = (opener: HTMLElement | null) => {
-    settingsOpenerRef.current = opener;
-    setSettingsOpen(true);
-  };
-
-  const handleSettingsOpenChange = (open: boolean) => {
-    setSettingsOpen(open);
-    if (!open) restoreOverlayFocus(settingsOpenerRef.current);
-  };
+  const { user, logout } = useUserContext();
 
   const userInitials = useMemo(() => {
     if (!user?.name) return 'U';
@@ -52,7 +39,7 @@ export default function DashboardTopBar() {
 
   return (
     <header className="sticky top-0 z-20 flex h-[var(--shell-topbar-height)] shrink-0 items-center gap-200 border-b bg-surface/90 px-200 backdrop-blur sm:px-300">
-      <ProjectSwitcher onManageProjects={openSettings} />
+      <ProjectSwitcher />
 
       <div className="ml-auto flex items-center gap-100">
         <DropdownMenu>
@@ -80,7 +67,6 @@ export default function DashboardTopBar() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              ref={accountMenuTriggerRef}
               aria-label="Open account menu"
               className="cursor-pointer rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-border-focused focus-visible:ring-offset-2"
             >
@@ -97,8 +83,10 @@ export default function DashboardTopBar() {
               <p className="text-body-small text-text-subtle truncate">{user?.email}</p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => openSettings(accountMenuTriggerRef.current)} className="cursor-pointer">
-              <SettingsIcon className="mr-2 h-4 w-4" /> Settings
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link href={paths.settings}>
+                <SettingsIcon className="mr-2 h-4 w-4" /> Settings
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout} variant="destructive" className="cursor-pointer">
@@ -107,15 +95,6 @@ export default function DashboardTopBar() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
-      {settingsOpen && (
-        <Settings
-          weekStartDay={user?.weekStartDay ?? 'MONDAY'}
-          refetch={refetchUser}
-          open={settingsOpen}
-          setOpen={handleSettingsOpenChange}
-        />
-      )}
     </header>
   );
 }

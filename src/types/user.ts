@@ -6,3 +6,8 @@ type UserWithRelations = {
 
 export type User = IUser & UserWithRelations;
 export type UserSelect = Prisma.UserSelect;
+
+export type AccountProfile = Pick<
+  IUser,
+  'id' | 'name' | 'email' | 'currentProjectId' | 'weekStartDay' | 'timezone' | 'dailyCapacityMinutes'
+> & { currentProject: { id: string; name: string } | null };

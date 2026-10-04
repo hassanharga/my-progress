@@ -1,20 +1,21 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, type JSX, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { deleteCookie } from '@/utils/cookie';
 import { useAction } from 'next-safe-action/hooks';
 
-import { User } from '@/types/user';
+import type { AccountProfile } from '@/types/user';
 import { paths } from '@/paths';
 import { me } from '@/actions/user';
+import { isPrivateAccountPath } from '@/components/auth/auth-model';
 
 interface UserContextType {
-  user: User | null;
+  user: AccountProfile | null;
   userLoading: boolean;
   userLoadFailed: boolean;
   refetchUser: () => void;
-  setUserData: (userData: User | null) => void;
+  setUserData: (userData: AccountProfile | null) => void;
   logout: () => Promise<void>;
 }
 const UserContext = createContext<UserContextType>({
@@ -28,14 +29,15 @@ const UserContext = createContext<UserContextType>({
 
 const UserProvider = ({ children }: { children: ReactNode }): JSX.Element => {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const pathname = usePathname();
+  const [user, setUser] = useState<AccountProfile | null>(null);
   const [userLoading, setUserLoading] = useState(true);
   const [userLoadFailed, setUserLoadFailed] = useState(false);
 
   const { execute } = useAction(me, {
     onSuccess: ({ data }) => {
       setUser(data?.user ?? null);
-      setUserLoadFailed(!data?.user);
+      setUserLoadFailed(false);
       setUserLoading(false);
     },
     onError: () => {
@@ -44,7 +46,13 @@ const UserProvider = ({ children }: { children: ReactNode }): JSX.Element => {
     },
   });
 
-  const setUserData = (userData: User | null) => {
+  useEffect(() => {
+    if (!userLoading && !userLoadFailed && !user && isPrivateAccountPath(pathname)) {
+      router.replace('/auth?mode=login&reason=session-ended');
+    }
+  }, [userLoading, userLoadFailed, user, pathname, router]);
+
+  const setUserData = (userData: AccountProfile | null) => {
     setUser(userData);
     if (userData) {
       setUserLoadFailed(false);
@@ -65,6 +73,7 @@ const UserProvider = ({ children }: { children: ReactNode }): JSX.Element => {
 
   const logout = async (): Promise<void> => {
     await deleteCookie('token');
+    setUserLoading(true);
     setUser(null);
     router.replace(paths.auth);
   };

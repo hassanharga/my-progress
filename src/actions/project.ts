@@ -2,7 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { validateUserToken } from '@/helpers/validate-user';
-import { projectCreateSchema, projectIdSchema, projectRenameSchema } from '@/schema/project';
+import { createFirstProjectSchema, projectCreateSchema, projectIdSchema, projectRenameSchema } from '@/schema/project';
+import { createFirstProjectForOwner } from '@/server/account/create-first-project';
 import { mutateProjectWorkspaceLifecycleForOwner } from '@/server/projects/mutate-project-workspace';
 import type { ProjectWorkspaceQuery } from '@/server/projects/project-workspace-types';
 
@@ -13,6 +14,16 @@ import prisma from '@/lib/db';
 import type { PrismaClient } from '../../generated/prisma/client';
 
 const defaultWorkspaceQuery: ProjectWorkspaceQuery = { query: '', state: null, taskId: null };
+
+export const createFirstProject = actionClient.inputSchema(createFirstProjectSchema).action(async ({ parsedInput }) => {
+  const { id } = await validateUserToken();
+  if (!id) throw new Error('Account unavailable.');
+  const result = await createFirstProjectForOwner({ prisma, ownerId: id, input: parsedInput });
+  if (result.ok || result.canonical) {
+    for (const path of [paths.dashboard, paths.projects, paths.settings]) revalidatePath(path);
+  }
+  return result;
+});
 
 export const createProject = actionClient.inputSchema(projectCreateSchema).action(async ({ parsedInput: { name } }) => {
   const user = await validateUserToken();
